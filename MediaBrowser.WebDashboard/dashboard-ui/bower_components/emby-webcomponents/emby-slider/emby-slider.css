@@ -105,6 +105,8 @@ _:-ms-input-placeholder {
     background: #00a4dc;
     border: none;
     transform: Scale(1.4, 1.4);
+    -moz-transition: -moz-transform .3s cubic-bezier(.4, 0, .2, 1), border .18s cubic-bezier(.4, 0, .2, 1), -moz-box-shadow .18s cubic-bezier(.4, 0, .2, 1), background .28s cubic-bezier(.4, 0, .2, 1);
+    transition: transform .3s cubic-bezier(.4, 0, .2, 1), border .18s cubic-bezier(.4, 0, .2, 1), box-shadow .18s cubic-bezier(.4, 0, .2, 1), background .28s cubic-bezier(.4, 0, .2, 1)
 }
 
 .mdl-slider:hover::-moz-range-thumb {
@@ -248,3 +250,10 @@ _:-ms-input-placeholder {
     margin: 0;
     padding: .5em .75em
 }
+
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {/*Fixes for Internet Explorere 10*/
+    .mdl-slider{
+        position: absolute;
+        top: -20px;
+    }
+ }
