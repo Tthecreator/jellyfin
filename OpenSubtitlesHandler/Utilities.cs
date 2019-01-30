@@ -18,12 +18,13 @@
  */
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Cryptography;
+using MediaBrowser.Model.Text;
 
 namespace OpenSubtitlesHandler
 {
@@ -34,6 +35,8 @@ namespace OpenSubtitlesHandler
     {
         public static ICryptoProvider CryptographyProvider { get; set; }
         public static IHttpClient HttpClient { get; set; }
+        public static ITextEncoding EncodingHelper { get; set; }
+
         private static string XML_RPC_SERVER = "https://api.opensubtitles.org/xml-rpc";
         //private static string XML_RPC_SERVER = "https://92.240.234.122/xml-rpc";
         private static string HostHeader = "api.opensubtitles.org:443";
@@ -44,7 +47,7 @@ namespace OpenSubtitlesHandler
         /// <returns>The hash as Hexadecimal string</returns>
         public static string ComputeHash(Stream stream)
         {
-            byte[] hash = MovieHasher.ComputeMovieHash(stream);
+			byte[] hash = MovieHasher.ComputeMovieHash(stream);
             return MovieHasher.ToHexadecimal(hash);
         }
         /// <summary>
@@ -54,9 +57,9 @@ namespace OpenSubtitlesHandler
         /// <returns>Bytes array of decompressed data</returns>
         public static byte[] Decompress(Stream dataToDecompress)
         {
-            using (var target = new MemoryStream())
+            using (MemoryStream target = new MemoryStream())
             {
-                using (var decompressionStream = new System.IO.Compression.GZipStream(dataToDecompress, System.IO.Compression.CompressionMode.Decompress))
+                using (System.IO.Compression.GZipStream decompressionStream = new System.IO.Compression.GZipStream(dataToDecompress, System.IO.Compression.CompressionMode.Decompress))
                 {
                     decompressionStream.CopyTo(target);
                 }
@@ -114,7 +117,7 @@ namespace OpenSubtitlesHandler
             using (responseStream)
             {
                 // Handle response, should be XML text.
-                var data = new List<byte>();
+                List<byte> data = new List<byte>();
                 while (true)
                 {
                     int r = responseStream.ReadByte();
@@ -123,13 +126,13 @@ namespace OpenSubtitlesHandler
                     data.Add((byte)r);
                 }
                 var bytes = data.ToArray();
-                return Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+                return EncodingHelper.GetASCIIEncoding().GetString(bytes, 0, bytes.Length);
             }
         }
 
         public static byte[] GetASCIIBytes(string text)
         {
-            return Encoding.ASCII.GetBytes(text);
+            return EncodingHelper.GetASCIIEncoding().GetBytes(text);
         }
 
         /// <summary>

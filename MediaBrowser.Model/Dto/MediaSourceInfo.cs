@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
-using MediaBrowser.Model.Entities;
+﻿using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaInfo;
+using System.Collections.Generic;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Session;
+using System;
 
 namespace MediaBrowser.Model.Dto
 {
@@ -120,7 +120,7 @@ namespace MediaBrowser.Model.Dto
             {
                 var val = defaultIndex.Value;
 
-                foreach (var i in MediaStreams)
+                foreach (MediaStream i in MediaStreams)
                 {
                     if (i.Type == MediaStreamType.Audio && i.Index == val)
                     {
@@ -129,7 +129,7 @@ namespace MediaBrowser.Model.Dto
                 }
             }
 
-            foreach (var i in MediaStreams)
+            foreach (MediaStream i in MediaStreams)
             {
                 if (i.Type == MediaStreamType.Audio && i.IsDefault)
                 {
@@ -137,7 +137,7 @@ namespace MediaBrowser.Model.Dto
                 }
             }
 
-            foreach (var i in MediaStreams)
+            foreach (MediaStream i in MediaStreams)
             {
                 if (i.Type == MediaStreamType.Audio)
                 {
@@ -153,7 +153,7 @@ namespace MediaBrowser.Model.Dto
         {
             get
             {
-                foreach (var i in MediaStreams)
+                foreach (MediaStream i in MediaStreams)
                 {
                     if (i.Type == MediaStreamType.Video)
                     {
@@ -167,7 +167,7 @@ namespace MediaBrowser.Model.Dto
 
         public MediaStream GetMediaStream(MediaStreamType type, int index)
         {
-            foreach (var i in MediaStreams)
+            foreach (MediaStream i in MediaStreams)
             {
                 if (i.Type == type && i.Index == index)
                 {
@@ -183,7 +183,7 @@ namespace MediaBrowser.Model.Dto
             int numMatches = 0;
             int numStreams = 0;
 
-            foreach (var i in MediaStreams)
+            foreach (MediaStream i in MediaStreams)
             {
                 numStreams++;
                 if (i.Type == type)
@@ -203,7 +203,7 @@ namespace MediaBrowser.Model.Dto
         public bool? IsSecondaryAudio(MediaStream stream)
         {
             // Look for the first audio track marked as default
-            foreach (var currentStream in MediaStreams)
+            foreach (MediaStream currentStream in MediaStreams)
             {
                 if (currentStream.Type == MediaStreamType.Audio && currentStream.IsDefault)
                 {
@@ -215,7 +215,7 @@ namespace MediaBrowser.Model.Dto
             }
 
             // Look for the first audio track
-            foreach (var currentStream in MediaStreams)
+            foreach (MediaStream currentStream in MediaStreams)
             {
                 if (currentStream.Type == MediaStreamType.Audio)
                 {

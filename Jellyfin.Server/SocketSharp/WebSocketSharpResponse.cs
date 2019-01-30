@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -31,24 +31,27 @@ namespace Jellyfin.SocketSharp
 
         public IRequest Request { get; private set; }
         public Dictionary<string, object> Items { get; private set; }
-        public object OriginalResponse => _response;
+        public object OriginalResponse
+        {
+            get { return _response; }
+        }
 
         public int StatusCode
         {
-            get => this._response.StatusCode;
-            set => this._response.StatusCode = value;
+            get { return this._response.StatusCode; }
+            set { this._response.StatusCode = value; }
         }
 
         public string StatusDescription
         {
-            get => this._response.StatusDescription;
-            set => this._response.StatusDescription = value;
+            get { return this._response.StatusDescription; }
+            set { this._response.StatusDescription = value; }
         }
 
         public string ContentType
         {
-            get => _response.ContentType;
-            set => _response.ContentType = value;
+            get { return _response.ContentType; }
+            set { _response.ContentType = value; }
         }
 
         //public ICookies Cookies { get; set; }
@@ -64,7 +67,13 @@ namespace Jellyfin.SocketSharp
             _response.AddHeader(name, value);
         }
 
-        public QueryParamCollection Headers => _response.Headers;
+        public QueryParamCollection Headers
+        {
+            get
+            {
+                return _response.Headers;
+            }
+        }
 
         public string GetHeader(string name)
         {
@@ -76,7 +85,10 @@ namespace Jellyfin.SocketSharp
             _response.Redirect(url);
         }
 
-        public Stream OutputStream => _response.OutputStream;
+        public Stream OutputStream
+        {
+            get { return _response.OutputStream; }
+        }
 
         public void Close()
         {
@@ -167,8 +179,8 @@ namespace Jellyfin.SocketSharp
 
         public bool SendChunked
         {
-            get => _response.SendChunked;
-            set => _response.SendChunked = value;
+            get { return _response.SendChunked; }
+            set { _response.SendChunked = value; }
         }
 
         public bool KeepAlive { get; set; }

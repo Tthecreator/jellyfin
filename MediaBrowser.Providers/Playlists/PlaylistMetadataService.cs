@@ -1,13 +1,16 @@
-using System.Collections.Generic;
+﻿using System;
 using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Playlists;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Providers.Manager;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Providers.Manager;
+using System.Collections.Generic;
+using System.Linq;
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.Entities;
 
 namespace MediaBrowser.Providers.Playlists
 {
@@ -37,10 +40,28 @@ namespace MediaBrowser.Providers.Playlists
         {
         }
 
-        protected override bool EnableUpdatingGenresFromChildren => true;
+        protected override bool EnableUpdatingGenresFromChildren
+        {
+            get
+            {
+                return true;
+            }
+        }
 
-        protected override bool EnableUpdatingOfficialRatingFromChildren => true;
+        protected override bool EnableUpdatingOfficialRatingFromChildren
+        {
+            get
+            {
+                return true;
+            }
+        }
 
-        protected override bool EnableUpdatingStudiosFromChildren => true;
+        protected override bool EnableUpdatingStudiosFromChildren
+        {
+            get
+            {
+                return true;
+            }
+        }
     }
 }

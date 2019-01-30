@@ -1,3 +1,13 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Extensions;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Providers.Movies;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,19 +16,11 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Net;
-using MediaBrowser.Model.Providers;
-using MediaBrowser.Model.Serialization;
-using MediaBrowser.Providers.Movies;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
 
 namespace MediaBrowser.Providers.People
 {
@@ -44,7 +46,10 @@ namespace MediaBrowser.Providers.People
             Current = this;
         }
 
-        public string Name => "TheMovieDb";
+        public string Name
+        {
+            get { return "TheMovieDb"; }
+        }
 
         public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(PersonLookupInfo searchInfo, CancellationToken cancellationToken)
         {
@@ -167,7 +172,9 @@ namespace MediaBrowser.Providers.People
                 }
                 item.Overview = info.biography;
 
-                if (DateTime.TryParseExact(info.birthday, "yyyy-MM-dd", new CultureInfo("en-US"), DateTimeStyles.None, out var date))
+                DateTime date;
+
+                if (DateTime.TryParseExact(info.birthday, "yyyy-MM-dd", new CultureInfo("en-US"), DateTimeStyles.None, out date))
                 {
                     item.PremiereDate = date.ToUniversalTime();
                 }
@@ -229,7 +236,7 @@ namespace MediaBrowser.Providers.People
             {
                 using (var json = response.Content)
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(dataFilePath));
+                    _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(dataFilePath));
 
                     using (var fs = _fileSystem.GetFileStream(dataFilePath, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read, true))
                     {
@@ -263,7 +270,7 @@ namespace MediaBrowser.Providers.People
         public class PersonSearchResult
         {
             /// <summary>
-            /// Gets or sets a value indicating whether this <see cref="PersonSearchResult" /> is adult.
+            /// Gets or sets a value indicating whether this <see cref="MovieDbPersonProvider.PersonSearchResult" /> is adult.
             /// </summary>
             /// <value><c>true</c> if adult; otherwise, <c>false</c>.</value>
             public bool Adult { get; set; }
@@ -298,7 +305,7 @@ namespace MediaBrowser.Providers.People
             /// Gets or sets the results.
             /// </summary>
             /// <value>The results.</value>
-            public List<PersonSearchResult> Results { get; set; }
+            public List<MovieDbPersonProvider.PersonSearchResult> Results { get; set; }
             /// <summary>
             /// Gets or sets the total_ pages.
             /// </summary>

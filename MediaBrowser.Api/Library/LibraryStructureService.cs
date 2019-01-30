@@ -1,3 +1,7 @@
+﻿using MediaBrowser.Controller;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Net;
+using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,13 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Progress;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Net;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Api.Library
@@ -190,7 +192,7 @@ namespace MediaBrowser.Api.Library
         {
             if (appPaths == null)
             {
-                throw new ArgumentNullException(nameof(appPaths));
+                throw new ArgumentNullException("appPaths");
             }
 
             _appPaths = appPaths;
@@ -242,12 +244,12 @@ namespace MediaBrowser.Api.Library
         {
             if (string.IsNullOrWhiteSpace(request.Name))
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException("request");
             }
 
             if (string.IsNullOrWhiteSpace(request.NewName))
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException("request");
             }
 
             var rootFolderPath = _appPaths.DefaultUserViewsPath;
@@ -255,12 +257,12 @@ namespace MediaBrowser.Api.Library
             var currentPath = Path.Combine(rootFolderPath, request.Name);
             var newPath = Path.Combine(rootFolderPath, request.NewName);
 
-            if (!Directory.Exists(currentPath))
+            if (!_fileSystem.DirectoryExists(currentPath))
             {
                 throw new FileNotFoundException("The media collection does not exist");
             }
 
-            if (!string.Equals(currentPath, newPath, StringComparison.OrdinalIgnoreCase) && Directory.Exists(newPath))
+            if (!string.Equals(currentPath, newPath, StringComparison.OrdinalIgnoreCase) && _fileSystem.DirectoryExists(newPath))
             {
                 throw new ArgumentException("Media library already exists at " + newPath + ".");
             }
@@ -273,11 +275,11 @@ namespace MediaBrowser.Api.Library
                 if (string.Equals(currentPath, newPath, StringComparison.OrdinalIgnoreCase))
                 {
                     var tempPath = Path.Combine(rootFolderPath, Guid.NewGuid().ToString("N"));
-                    Directory.Move(currentPath, tempPath);
+                    _fileSystem.MoveDirectory(currentPath, tempPath);
                     currentPath = tempPath;
                 }
 
-                Directory.Move(currentPath, newPath);
+                _fileSystem.MoveDirectory(currentPath, newPath);
             }
             finally
             {
@@ -320,7 +322,7 @@ namespace MediaBrowser.Api.Library
         {
             if (string.IsNullOrWhiteSpace(request.Name))
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException("request");
             }
 
             _libraryMonitor.Stop();
@@ -368,7 +370,7 @@ namespace MediaBrowser.Api.Library
         {
             if (string.IsNullOrWhiteSpace(request.Name))
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException("request");
             }
 
             _libraryManager.UpdateMediaPath(request.Name, request.PathInfo);
@@ -382,7 +384,7 @@ namespace MediaBrowser.Api.Library
         {
             if (string.IsNullOrWhiteSpace(request.Name))
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException("request");
             }
 
             _libraryMonitor.Stop();

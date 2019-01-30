@@ -1,5 +1,6 @@
-using System.IO;
+﻿using System.IO;
 using MediaBrowser.Model.IO;
+using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Archives.Tar;
 using SharpCompress.Common;
@@ -14,14 +15,14 @@ namespace Emby.Server.Implementations.Archiving
     /// </summary>
     public class ZipClient : IZipClient
     {
-        private readonly IFileSystem _fileSystem;
+		private readonly IFileSystem _fileSystem;
 
-        public ZipClient(IFileSystem fileSystem)
-        {
-            _fileSystem = fileSystem;
-        }
+		public ZipClient(IFileSystem fileSystem) 
+		{
+			_fileSystem = fileSystem;
+		}
 
-        /// <summary>
+		/// <summary>
         /// Extracts all.
         /// </summary>
         /// <param name="sourceFile">The source file.</param>
@@ -29,7 +30,7 @@ namespace Emby.Server.Implementations.Archiving
         /// <param name="overwriteExistingFiles">if set to <c>true</c> [overwrite existing files].</param>
         public void ExtractAll(string sourceFile, string targetPath, bool overwriteExistingFiles)
         {
-            using (var fileStream = File.OpenRead(sourceFile))
+			using (var fileStream = _fileSystem.OpenRead(sourceFile))
             {
                 ExtractAll(fileStream, targetPath, overwriteExistingFiles);
             }
@@ -115,7 +116,7 @@ namespace Emby.Server.Implementations.Archiving
         /// <param name="overwriteExistingFiles">if set to <c>true</c> [overwrite existing files].</param>
         public void ExtractAllFrom7z(string sourceFile, string targetPath, bool overwriteExistingFiles)
         {
-            using (var fileStream = File.OpenRead(sourceFile))
+			using (var fileStream = _fileSystem.OpenRead(sourceFile))
             {
                 ExtractAllFrom7z(fileStream, targetPath, overwriteExistingFiles);
             }
@@ -155,7 +156,7 @@ namespace Emby.Server.Implementations.Archiving
         /// <param name="overwriteExistingFiles">if set to <c>true</c> [overwrite existing files].</param>
         public void ExtractAllFromTar(string sourceFile, string targetPath, bool overwriteExistingFiles)
         {
-            using (var fileStream = File.OpenRead(sourceFile))
+			using (var fileStream = _fileSystem.OpenRead(sourceFile))
             {
                 ExtractAllFromTar(fileStream, targetPath, overwriteExistingFiles);
             }

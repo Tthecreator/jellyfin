@@ -1,3 +1,7 @@
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Dlna;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -5,9 +9,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Dlna.Eventing
 {
@@ -82,7 +83,9 @@ namespace Emby.Dlna.Eventing
                 // Starts with SECOND-
                 header = header.Split('-').Last();
 
-                if (int.TryParse(header, NumberStyles.Integer, _usCulture, out var val))
+                int val;
+
+                if (int.TryParse(header, NumberStyles.Integer, _usCulture, out val))
                 {
                     return val;
                 }
@@ -95,7 +98,8 @@ namespace Emby.Dlna.Eventing
         {
             _logger.LogDebug("Cancelling event subscription {0}", subscriptionId);
 
-            _subscriptions.TryRemove(subscriptionId, out EventSubscription sub);
+            EventSubscription sub;
+            _subscriptions.TryRemove(subscriptionId, out sub);
 
             return new EventSubscriptionResponse
             {
@@ -126,7 +130,9 @@ namespace Emby.Dlna.Eventing
 
         private EventSubscription GetSubscription(string id, bool throwOnMissing)
         {
-            if (!_subscriptions.TryGetValue(id, out EventSubscription e) && throwOnMissing)
+            EventSubscription e;
+
+            if (!_subscriptions.TryGetValue(id, out e) && throwOnMissing)
             {
                 throw new ResourceNotFoundException("Event with Id " + id + " not found.");
             }

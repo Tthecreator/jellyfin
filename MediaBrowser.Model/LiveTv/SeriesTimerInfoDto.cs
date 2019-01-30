@@ -1,6 +1,7 @@
+﻿using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
-using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Model.LiveTv
 {

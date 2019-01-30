@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using MediaBrowser.Model.IO;
 
 namespace MediaBrowser.LocalMetadata.Images
@@ -19,9 +19,15 @@ namespace MediaBrowser.LocalMetadata.Images
             _fileSystem = fileSystem;
         }
 
-        public string Name => "Local Images";
+        public string Name
+        {
+            get { return "Local Images"; }
+        }
 
-        public int Order => 0;
+        public int Order
+        {
+            get { return 0; }
+        }
 
         public bool Supports(BaseItem item)
         {
@@ -30,11 +36,11 @@ namespace MediaBrowser.LocalMetadata.Images
 
         public List<LocalImageInfo> GetImages(BaseItem item, IDirectoryService directoryService)
         {
-            var parentPath = Path.GetDirectoryName(item.Path);
+            var parentPath = _fileSystem.GetDirectoryName(item.Path);
 
             var parentPathFiles = directoryService.GetFiles(parentPath);
 
-            var nameWithoutExtension = Path.GetFileNameWithoutExtension(item.Path);
+            var nameWithoutExtension = _fileSystem.GetFileNameWithoutExtension(item.Path);
 
             return GetFilesFromParentFolder(nameWithoutExtension, parentPathFiles);
         }

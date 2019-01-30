@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Model.Cryptography;
+using MediaBrowser.Model.IO;
 using SocketHttpListener.Net.WebSockets;
+using SocketHttpListener.Primitives;
 using HttpStatusCode = SocketHttpListener.Net.HttpStatusCode;
+using System.Net.Sockets;
 using WebSocketState = System.Net.WebSockets.WebSocketState;
 
 namespace SocketHttpListener
@@ -24,6 +27,7 @@ namespace SocketHttpListener
     {
         #region Private Fields
 
+        private string _base64Key;
         private Action _closeContext;
         private CompressionMethod _compression;
         private WebSocketContext _context;
@@ -34,12 +38,20 @@ namespace SocketHttpListener
         private object _forMessageEventQueue;
         private object _forSend;
         private const string _guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        private Func<WebSocketContext, string>
+                                        _handshakeRequestChecker;
         private Queue<MessageEventArgs> _messageEventQueue;
+        private uint _nonceCount;
+        private string _origin;
+        private bool _preAuth;
         private string _protocol;
+        private string[] _protocols;
+        private Uri _proxyUri;
         private volatile WebSocketState _readyState;
         private AutoResetEvent _receivePong;
         private bool _secure;
         private Stream _stream;
+        private Uri _uri;
         private const string _version = "13";
 
         #endregion
@@ -69,8 +81,11 @@ namespace SocketHttpListener
             init();
         }
 
-        // In the .NET Framework, this pulls the value from a P/Invoke.  Here we just hardcode it to a reasonable default.
-        public static TimeSpan DefaultKeepAliveInterval => TimeSpan.FromSeconds(30);
+        public static TimeSpan DefaultKeepAliveInterval
+        {
+            // In the .NET Framework, this pulls the value from a P/Invoke.  Here we just hardcode it to a reasonable default.
+            get { return TimeSpan.FromSeconds(30); }
+        }
 
         #endregion
 
@@ -81,7 +96,13 @@ namespace SocketHttpListener
         /// One of the <see cref="WebSocketState"/> enum values, indicates the state of the WebSocket
         /// connection. The default value is <see cref="WebSocketState.Connecting"/>.
         /// </value>
-        public WebSocketState ReadyState => _readyState;
+        public WebSocketState ReadyState
+        {
+            get
+            {
+                return _readyState;
+            }
+        }
 
         #region Public Events
 
@@ -719,7 +740,7 @@ namespace SocketHttpListener
         {
             if (data == null)
             {
-                throw new ArgumentNullException(nameof(data));
+                throw new ArgumentNullException("data");
             }
 
             var msg = _readyState.CheckIfOpen();
@@ -744,7 +765,7 @@ namespace SocketHttpListener
         {
             if (data == null)
             {
-                throw new ArgumentNullException(nameof(data));
+                throw new ArgumentNullException("data");
             }
 
             var msg = _readyState.CheckIfOpen();

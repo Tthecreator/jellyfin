@@ -1,4 +1,4 @@
-using MediaBrowser.Model.Entities;
+﻿using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Api.Images

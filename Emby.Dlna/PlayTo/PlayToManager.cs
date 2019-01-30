@@ -1,23 +1,26 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Dlna;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Session;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Session;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Events;
 using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Net;
-using MediaBrowser.Model.Session;
 using MediaBrowser.Model.Threading;
-using Microsoft.Extensions.Logging;
+using System.Threading;
+using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller.Devices;
 
 namespace Emby.Dlna.PlayTo
 {
@@ -78,9 +81,11 @@ namespace Emby.Dlna.PlayTo
 
             var info = e.Argument;
 
-            if (!info.Headers.TryGetValue("USN", out string usn)) usn = string.Empty;
+            string usn;
+            if (!info.Headers.TryGetValue("USN", out usn)) usn = string.Empty;
 
-            if (!info.Headers.TryGetValue("NT", out string nt)) nt = string.Empty;
+            string nt;
+            if (!info.Headers.TryGetValue("NT", out nt)) nt = string.Empty;
 
             string location = info.Location.ToString();
 
@@ -153,7 +158,8 @@ namespace Emby.Dlna.PlayTo
             _logger.LogDebug("Attempting to create PlayToController from location {0}", location);
 
             _logger.LogDebug("Logging session activity from location {0}", location);
-            if (info.Headers.TryGetValue("USN", out string uuid))
+            string uuid;
+            if (info.Headers.TryGetValue("USN", out uuid))
             {
                 uuid = GetUuid(uuid);
             }
@@ -162,7 +168,9 @@ namespace Emby.Dlna.PlayTo
                 uuid = location.GetMD5().ToString("N");
             }
 
-            var sessionInfo = _sessionManager.LogSessionActivity("DLNA", _appHost.ApplicationVersion, uuid, null, uri.OriginalString, null);
+            string deviceName = null;
+
+            var sessionInfo = _sessionManager.LogSessionActivity("DLNA", _appHost.ApplicationVersion.ToString(), uuid, deviceName, uri.OriginalString, null);
 
             var controller = sessionInfo.SessionControllers.OfType<PlayToController>().FirstOrDefault();
 
@@ -170,7 +178,7 @@ namespace Emby.Dlna.PlayTo
             {
                 var device = await Device.CreateuPnpDeviceAsync(uri, _httpClient, _config, _logger, _timerFactory, cancellationToken).ConfigureAwait(false);
 
-                string deviceName = device.Properties.Name;
+                deviceName = device.Properties.Name;
 
                 _sessionManager.UpdateDeviceName(sessionInfo.Id, deviceName);
 
@@ -184,6 +192,8 @@ namespace Emby.Dlna.PlayTo
                     serverAddress = _appHost.GetLocalApiUrl(info.LocalIpAddress);
                 }
 
+                string accessToken = null;
+
                 controller = new PlayToController(sessionInfo,
                    _sessionManager,
                    _libraryManager,
@@ -192,7 +202,7 @@ namespace Emby.Dlna.PlayTo
                    _userManager,
                    _imageProcessor,
                    serverAddress,
-                   null,
+                   accessToken,
                    _deviceDiscovery,
                    _userDataManager,
                    _localization,

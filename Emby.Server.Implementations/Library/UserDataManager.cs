@@ -1,16 +1,16 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Threading;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Dto;
+﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading;
+using MediaBrowser.Controller.Dto;
+using System.Globalization;
 
 namespace Emby.Server.Implementations.Library
 {
@@ -53,11 +53,11 @@ namespace Emby.Server.Implementations.Library
         {
             if (userData == null)
             {
-                throw new ArgumentNullException(nameof(userData));
+                throw new ArgumentNullException("userData");
             }
             if (item == null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException("item");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -150,7 +150,7 @@ namespace Emby.Server.Implementations.Library
         /// Gets the internal key.
         /// </summary>
         /// <returns>System.String.</returns>
-        private static string GetCacheKey(long internalUserId, Guid itemId)
+        private string GetCacheKey(long internalUserId, Guid itemId)
         {
             return internalUserId.ToString(CultureInfo.InvariantCulture) + "-" + itemId.ToString("N");
         }
@@ -193,12 +193,12 @@ namespace Emby.Server.Implementations.Library
         /// </summary>
         /// <param name="data">The data.</param>
         /// <returns>DtoUserItemData.</returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="System.ArgumentNullException"></exception>
         private UserItemDataDto GetUserItemDataDto(UserItemData data)
         {
             if (data == null)
             {
-                throw new ArgumentNullException(nameof(data));
+                throw new ArgumentNullException("data");
             }
 
             return new UserItemDataDto
@@ -226,7 +226,7 @@ namespace Emby.Server.Implementations.Library
             // If a position has been reported, and if we know the duration
             if (positionTicks > 0 && hasRuntime)
             {
-                var pctIn = decimal.Divide(positionTicks, runtimeTicks) * 100;
+                var pctIn = Decimal.Divide(positionTicks, runtimeTicks) * 100;
 
                 // Don't track in very beginning
                 if (pctIn < _config.Configuration.MinResumePct)

@@ -1,4 +1,4 @@
-using MediaBrowser.Tests.ConsistencyTests.TextIndexing;
+﻿using MediaBrowser.Tests.ConsistencyTests.TextIndexing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;

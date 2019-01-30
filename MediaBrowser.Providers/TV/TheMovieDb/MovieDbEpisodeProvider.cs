@@ -1,22 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Globalization;
-using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
-using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.Globalization;
 
 namespace MediaBrowser.Providers.TV
 {
@@ -71,7 +73,8 @@ namespace MediaBrowser.Providers.TV
                 return result;
             }
 
-            info.SeriesProviderIds.TryGetValue(MetadataProviders.Tmdb.ToString(), out string seriesTmdbId);
+            string seriesTmdbId;
+            info.SeriesProviderIds.TryGetValue(MetadataProviders.Tmdb.ToString(), out seriesTmdbId);
 
             if (string.IsNullOrEmpty(seriesTmdbId))
             {
@@ -125,7 +128,7 @@ namespace MediaBrowser.Providers.TV
                 {
                     foreach (var video in response.videos.results)
                     {
-                        if (video.type.Equals("trailer", System.StringComparison.OrdinalIgnoreCase)
+                        if (video.type.Equals("trailer", System.StringComparison.OrdinalIgnoreCase) 
                             || video.type.Equals("clip", System.StringComparison.OrdinalIgnoreCase))
                         {
                             if (video.site.Equals("youtube", System.StringComparison.OrdinalIgnoreCase))
@@ -208,9 +211,19 @@ namespace MediaBrowser.Providers.TV
         {
             return GetResponse(url, cancellationToken);
         }
-        // After TheTvDb
-        public int Order => 1;
 
-        public string Name => "TheMovieDb";
+        public int Order
+        {
+            get
+            {
+                // After TheTvDb
+                return 1;
+            }
+        }
+
+        public string Name
+        {
+            get { return "TheMovieDb"; }
+        }
     }
 }

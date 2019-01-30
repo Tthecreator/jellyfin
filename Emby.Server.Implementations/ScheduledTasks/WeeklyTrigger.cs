@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Threading;
-using MediaBrowser.Model.Tasks;
+using MediaBrowser.Model.Events;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Tasks;
 
 namespace Emby.Server.Implementations.ScheduledTasks
 {

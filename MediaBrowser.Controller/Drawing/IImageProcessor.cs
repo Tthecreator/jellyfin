@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+﻿using System;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Controller.Drawing
 {
@@ -26,16 +26,16 @@ namespace MediaBrowser.Controller.Drawing
         /// <value>The image enhancers.</value>
         IImageEnhancer[] ImageEnhancers { get; }
 
-        ImageDimensions GetImageSize(string path);
+        ImageSize GetImageSize(string path);
 
         /// <summary>
         /// Gets the size of the image.
         /// </summary>
         /// <param name="info">The information.</param>
         /// <returns>ImageSize.</returns>
-        ImageDimensions GetImageSize(BaseItem item, ItemImageInfo info);
+        ImageSize GetImageSize(BaseItem item, ItemImageInfo info);
 
-        ImageDimensions GetImageSize(BaseItem item, ItemImageInfo info, bool updateItem);
+        ImageSize GetImageSize(BaseItem item, ItemImageInfo info, bool allowSlowMethods, bool updateItem);
 
         /// <summary>
         /// Adds the parts.
@@ -82,7 +82,7 @@ namespace MediaBrowser.Controller.Drawing
         /// </summary>
         /// <param name="options">The options.</param>
         /// <returns>Task.</returns>
-        Task<(string path, string mimeType, DateTime dateModified)> ProcessImage(ImageProcessingOptions options);
+        Task<Tuple<string, string, DateTime>> ProcessImage(ImageProcessingOptions options);
 
         /// <summary>
         /// Gets the enhanced image.

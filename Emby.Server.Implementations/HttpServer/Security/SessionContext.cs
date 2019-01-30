@@ -1,10 +1,11 @@
-using System;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Security;
 using MediaBrowser.Controller.Session;
+using System.Threading.Tasks;
 using MediaBrowser.Model.Services;
+using System;
 
 namespace Emby.Server.Implementations.HttpServer.Security
 {
@@ -31,7 +32,8 @@ namespace Emby.Server.Implementations.HttpServer.Security
 
         private AuthenticationInfo GetTokenInfo(IRequest request)
         {
-            request.Items.TryGetValue("OriginalAuthenticationInfo", out var info);
+            object info;
+            request.Items.TryGetValue("OriginalAuthenticationInfo", out info);
             return info as AuthenticationInfo;
         }
 

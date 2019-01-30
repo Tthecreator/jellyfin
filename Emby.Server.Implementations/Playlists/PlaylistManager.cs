@@ -1,3 +1,11 @@
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Playlists;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Playlists;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,17 +13,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Dto;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Playlists;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Playlists;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Extensions;
+using PlaylistsNET;
 using PlaylistsNET.Content;
 using PlaylistsNET.Models;
+using PlaylistsNET.Utils;
 
 namespace Emby.Server.Implementations.Playlists
 {
@@ -28,18 +31,12 @@ namespace Emby.Server.Implementations.Playlists
         private readonly IUserManager _userManager;
         private readonly IProviderManager _providerManager;
 
-        public PlaylistManager(
-            ILibraryManager libraryManager,
-            IFileSystem fileSystem,
-            ILibraryMonitor iLibraryMonitor,
-            ILoggerFactory loggerFactory,
-            IUserManager userManager,
-            IProviderManager providerManager)
+        public PlaylistManager(ILibraryManager libraryManager, IFileSystem fileSystem, ILibraryMonitor iLibraryMonitor, ILogger logger, IUserManager userManager, IProviderManager providerManager)
         {
             _libraryManager = libraryManager;
             _fileSystem = fileSystem;
             _iLibraryMonitor = iLibraryMonitor;
-            _logger = loggerFactory.CreateLogger(nameof(PlaylistManager));
+            _logger = logger;
             _userManager = userManager;
             _providerManager = providerManager;
         }
@@ -119,7 +116,7 @@ namespace Emby.Server.Implementations.Playlists
 
             try
             {
-                Directory.CreateDirectory(path);
+                _fileSystem.CreateDirectory(path);
 
                 var playlist = new Playlist
                 {
@@ -164,7 +161,7 @@ namespace Emby.Server.Implementations.Playlists
 
         private string GetTargetPath(string path)
         {
-            while (Directory.Exists(path))
+            while (_fileSystem.DirectoryExists(path))
             {
                 path += "1";
             }
@@ -340,8 +337,7 @@ namespace Emby.Server.Implementations.Playlists
                     playlist.PlaylistEntries.Add(entry);
                 }
 
-                string text = new WplContent().ToText(playlist);
-                File.WriteAllText(playlistPath, text);
+                _fileSystem.WriteAllText(playlistPath, new WplContent().ToText(playlist));
             }
             if (string.Equals(".zpl", extension, StringComparison.OrdinalIgnoreCase))
             {
@@ -374,8 +370,7 @@ namespace Emby.Server.Implementations.Playlists
                     playlist.PlaylistEntries.Add(entry);
                 }
 
-                string text = new ZplContent().ToText(playlist);
-                File.WriteAllText(playlistPath, text);
+                _fileSystem.WriteAllText(playlistPath, new ZplContent().ToText(playlist));
             }
             if (string.Equals(".m3u", extension, StringComparison.OrdinalIgnoreCase))
             {
@@ -403,8 +398,7 @@ namespace Emby.Server.Implementations.Playlists
                     playlist.PlaylistEntries.Add(entry);
                 }
 
-                string text = new M3uContent().ToText(playlist);
-                File.WriteAllText(playlistPath, text);
+                _fileSystem.WriteAllText(playlistPath, new M3uContent().ToText(playlist));
             }
             if (string.Equals(".m3u8", extension, StringComparison.OrdinalIgnoreCase))
             {
@@ -432,8 +426,7 @@ namespace Emby.Server.Implementations.Playlists
                     playlist.PlaylistEntries.Add(entry);
                 }
 
-                string text = new M3u8Content().ToText(playlist);
-                File.WriteAllText(playlistPath, text);
+                _fileSystem.WriteAllText(playlistPath, new M3u8Content().ToText(playlist));
             }
             if (string.Equals(".pls", extension, StringComparison.OrdinalIgnoreCase))
             {
@@ -453,40 +446,32 @@ namespace Emby.Server.Implementations.Playlists
                     playlist.PlaylistEntries.Add(entry);
                 }
 
-                string text = new PlsContent().ToText(playlist);
-                File.WriteAllText(playlistPath, text);
+                _fileSystem.WriteAllText(playlistPath, new PlsContent().ToText(playlist));
             }
         }
 
         private string NormalizeItemPath(string playlistPath, string itemPath)
         {
-            return MakeRelativePath(Path.GetDirectoryName(playlistPath), itemPath);
+            return MakeRelativePath(_fileSystem.GetDirectoryName(playlistPath), itemPath);
         }
 
-        private static string MakeRelativePath(string folderPath, string fileAbsolutePath)
+        private static String MakeRelativePath(string folderPath, string fileAbsolutePath)
         {
-            if (string.IsNullOrEmpty(folderPath))
-            {
-                throw new ArgumentException("Folder path was null or empty.", nameof(folderPath));
-            }
-
-            if (string.IsNullOrEmpty(fileAbsolutePath))
-            {
-                throw new ArgumentException("File absolute path was null or empty.", nameof(fileAbsolutePath));
-            }
+            if (String.IsNullOrEmpty(folderPath)) throw new ArgumentNullException("folderPath");
+            if (String.IsNullOrEmpty(fileAbsolutePath)) throw new ArgumentNullException("filePath");
 
             if (!folderPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
             {
                 folderPath = folderPath + Path.DirectorySeparatorChar;
             }
 
-            var folderUri = new Uri(folderPath);
-            var fileAbsoluteUri = new Uri(fileAbsolutePath);
+            Uri folderUri = new Uri(folderPath);
+            Uri fileAbsoluteUri = new Uri(fileAbsolutePath);
 
             if (folderUri.Scheme != fileAbsoluteUri.Scheme) { return fileAbsolutePath; } // path can't be made relative.
 
-            var relativeUri = folderUri.MakeRelativeUri(fileAbsoluteUri);
-            string relativePath = Uri.UnescapeDataString(relativeUri.ToString());
+            Uri relativeUri = folderUri.MakeRelativeUri(fileAbsoluteUri);
+            String relativePath = Uri.UnescapeDataString(relativeUri.ToString());
 
             if (fileAbsoluteUri.Scheme.Equals("file", StringComparison.CurrentCultureIgnoreCase))
             {

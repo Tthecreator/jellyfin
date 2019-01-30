@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MediaBrowser.Model.Updates
 {
@@ -163,7 +164,7 @@ namespace MediaBrowser.Model.Updates
         /// </summary>
         /// <value>The installs.</value>
         public int installs { get; set; }
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageInfo"/> class.
         /// </summary>

@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using MediaBrowser.Controller.Chapters;
+﻿using MediaBrowser.Controller.Chapters;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
 
 namespace MediaBrowser.Providers.Chapters
 {
@@ -16,14 +16,10 @@ namespace MediaBrowser.Providers.Chapters
         private readonly IServerConfigurationManager _config;
         private readonly IItemRepository _itemRepo;
 
-        public ChapterManager(
-            ILibraryManager libraryManager,
-            ILoggerFactory loggerFactory,
-            IServerConfigurationManager config,
-            IItemRepository itemRepo)
+        public ChapterManager(ILibraryManager libraryManager, ILogger logger, IServerConfigurationManager config, IItemRepository itemRepo)
         {
             _libraryManager = libraryManager;
-            _logger = loggerFactory.CreateLogger(nameof(ChapterManager));
+            _logger = logger;
             _config = config;
             _itemRepo = itemRepo;
         }

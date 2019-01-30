@@ -1,22 +1,23 @@
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Net;
+using MediaBrowser.Controller.Plugins;
+using MediaBrowser.Model.Extensions;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Plugins;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Net;
-using MediaBrowser.Controller.Plugins;
-using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Reflection;
-using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Services;
-using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.WebDashboard.Api
 {
@@ -137,9 +138,9 @@ namespace MediaBrowser.WebDashboard.Api
         }
 
         /// <summary>
-        /// Gets the path for the web interface.
+        /// Gets the dashboard UI path.
         /// </summary>
-        /// <value>The path for the web interface.</value>
+        /// <value>The dashboard UI path.</value>
         public string DashboardUIPath
         {
             get
@@ -149,7 +150,7 @@ namespace MediaBrowser.WebDashboard.Api
                     return _serverConfigurationManager.Configuration.DashboardSourcePath;
                 }
 
-                return Path.Combine(_serverConfigurationManager.ApplicationPaths.ApplicationResourcesPath, "jellyfin-web", "src");
+                return Path.Combine(_serverConfigurationManager.ApplicationPaths.ApplicationResourcesPath, "dashboard-ui");
             }
         }
 
@@ -205,7 +206,7 @@ namespace MediaBrowser.WebDashboard.Api
                     return _resultFactory.GetStaticResult(Request, plugin.Version.ToString().GetMD5(), null, null, MimeTypes.GetMimeType("page.html"), () => Task.FromResult(stream));
                 }
 
-                return _resultFactory.GetStaticResult(Request, plugin.Version.ToString().GetMD5(), null, null, MimeTypes.GetMimeType("page.html"), () => GetPackageCreator(DashboardUIPath).ModifyHtml("dummy.html", stream, null, _appHost.ApplicationVersion, null));
+                return _resultFactory.GetStaticResult(Request, plugin.Version.ToString().GetMD5(), null, null, MimeTypes.GetMimeType("page.html"), () => GetPackageCreator(DashboardUIPath).ModifyHtml("dummy.html", stream, null, _appHost.ApplicationVersion.ToString(), null));
             }
 
             throw new ResourceNotFoundException();
@@ -310,7 +311,7 @@ namespace MediaBrowser.WebDashboard.Api
 
             // Bounce them to the startup wizard if it hasn't been completed yet
             if (!_serverConfigurationManager.Configuration.IsStartupWizardCompleted &&
-                Request.RawUrl.IndexOf("wizard", StringComparison.OrdinalIgnoreCase) == -1 &&
+                Request.RawUrl.IndexOf("wizard", StringComparison.OrdinalIgnoreCase) == -1 && 
                 GetPackageCreator(basePath).IsCoreHtml(path))
             {
                 // But don't redirect if an html import is being requested.
@@ -364,7 +365,7 @@ namespace MediaBrowser.WebDashboard.Api
         private Task<Stream> GetResourceStream(string basePath, string virtualPath, string localizationCulture)
         {
             return GetPackageCreator(basePath)
-                .GetResource(virtualPath, null, localizationCulture, _appHost.ApplicationVersion);
+                .GetResource(virtualPath, null, localizationCulture, _appHost.ApplicationVersion.ToString());
         }
 
         private PackageCreator GetPackageCreator(string basePath)
@@ -390,7 +391,7 @@ namespace MediaBrowser.WebDashboard.Api
             {
                 try
                 {
-                    Directory.Delete(targetPath, true);
+                    _fileSystem.DeleteDirectory(targetPath, true);
                 }
                 catch (IOException)
                 {
@@ -400,7 +401,7 @@ namespace MediaBrowser.WebDashboard.Api
                 CopyDirectory(inputPath, targetPath);
             }
 
-            var appVersion = _appHost.ApplicationVersion;
+            var appVersion = _appHost.ApplicationVersion.ToString();
 
             await DumpHtml(packageCreator, inputPath, targetPath, mode, appVersion);
 
@@ -435,15 +436,15 @@ namespace MediaBrowser.WebDashboard.Api
 
         private void CopyDirectory(string source, string destination)
         {
-            Directory.CreateDirectory(destination);
+            _fileSystem.CreateDirectory(destination);
 
             //Now Create all of the directories
             foreach (var dirPath in _fileSystem.GetDirectories(source, true))
-                Directory.CreateDirectory(dirPath.FullName.Replace(source, destination));
+                _fileSystem.CreateDirectory(dirPath.FullName.Replace(source, destination));
 
             //Copy all the files & Replaces any files with the same name
             foreach (var newPath in _fileSystem.GetFiles(source, true))
-                File.Copy(newPath.FullName, newPath.FullName.Replace(source, destination), true);
+                _fileSystem.CopyFile(newPath.FullName, newPath.FullName.Replace(source, destination), true);
         }
     }
 

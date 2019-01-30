@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using MediaBrowser.Model.Services;
 
 namespace Jellyfin.SocketSharp

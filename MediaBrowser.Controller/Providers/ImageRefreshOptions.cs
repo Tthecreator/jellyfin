@@ -1,6 +1,7 @@
+using System.Collections.Generic;
+using MediaBrowser.Model.Entities;
 using System;
 using System.Linq;
-using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Controller.Providers
 {

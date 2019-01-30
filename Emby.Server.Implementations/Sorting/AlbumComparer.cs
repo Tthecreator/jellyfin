@@ -1,8 +1,8 @@
-using System;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
+using System;
 
 namespace Emby.Server.Implementations.Sorting
 {
@@ -27,7 +27,7 @@ namespace Emby.Server.Implementations.Sorting
         /// </summary>
         /// <param name="x">The x.</param>
         /// <returns>System.String.</returns>
-        private static string GetValue(BaseItem x)
+        private string GetValue(BaseItem x)
         {
             var audio = x as Audio;
 
@@ -38,6 +38,9 @@ namespace Emby.Server.Implementations.Sorting
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name => ItemSortBy.Album;
+        public string Name
+        {
+            get { return ItemSortBy.Album; }
+        }
     }
 }

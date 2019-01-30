@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using MediaBrowser.Model.Threading;
 
 namespace Emby.Server.Implementations.Threading

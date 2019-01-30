@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -15,27 +15,19 @@ namespace Jellyfin.SocketSharp
         {
             int ap = header.IndexOf(attr);
             if (ap == -1)
-            {
                 return null;
-            }
 
             ap += attr.Length;
             if (ap >= header.Length)
-            {
                 return null;
-            }
 
             char ending = header[ap];
             if (ending != '"')
-            {
                 ending = ' ';
-            }
 
             int end = header.IndexOf(ending, ap + 1);
             if (end == -1)
-            {
                 return ending == '"' ? null : header.Substring(ap);
-            }
 
             return header.Substring(ap + 1, end - ap - 1);
         }
@@ -44,9 +36,7 @@ namespace Jellyfin.SocketSharp
         {
             string boundary = GetParameter(ContentType, "; boundary=");
             if (boundary == null)
-            {
                 return;
-            }
 
             using (var requestStream = InputStream)
             {
@@ -85,7 +75,7 @@ namespace Jellyfin.SocketSharp
                         //
                         // We use a substream, as in 2.x we will support large uploads streamed to disk,
                         //
-                        var sub = new HttpPostedFile(e.Filename, e.ContentType, input, e.Start, e.Length);
+                        HttpPostedFile sub = new HttpPostedFile(e.Filename, e.ContentType, input, e.Start, e.Length);
                         files[e.Name] = sub;
                     }
                 }
@@ -107,12 +97,12 @@ namespace Jellyfin.SocketSharp
             }
 
 #if NET_4_0
-            if (validateRequestNewMode && !checked_form) {
-                // Setting this before calling the validator prevents
-                // possible endless recursion
-                checked_form = true;
-                ValidateNameValueCollection ("Form", query_string_nvc, RequestValidationSource.Form);
-            } else
+				if (validateRequestNewMode && !checked_form) {
+					// Setting this before calling the validator prevents
+					// possible endless recursion
+					checked_form = true;
+					ValidateNameValueCollection ("Form", query_string_nvc, RequestValidationSource.Form);
+				} else
 #endif
             if (validate_form && !checked_form)
             {
@@ -123,9 +113,21 @@ namespace Jellyfin.SocketSharp
             return form;
         }
 
-        public string Accept => string.IsNullOrEmpty(request.Headers["Accept"]) ? null : request.Headers["Accept"];
+        public string Accept
+        {
+            get
+            {
+                return string.IsNullOrEmpty(request.Headers["Accept"]) ? null : request.Headers["Accept"];
+            }
+        }
 
-        public string Authorization => string.IsNullOrEmpty(request.Headers["Authorization"]) ? null : request.Headers["Authorization"];
+        public string Authorization
+        {
+            get
+            {
+                return string.IsNullOrEmpty(request.Headers["Authorization"]) ? null : request.Headers["Authorization"];
+            }
+        }
 
         protected bool validate_cookies, validate_query_string, validate_form;
         protected bool checked_cookies, checked_query_string, checked_form;
@@ -134,11 +136,9 @@ namespace Jellyfin.SocketSharp
         {
             string v = "\"" + value + "\"";
             if (v.Length > 20)
-            {
                 v = v.Substring(0, 16) + "...\"";
-            }
 
-            string msg = string.Format("A potentially dangerous Request.{0} value was " +
+            string msg = String.Format("A potentially dangerous Request.{0} value was " +
                             "detected from the client ({1}={2}).", name, key, v);
 
             throw new Exception(msg);
@@ -147,23 +147,23 @@ namespace Jellyfin.SocketSharp
         static void ValidateNameValueCollection(string name, QueryParamCollection coll)
         {
             if (coll == null)
-            {
                 return;
-            }
 
             foreach (var pair in coll)
             {
                 var key = pair.Name;
                 var val = pair.Value;
                 if (val != null && val.Length > 0 && IsInvalidString(val))
-                {
                     ThrowValidationException(name, key, val);
-                }
             }
         }
 
         internal static bool IsInvalidString(string val)
-            => IsInvalidString(val, out var validationFailureIndex);
+        {
+            int validationFailureIndex;
+
+            return IsInvalidString(val, out validationFailureIndex);
+        }
 
         internal static bool IsInvalidString(string val, out int validationFailureIndex)
         {
@@ -171,9 +171,7 @@ namespace Jellyfin.SocketSharp
 
             int len = val.Length;
             if (len < 2)
-            {
                 return false;
-            }
 
             char current = val[0];
             for (int idx = 1; idx < len; idx++)
@@ -211,32 +209,27 @@ namespace Jellyfin.SocketSharp
 
         bool IsContentType(string ct, bool starts_with)
         {
-            if (ct == null || ContentType == null)
-            {
-                return false;
-            }
+            if (ct == null || ContentType == null) return false;
 
             if (starts_with)
-            {
                 return StrUtils.StartsWith(ContentType, ct, true);
-            }
 
             return string.Equals(ContentType, ct, StringComparison.OrdinalIgnoreCase);
         }
 
         async Task LoadWwwForm(WebROCollection form)
         {
-            using (var input = InputStream)
+            using (Stream input = InputStream)
             {
                 using (var ms = new MemoryStream())
                 {
                     await input.CopyToAsync(ms).ConfigureAwait(false);
                     ms.Position = 0;
 
-                    using (var s = new StreamReader(ms, ContentEncoding))
+                    using (StreamReader s = new StreamReader(ms, ContentEncoding))
                     {
-                        var key = new StringBuilder();
-                        var value = new StringBuilder();
+                        StringBuilder key = new StringBuilder();
+                        StringBuilder value = new StringBuilder();
                         int c;
 
                         while ((c = s.Read()) != -1)
@@ -252,9 +245,7 @@ namespace Jellyfin.SocketSharp
                                         break;
                                     }
                                     else
-                                    {
                                         value.Append((char)c);
-                                    }
                                 }
                                 if (c == -1)
                                 {
@@ -263,26 +254,22 @@ namespace Jellyfin.SocketSharp
                                 }
                             }
                             else if (c == '&')
-                            {
                                 AddRawKeyValue(form, key, value);
-                            }
                             else
-                            {
                                 key.Append((char)c);
-                            }
                         }
                         if (c == -1)
-                        {
                             AddRawKeyValue(form, key, value);
-                        }
                     }
                 }
             }
         }
 
-        static void AddRawKeyValue(WebROCollection form, StringBuilder key, StringBuilder value)
+        void AddRawKeyValue(WebROCollection form, StringBuilder key, StringBuilder value)
         {
-            form.Add(WebUtility.UrlDecode(key.ToString()), WebUtility.UrlDecode(value.ToString()));
+            string decodedKey = WebUtility.UrlDecode(key.ToString());
+            form.Add(decodedKey,
+                  WebUtility.UrlDecode(value.ToString()));
 
             key.Length = 0;
             value.Length = 0;
@@ -294,13 +281,11 @@ namespace Jellyfin.SocketSharp
         {
             public override string ToString()
             {
-                var result = new StringBuilder();
+                StringBuilder result = new StringBuilder();
                 foreach (var pair in this)
                 {
                     if (result.Length > 0)
-                    {
                         result.Append('&');
-                    }
 
                     var key = pair.Name;
                     if (key != null && key.Length > 0)
@@ -343,52 +328,33 @@ namespace Jellyfin.SocketSharp
                 public override int Read(byte[] buffer, int dest_offset, int count)
                 {
                     if (buffer == null)
-                    {
-                        throw new ArgumentNullException(nameof(buffer));
-                    }
+                        throw new ArgumentNullException("buffer");
 
                     if (dest_offset < 0)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(dest_offset), "< 0");
-                    }
+                        throw new ArgumentOutOfRangeException("dest_offset", "< 0");
 
                     if (count < 0)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(count), "< 0");
-                    }
+                        throw new ArgumentOutOfRangeException("count", "< 0");
 
                     int len = buffer.Length;
                     if (dest_offset > len)
-                    {
                         throw new ArgumentException("destination offset is beyond array size");
-                    }
-
                     // reordered to avoid possible integer overflow
                     if (dest_offset > len - count)
-                    {
                         throw new ArgumentException("Reading would overrun buffer");
-                    }
 
                     if (count > end - position)
-                    {
                         count = (int)(end - position);
-                    }
 
                     if (count <= 0)
-                    {
                         return 0;
-                    }
 
                     s.Position = position;
                     int result = s.Read(buffer, dest_offset, count);
                     if (result > 0)
-                    {
                         position += result;
-                    }
                     else
-                    {
                         position = end;
-                    }
 
                     return result;
                 }
@@ -396,20 +362,14 @@ namespace Jellyfin.SocketSharp
                 public override int ReadByte()
                 {
                     if (position >= end)
-                    {
                         return -1;
-                    }
 
                     s.Position = position;
                     int result = s.ReadByte();
                     if (result < 0)
-                    {
                         position = end;
-                    }
                     else
-                    {
                         position++;
-                    }
 
                     return result;
                 }
@@ -434,9 +394,7 @@ namespace Jellyfin.SocketSharp
 
                     long virt = real - offset;
                     if (virt < 0 || virt > Length)
-                    {
                         throw new ArgumentException();
-                    }
 
                     position = s.Seek(real, SeekOrigin.Begin);
                     return position;
@@ -452,23 +410,34 @@ namespace Jellyfin.SocketSharp
                     throw new NotSupportedException();
                 }
 
-                public override bool CanRead => true;
+                public override bool CanRead
+                {
+                    get { return true; }
+                }
+                public override bool CanSeek
+                {
+                    get { return true; }
+                }
+                public override bool CanWrite
+                {
+                    get { return false; }
+                }
 
-                public override bool CanSeek => true;
-
-                public override bool CanWrite => false;
-
-                public override long Length => end - offset;
+                public override long Length
+                {
+                    get { return end - offset; }
+                }
 
                 public override long Position
                 {
-                    get => position - offset;
+                    get
+                    {
+                        return position - offset;
+                    }
                     set
                     {
                         if (value > Length)
-                        {
-                            throw new ArgumentOutOfRangeException(nameof(value));
-                        }
+                            throw new ArgumentOutOfRangeException();
 
                         position = Seek(value, SeekOrigin.Begin);
                     }
@@ -482,13 +451,37 @@ namespace Jellyfin.SocketSharp
                 this.stream = new ReadSubStream(base_stream, offset, length);
             }
 
-            public string ContentType => content_type;
+            public string ContentType
+            {
+                get
+                {
+                    return content_type;
+                }
+            }
 
-            public int ContentLength => (int)stream.Length;
+            public int ContentLength
+            {
+                get
+                {
+                    return (int)stream.Length;
+                }
+            }
 
-            public string FileName => name;
+            public string FileName
+            {
+                get
+                {
+                    return name;
+                }
+            }
 
-            public Stream InputStream => stream;
+            public Stream InputStream
+            {
+                get
+                {
+                    return stream;
+                }
+            }
         }
 
         class Helpers
@@ -496,7 +489,7 @@ namespace Jellyfin.SocketSharp
             public static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
         }
 
-        internal static class StrUtils
+        internal sealed class StrUtils
         {
             public static bool StartsWith(string str1, string str2, bool ignore_case)
             {
@@ -513,15 +506,11 @@ namespace Jellyfin.SocketSharp
             {
                 int l2 = str2.Length;
                 if (l2 == 0)
-                {
                     return true;
-                }
 
                 int l1 = str1.Length;
                 if (l2 > l1)
-                {
                     return false;
-                }
 
                 var comparison = ignore_case ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
                 return str1.IndexOf(str2, comparison) == str1.Length - str2.Length - 1;
@@ -555,9 +544,9 @@ namespace Jellyfin.SocketSharp
             Encoding encoding;
             StringBuilder sb;
 
-            const byte LF = (byte)'\n', CR = (byte)'\r';
+            const byte HYPHEN = (byte)'-', LF = (byte)'\n', CR = (byte)'\r';
 
-            // See RFC 2046
+            // See RFC 2046 
             // In the case of multipart entities, in which one or more different
             // sets of data are combined in a single body, a "multipart" media type
             // field must appear in the entity's header.  The body must then contain
@@ -582,7 +571,7 @@ namespace Jellyfin.SocketSharp
                 sb = new StringBuilder();
             }
 
-            private string ReadLine()
+            string ReadLine()
             {
                 // CRLF or LF are ok as line endings.
                 bool got_cr = false;
@@ -605,86 +594,58 @@ namespace Jellyfin.SocketSharp
                 }
 
                 if (got_cr)
-                {
                     sb.Length--;
-                }
 
                 return sb.ToString();
 
             }
 
-            private static string GetContentDispositionAttribute(string l, string name)
+            static string GetContentDispositionAttribute(string l, string name)
             {
                 int idx = l.IndexOf(name + "=\"");
                 if (idx < 0)
-                {
                     return null;
-                }
-
                 int begin = idx + name.Length + "=\"".Length;
                 int end = l.IndexOf('"', begin);
                 if (end < 0)
-                {
                     return null;
-                }
-
                 if (begin == end)
-                {
-                    return string.Empty;
-                }
-
+                    return "";
                 return l.Substring(begin, end - begin);
             }
 
-            private string GetContentDispositionAttributeWithEncoding(string l, string name)
+            string GetContentDispositionAttributeWithEncoding(string l, string name)
             {
                 int idx = l.IndexOf(name + "=\"");
                 if (idx < 0)
-                {
                     return null;
-                }
-
                 int begin = idx + name.Length + "=\"".Length;
                 int end = l.IndexOf('"', begin);
                 if (end < 0)
-                {
                     return null;
-                }
-
                 if (begin == end)
-                {
-                    return string.Empty;
-                }
+                    return "";
 
                 string temp = l.Substring(begin, end - begin);
                 byte[] source = new byte[temp.Length];
                 for (int i = temp.Length - 1; i >= 0; i--)
-                {
                     source[i] = (byte)temp[i];
-                }
 
                 return encoding.GetString(source, 0, source.Length);
             }
 
-            private bool ReadBoundary()
+            bool ReadBoundary()
             {
                 try
                 {
                     string line = ReadLine();
-                    while (line == string.Empty)
-                    {
+                    while (line == "")
                         line = ReadLine();
-                    }
-
                     if (line[0] != '-' || line[1] != '-')
-                    {
                         return false;
-                    }
 
                     if (!StrUtils.EndsWith(line, boundary, false))
-                    {
                         return true;
-                    }
                 }
                 catch
                 {
@@ -693,31 +654,25 @@ namespace Jellyfin.SocketSharp
                 return false;
             }
 
-            private string ReadHeaders()
+            string ReadHeaders()
             {
                 string s = ReadLine();
-                if (s.Length == 0)
-                {
+                if (s == "")
                     return null;
-                }
 
                 return s;
             }
 
-            private static bool CompareBytes(byte[] orig, byte[] other)
+            bool CompareBytes(byte[] orig, byte[] other)
             {
                 for (int i = orig.Length - 1; i >= 0; i--)
-                {
                     if (orig[i] != other[i])
-                    {
                         return false;
-                    }
-                }
 
                 return true;
             }
 
-            private long MoveToNextBoundary()
+            long MoveToNextBoundary()
             {
                 long retval = 0;
                 bool got_cr = false;
@@ -727,18 +682,13 @@ namespace Jellyfin.SocketSharp
                 while (true)
                 {
                     if (c == -1)
-                    {
                         return -1;
-                    }
 
                     if (state == 0 && c == LF)
                     {
                         retval = data.Position - 1;
                         if (got_cr)
-                        {
                             retval--;
-                        }
-
                         state = 1;
                         c = data.ReadByte();
                     }
@@ -751,9 +701,7 @@ namespace Jellyfin.SocketSharp
                     {
                         c = data.ReadByte();
                         if (c == -1)
-                        {
                             return -1;
-                        }
 
                         if (c != '-')
                         {
@@ -765,9 +713,7 @@ namespace Jellyfin.SocketSharp
                         int nread = data.Read(buffer, 0, buffer.Length);
                         int bl = buffer.Length;
                         if (nread != bl)
-                        {
                             return -1;
-                        }
 
                         if (!CompareBytes(boundary_bytes, buffer))
                         {
@@ -778,7 +724,6 @@ namespace Jellyfin.SocketSharp
                                 data.Position++;
                                 got_cr = false;
                             }
-
                             c = data.ReadByte();
                             continue;
                         }
@@ -796,16 +741,12 @@ namespace Jellyfin.SocketSharp
                                 data.Position++;
                                 got_cr = false;
                             }
-
                             c = data.ReadByte();
                             continue;
                         }
                         data.Position = retval + 2;
                         if (got_cr)
-                        {
                             data.Position++;
-                        }
-
                         break;
                     }
                     else
@@ -821,11 +762,9 @@ namespace Jellyfin.SocketSharp
             public Element ReadNextElement()
             {
                 if (at_eof || ReadBoundary())
-                {
                     return null;
-                }
 
-                var elem = new Element();
+                Element elem = new Element();
                 string header;
                 while ((header = ReadHeaders()) != null)
                 {
@@ -846,27 +785,19 @@ namespace Jellyfin.SocketSharp
                 elem.Start = start;
                 long pos = MoveToNextBoundary();
                 if (pos == -1)
-                {
                     return null;
-                }
 
                 elem.Length = pos - start;
                 return elem;
             }
 
-            private static string StripPath(string path)
+            static string StripPath(string path)
             {
                 if (path == null || path.Length == 0)
-                {
                     return path;
-                }
 
-                if (path.IndexOf(":\\", StringComparison.Ordinal) != 1
-                    && !path.StartsWith("\\\\", StringComparison.Ordinal))
-                {
+                if (path.IndexOf(":\\") != 1 && !path.StartsWith("\\\\"))
                     return path;
-                }
-
                 return path.Substring(path.LastIndexOf('\\') + 1);
             }
         }

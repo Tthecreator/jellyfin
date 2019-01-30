@@ -1,21 +1,28 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
-using System.Xml;
+using System.Text;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
+using System.Xml;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Xml;
-using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.XbmcMetadata.Parsers
 {
     class MovieNfoParser : BaseNfoParser<Video>
     {
-        protected override bool SupportsUrlAfterClosingXmlTag => true;
+        protected override bool SupportsUrlAfterClosingXmlTag
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         /// <summary>
         /// Fetches the data from XML node.

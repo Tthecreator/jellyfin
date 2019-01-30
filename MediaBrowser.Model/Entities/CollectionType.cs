@@ -1,4 +1,4 @@
-namespace MediaBrowser.Model.Entities
+﻿namespace MediaBrowser.Model.Entities
 {
     public static class CollectionType
     {

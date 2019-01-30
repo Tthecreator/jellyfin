@@ -1,22 +1,13 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Events;
+﻿using MediaBrowser.Common.Events;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
-using MediaBrowser.Controller.Authentication;
 using MediaBrowser.Controller.Devices;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Security;
 using MediaBrowser.Controller.Session;
 using MediaBrowser.Model.Devices;
@@ -24,11 +15,21 @@ using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Events;
 using MediaBrowser.Model.Library;
-using MediaBrowser.Model.Querying;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Session;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Controller.Net;
+using MediaBrowser.Model.Querying;
 using MediaBrowser.Model.Threading;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Extensions;
+using MediaBrowser.Controller.Authentication;
 
 namespace Emby.Server.Implementations.Session
 {
@@ -90,24 +91,10 @@ namespace Emby.Server.Implementations.Session
         public event EventHandler<SessionEventArgs> SessionEnded;
         public event EventHandler<SessionEventArgs> SessionActivity;
 
-        public SessionManager(
-            IUserDataManager userDataManager,
-            ILoggerFactory loggerFactory,
-            ILibraryManager libraryManager,
-            IUserManager userManager,
-            IMusicManager musicManager,
-            IDtoService dtoService,
-            IImageProcessor imageProcessor,
-            IJsonSerializer jsonSerializer,
-            IServerApplicationHost appHost,
-            IHttpClient httpClient,
-            IAuthenticationRepository authRepo,
-            IDeviceManager deviceManager,
-            IMediaSourceManager mediaSourceManager,
-            ITimerFactory timerFactory)
+        public SessionManager(IUserDataManager userDataManager, ILogger logger, ILibraryManager libraryManager, IUserManager userManager, IMusicManager musicManager, IDtoService dtoService, IImageProcessor imageProcessor, IJsonSerializer jsonSerializer, IServerApplicationHost appHost, IHttpClient httpClient, IAuthenticationRepository authRepo, IDeviceManager deviceManager, IMediaSourceManager mediaSourceManager, ITimerFactory timerFactory)
         {
             _userDataManager = userDataManager;
-            _logger = loggerFactory.CreateLogger(nameof(SessionManager));
+            _logger = logger;
             _libraryManager = libraryManager;
             _userManager = userManager;
             _musicManager = musicManager;
@@ -161,7 +148,10 @@ namespace Emby.Server.Implementations.Session
         /// Gets all connections.
         /// </summary>
         /// <value>All connections.</value>
-        public IEnumerable<SessionInfo> Sessions => _activeConnections.Values.OrderByDescending(c => c.LastActivityDate).ToList();
+        public IEnumerable<SessionInfo> Sessions
+        {
+            get { return _activeConnections.Values.OrderByDescending(c => c.LastActivityDate).ToList(); }
+        }
 
         private void OnSessionStarted(SessionInfo info)
         {
@@ -215,8 +205,8 @@ namespace Emby.Server.Implementations.Session
         /// <param name="remoteEndPoint">The remote end point.</param>
         /// <param name="user">The user.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">user</exception>
-        /// <exception cref="UnauthorizedAccessException"></exception>
+        /// <exception cref="System.ArgumentNullException">user</exception>
+        /// <exception cref="System.UnauthorizedAccessException"></exception>
         public SessionInfo LogSessionActivity(string appName,
             string appVersion,
             string deviceId,
@@ -228,15 +218,15 @@ namespace Emby.Server.Implementations.Session
 
             if (string.IsNullOrEmpty(appName))
             {
-                throw new ArgumentNullException(nameof(appName));
+                throw new ArgumentNullException("appName");
             }
             if (string.IsNullOrEmpty(appVersion))
             {
-                throw new ArgumentNullException(nameof(appVersion));
+                throw new ArgumentNullException("appVersion");
             }
             if (string.IsNullOrEmpty(deviceId))
             {
-                throw new ArgumentNullException(nameof(deviceId));
+                throw new ArgumentNullException("deviceId");
             }
 
             var activityDate = DateTime.UtcNow;
@@ -279,7 +269,8 @@ namespace Emby.Server.Implementations.Session
             {
                 var key = GetSessionKey(session.Client, session.DeviceId);
 
-                _activeConnections.TryRemove(key, out var removed);
+                SessionInfo removed;
+                _activeConnections.TryRemove(key, out removed);
 
                 OnSessionEnded(session);
             }
@@ -294,7 +285,8 @@ namespace Emby.Server.Implementations.Session
             {
                 var key = GetSessionKey(session.Client, session.DeviceId);
 
-                _activeConnections.TryRemove(key, out var removed);
+                SessionInfo removed;
+                _activeConnections.TryRemove(key, out removed);
 
                 OnSessionEnded(session);
             }
@@ -377,7 +369,7 @@ namespace Emby.Server.Implementations.Session
         /// Removes the now playing item id.
         /// </summary>
         /// <param name="session">The session.</param>
-        /// <exception cref="ArgumentNullException">item</exception>
+        /// <exception cref="System.ArgumentNullException">item</exception>
         private void RemoveNowPlayingItem(SessionInfo session)
         {
             session.NowPlayingItem = null;
@@ -389,7 +381,7 @@ namespace Emby.Server.Implementations.Session
             }
         }
 
-        private static string GetSessionKey(string appName, string deviceId)
+        private string GetSessionKey(string appName, string deviceId)
         {
             return appName + deviceId;
         }
@@ -410,13 +402,13 @@ namespace Emby.Server.Implementations.Session
 
             if (string.IsNullOrEmpty(deviceId))
             {
-                throw new ArgumentNullException(nameof(deviceId));
+                throw new ArgumentNullException("deviceId");
             }
             var key = GetSessionKey(appName, deviceId);
 
             CheckDisposed();
 
-            var sessionInfo = _activeConnections.GetOrAdd(key, k =>
+            SessionInfo sessionInfo = _activeConnections.GetOrAdd(key, k =>
             {
                 return CreateSession(k, appName, appVersion, deviceId, deviceName, remoteEndPoint, user);
             });
@@ -583,14 +575,14 @@ namespace Emby.Server.Implementations.Session
         /// </summary>
         /// <param name="info">The info.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">info</exception>
+        /// <exception cref="System.ArgumentNullException">info</exception>
         public async Task OnPlaybackStart(PlaybackStartInfo info)
         {
             CheckDisposed();
 
             if (info == null)
             {
-                throw new ArgumentNullException(nameof(info));
+                throw new ArgumentNullException("info");
             }
 
             var session = GetSession(info.SessionId);
@@ -639,7 +631,7 @@ namespace Emby.Server.Implementations.Session
         /// <summary>
         /// Called when [playback start].
         /// </summary>
-        /// <param name="user">The user object.</param>
+        /// <param name="userId">The user identifier.</param>
         /// <param name="item">The item.</param>
         private void OnPlaybackStart(User user, BaseItem item)
         {
@@ -677,7 +669,7 @@ namespace Emby.Server.Implementations.Session
 
             if (info == null)
             {
-                throw new ArgumentNullException(nameof(info));
+                throw new ArgumentNullException("info");
             }
 
             var session = GetSession(info.SessionId);
@@ -750,7 +742,7 @@ namespace Emby.Server.Implementations.Session
 
         }
 
-        private static bool UpdatePlaybackSettings(User user, PlaybackProgressInfo info, UserItemData data)
+        private bool UpdatePlaybackSettings(User user, PlaybackProgressInfo info, UserItemData data)
         {
             var changed = false;
 
@@ -796,20 +788,20 @@ namespace Emby.Server.Implementations.Session
         /// </summary>
         /// <param name="info">The info.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">info</exception>
-        /// <exception cref="ArgumentOutOfRangeException">positionTicks</exception>
+        /// <exception cref="System.ArgumentNullException">info</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">positionTicks</exception>
         public async Task OnPlaybackStopped(PlaybackStopInfo info)
         {
             CheckDisposed();
 
             if (info == null)
             {
-                throw new ArgumentNullException(nameof(info));
+                throw new ArgumentNullException("info");
             }
 
             if (info.PositionTicks.HasValue && info.PositionTicks.Value < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(info), "The PlaybackStopInfo's PositionTicks was negative.");
+                throw new ArgumentOutOfRangeException("positionTicks");
             }
 
             var session = GetSession(info.SessionId);
@@ -1001,7 +993,7 @@ namespace Emby.Server.Implementations.Session
             return SendMessageToSession(session, "GeneralCommand", command, cancellationToken);
         }
 
-        private static async Task SendMessageToSession<T>(SessionInfo session, string name, T data, CancellationToken cancellationToken)
+        private async Task SendMessageToSession<T>(SessionInfo session, string name, T data, CancellationToken cancellationToken)
         {
             var controllers = session.SessionControllers.ToArray();
             var messageId = Guid.NewGuid().ToString("N");
@@ -1200,11 +1192,11 @@ namespace Emby.Server.Implementations.Session
         {
             if (session == null)
             {
-                throw new ArgumentNullException(nameof(session));
+                throw new ArgumentNullException("session");
             }
             if (controllingSession == null)
             {
-                throw new ArgumentNullException(nameof(controllingSession));
+                throw new ArgumentNullException("controllingSession");
             }
         }
 
@@ -1296,8 +1288,8 @@ namespace Emby.Server.Implementations.Session
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
         /// <param name="userId">The user identifier.</param>
-        /// <exception cref="UnauthorizedAccessException">Cannot modify additional users without authenticating first.</exception>
-        /// <exception cref="ArgumentException">The requested user is already the primary user of the session.</exception>
+        /// <exception cref="System.UnauthorizedAccessException">Cannot modify additional users without authenticating first.</exception>
+        /// <exception cref="System.ArgumentException">The requested user is already the primary user of the session.</exception>
         public void AddAdditionalUser(string sessionId, Guid userId)
         {
             CheckDisposed();
@@ -1330,8 +1322,8 @@ namespace Emby.Server.Implementations.Session
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
         /// <param name="userId">The user identifier.</param>
-        /// <exception cref="UnauthorizedAccessException">Cannot modify additional users without authenticating first.</exception>
-        /// <exception cref="ArgumentException">The requested user is already the primary user of the session.</exception>
+        /// <exception cref="System.UnauthorizedAccessException">Cannot modify additional users without authenticating first.</exception>
+        /// <exception cref="System.ArgumentException">The requested user is already the primary user of the session.</exception>
         public void RemoveAdditionalUser(string sessionId, Guid userId)
         {
             CheckDisposed();
@@ -1498,7 +1490,7 @@ namespace Emby.Server.Implementations.Session
 
             if (string.IsNullOrEmpty(accessToken))
             {
-                throw new ArgumentNullException(nameof(accessToken));
+                throw new ArgumentNullException("accessToken");
             }
 
             var existing = _authRepo.Get(new AuthenticationInfoQuery
@@ -1619,7 +1611,7 @@ namespace Emby.Server.Implementations.Session
         {
             if (item == null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException("item");
             }
 
             var dtoOptions = _itemInfoDtoOptions;
@@ -1692,7 +1684,7 @@ namespace Emby.Server.Implementations.Session
         {
             if (string.IsNullOrEmpty(itemId))
             {
-                throw new ArgumentNullException(nameof(itemId));
+                throw new ArgumentNullException("itemId");
             }
 
             //var item = _libraryManager.GetItemById(new Guid(itemId));
@@ -1734,7 +1726,7 @@ namespace Emby.Server.Implementations.Session
         {
             if (info == null)
             {
-                throw new ArgumentNullException(nameof(info));
+                throw new ArgumentNullException("info");
             }
 
             var user = info.UserId.Equals(Guid.Empty)

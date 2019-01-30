@@ -1,12 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Controller.Configuration;
+﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
@@ -14,12 +6,20 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Controller.Subtitles;
-using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Globalization;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Providers;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Common.Configuration;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.Configuration;
 
 namespace MediaBrowser.Providers.Subtitles
 {
@@ -30,22 +30,20 @@ namespace MediaBrowser.Providers.Subtitles
         private readonly IFileSystem _fileSystem;
         private readonly ILibraryMonitor _monitor;
         private readonly IMediaSourceManager _mediaSourceManager;
+        private readonly IServerConfigurationManager _config;
 
+        public event EventHandler<SubtitleDownloadEventArgs> SubtitlesDownloaded;
         public event EventHandler<SubtitleDownloadFailureEventArgs> SubtitleDownloadFailure;
 
         private ILocalizationManager _localization;
 
-        public SubtitleManager(
-            ILoggerFactory loggerFactory,
-            IFileSystem fileSystem,
-            ILibraryMonitor monitor,
-            IMediaSourceManager mediaSourceManager,
-            ILocalizationManager localizationManager)
+        public SubtitleManager(ILogger logger, IFileSystem fileSystem, ILibraryMonitor monitor, IMediaSourceManager mediaSourceManager, IServerConfigurationManager config, ILocalizationManager localizationManager)
         {
-            _logger = loggerFactory.CreateLogger(nameof(SubtitleManager));
+            _logger = logger;
             _fileSystem = fileSystem;
             _monitor = monitor;
             _mediaSourceManager = mediaSourceManager;
+            _config = config;
             _localization = localizationManager;
         }
 
@@ -130,6 +128,11 @@ namespace MediaBrowser.Providers.Subtitles
             return results.SelectMany(i => i).ToArray();
         }
 
+        private SubtitleOptions GetOptions()
+        {
+            return _config.GetConfiguration<SubtitleOptions>("subtitles");
+        }
+
         public Task DownloadSubtitles(Video video, string subtitleId, CancellationToken cancellationToken)
         {
             var libraryOptions = BaseItem.LibraryManager.GetLibraryOptions(video);
@@ -159,7 +162,7 @@ namespace MediaBrowser.Providers.Subtitles
                         memoryStream.Position = 0;
 
                         var savePaths = new List<string>();
-                        var saveFileName = Path.GetFileNameWithoutExtension(video.Path) + "." + response.Language.ToLower();
+                        var saveFileName = _fileSystem.GetFileNameWithoutExtension(video.Path) + "." + response.Language.ToLower();
 
                         if (response.IsForced)
                         {
@@ -208,7 +211,7 @@ namespace MediaBrowser.Providers.Subtitles
 
                 try
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(savePath));
+                    _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(savePath));
 
                     using (var fs = _fileSystem.GetFileStream(savePath, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read, true))
                     {
@@ -242,7 +245,7 @@ namespace MediaBrowser.Providers.Subtitles
         {
             if (video.VideoType != VideoType.VideoFile)
             {
-                return Task.FromResult(new RemoteSubtitleInfo[] { });
+                return Task.FromResult<RemoteSubtitleInfo[]>(new RemoteSubtitleInfo[] { });
             }
 
             VideoContentType mediaType;
@@ -258,7 +261,7 @@ namespace MediaBrowser.Providers.Subtitles
             else
             {
                 // These are the only supported types
-                return Task.FromResult(new RemoteSubtitleInfo[] { });
+                return Task.FromResult<RemoteSubtitleInfo[]>(new RemoteSubtitleInfo[] { });
             }
 
             var request = new SubtitleSearchRequest

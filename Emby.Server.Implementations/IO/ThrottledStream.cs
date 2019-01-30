@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +42,13 @@ namespace Emby.Server.Implementations.IO
         /// Gets the current milliseconds.
         /// </summary>
         /// <value>The current milliseconds.</value>
-        protected long CurrentMilliseconds => Environment.TickCount;
+        protected long CurrentMilliseconds
+        {
+            get
+            {
+                return Environment.TickCount;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the maximum bytes per second that can be transferred through the base stream.
@@ -50,7 +56,10 @@ namespace Emby.Server.Implementations.IO
         /// <value>The maximum bytes per second.</value>
         public long MaximumBytesPerSecond
         {
-            get => _maximumBytesPerSecond;
+            get
+            {
+                return _maximumBytesPerSecond;
+            }
             set
             {
                 if (MaximumBytesPerSecond != value)
@@ -65,21 +74,39 @@ namespace Emby.Server.Implementations.IO
         /// Gets a value indicating whether the current stream supports reading.
         /// </summary>
         /// <returns>true if the stream supports reading; otherwise, false.</returns>
-        public override bool CanRead => _baseStream.CanRead;
+        public override bool CanRead
+        {
+            get
+            {
+                return _baseStream.CanRead;
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether the current stream supports seeking.
         /// </summary>
         /// <value></value>
         /// <returns>true if the stream supports seeking; otherwise, false.</returns>
-        public override bool CanSeek => _baseStream.CanSeek;
+        public override bool CanSeek
+        {
+            get
+            {
+                return _baseStream.CanSeek;
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether the current stream supports writing.
         /// </summary>
         /// <value></value>
         /// <returns>true if the stream supports writing; otherwise, false.</returns>
-        public override bool CanWrite => _baseStream.CanWrite;
+        public override bool CanWrite
+        {
+            get
+            {
+                return _baseStream.CanWrite;
+            }
+        }
 
         /// <summary>
         /// Gets the length in bytes of the stream.
@@ -88,7 +115,13 @@ namespace Emby.Server.Implementations.IO
         /// <returns>A long value representing the length of the stream in bytes.</returns>
         /// <exception cref="T:System.NotSupportedException">The base stream does not support seeking. </exception>
         /// <exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception>
-        public override long Length => _baseStream.Length;
+        public override long Length
+        {
+            get
+            {
+                return _baseStream.Length;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the position within the current stream.
@@ -100,8 +133,14 @@ namespace Emby.Server.Implementations.IO
         /// <exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception>
         public override long Position
         {
-            get => _baseStream.Position;
-            set => _baseStream.Position = value;
+            get
+            {
+                return _baseStream.Position;
+            }
+            set
+            {
+                _baseStream.Position = value;
+            }
         }
         #endregion
 
@@ -119,12 +158,12 @@ namespace Emby.Server.Implementations.IO
         {
             if (baseStream == null)
             {
-                throw new ArgumentNullException(nameof(baseStream));
+                throw new ArgumentNullException("baseStream");
             }
 
             if (maximumBytesPerSecond < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maximumBytesPerSecond),
+                throw new ArgumentOutOfRangeException("maximumBytesPerSecond",
                     maximumBytesPerSecond, "The maximum number of bytes per second can't be negative.");
             }
 
@@ -264,7 +303,7 @@ namespace Emby.Server.Implementations.IO
         {
             if (!ThrottleCheck(bufferSizeInBytes))
             {
-                return;
+                return ;
             }
 
             _byteCount += bufferSizeInBytes;

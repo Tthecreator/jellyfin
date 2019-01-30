@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -9,10 +9,10 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.System;
 using MediaBrowser.Model.Tasks;
 using MediaBrowser.Model.Threading;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Server.Implementations.IO
 {
@@ -77,7 +77,7 @@ namespace Emby.Server.Implementations.IO
         {
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             TemporarilyIgnore(path);
@@ -95,7 +95,7 @@ namespace Emby.Server.Implementations.IO
         {
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             // This is an arbitraty amount of time, but delay it because file system writes often trigger events long after the file was actually written to.
@@ -103,7 +103,8 @@ namespace Emby.Server.Implementations.IO
             // But if we make this delay too high, we risk missing legitimate changes, such as user adding a new file, or hand-editing metadata
             await Task.Delay(45000).ConfigureAwait(false);
 
-            _tempIgnoredPaths.TryRemove(path, out var val);
+            string val;
+            _tempIgnoredPaths.TryRemove(path, out val);
 
             if (refreshPath)
             {
@@ -140,18 +141,11 @@ namespace Emby.Server.Implementations.IO
         /// <summary>
         /// Initializes a new instance of the <see cref="LibraryMonitor" /> class.
         /// </summary>
-        public LibraryMonitor(
-            ILoggerFactory loggerFactory,
-            ITaskManager taskManager,
-            ILibraryManager libraryManager,
-            IServerConfigurationManager configurationManager,
-            IFileSystem fileSystem,
-            ITimerFactory timerFactory,
-            IEnvironmentInfo environmentInfo)
+        public LibraryMonitor(ILoggerFactory loggerFactory, ITaskManager taskManager, ILibraryManager libraryManager, IServerConfigurationManager configurationManager, IFileSystem fileSystem, ITimerFactory timerFactory, ISystemEvents systemEvents, IEnvironmentInfo environmentInfo)
         {
             if (taskManager == null)
             {
-                throw new ArgumentNullException(nameof(taskManager));
+                throw new ArgumentNullException("taskManager");
             }
 
             LibraryManager = libraryManager;
@@ -161,9 +155,26 @@ namespace Emby.Server.Implementations.IO
             _fileSystem = fileSystem;
             _timerFactory = timerFactory;
             _environmentInfo = environmentInfo;
+
+            systemEvents.Resume += _systemEvents_Resume;
         }
 
-        private bool IsLibraryMonitorEnabled(BaseItem item)
+        private void _systemEvents_Resume(object sender, EventArgs e)
+        {
+            Restart();
+        }
+
+        private void Restart()
+        {
+            Stop();
+
+            if (!_disposed)
+            {
+                Start();
+            }
+        }
+
+        private bool IsLibraryMonitorEnabaled(BaseItem item)
         {
             if (item is BasePluginFolder)
             {
@@ -190,7 +201,7 @@ namespace Emby.Server.Implementations.IO
             var paths = LibraryManager
                 .RootFolder
                 .Children
-                .Where(IsLibraryMonitorEnabled)
+                .Where(IsLibraryMonitorEnabaled)
                 .OfType<Folder>()
                 .SelectMany(f => f.PhysicalLocations)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -213,7 +224,7 @@ namespace Emby.Server.Implementations.IO
 
         private void StartWatching(BaseItem item)
         {
-            if (IsLibraryMonitorEnabled(item))
+            if (IsLibraryMonitorEnabaled(item))
             {
                 StartWatchingPath(item.Path);
             }
@@ -252,12 +263,12 @@ namespace Emby.Server.Implementations.IO
         /// <param name="lst">The LST.</param>
         /// <param name="path">The path.</param>
         /// <returns><c>true</c> if [contains parent folder] [the specified LST]; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentNullException">path</exception>
+        /// <exception cref="System.ArgumentNullException">path</exception>
         private static bool ContainsParentFolder(IEnumerable<string> lst, string path)
         {
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             path = path.TrimEnd(Path.DirectorySeparatorChar);
@@ -277,7 +288,7 @@ namespace Emby.Server.Implementations.IO
         /// <param name="path">The path.</param>
         private void StartWatchingPath(string path)
         {
-            if (!Directory.Exists(path))
+            if (!_fileSystem.DirectoryExists(path))
             {
                 // Seeing a crash in the mono runtime due to an exception being thrown on a different thread
                 Logger.LogInformation("Skipping realtime monitor for {0} because the path does not exist", path);
@@ -354,7 +365,9 @@ namespace Emby.Server.Implementations.IO
         /// <param name="path">The path.</param>
         private void StopWatchingPath(string path)
         {
-            if (_fileSystemWatchers.TryGetValue(path, out var watcher))
+            FileSystemWatcher watcher;
+
+            if (_fileSystemWatchers.TryGetValue(path, out watcher))
             {
                 DisposeWatcher(watcher, true);
             }
@@ -411,7 +424,9 @@ namespace Emby.Server.Implementations.IO
         /// <param name="watcher">The watcher.</param>
         private void RemoveWatcherFromList(FileSystemWatcher watcher)
         {
-            _fileSystemWatchers.TryRemove(watcher.Path, out var removed);
+            FileSystemWatcher removed;
+
+            _fileSystemWatchers.TryRemove(watcher.Path, out removed);
         }
 
         /// <summary>
@@ -454,7 +469,7 @@ namespace Emby.Server.Implementations.IO
         {
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             var filename = Path.GetFileName(path);
@@ -483,7 +498,7 @@ namespace Emby.Server.Implementations.IO
                 }
 
                 // Go up a level
-                var parent = Path.GetDirectoryName(i);
+                var parent = _fileSystem.GetDirectoryName(i);
                 if (!string.IsNullOrEmpty(parent))
                 {
                     if (_fileSystem.AreEqual(parent, path))
@@ -509,7 +524,7 @@ namespace Emby.Server.Implementations.IO
 
         private void CreateRefresher(string path)
         {
-            var parentPath = Path.GetDirectoryName(path);
+            var parentPath = _fileSystem.GetDirectoryName(path);
 
             lock (_activeRefreshers)
             {
@@ -538,7 +553,7 @@ namespace Emby.Server.Implementations.IO
                     }
 
                     // They are siblings. Rebase the refresher to the parent folder.
-                    if (string.Equals(parentPath, Path.GetDirectoryName(refresher.Path), StringComparison.Ordinal))
+                    if (string.Equals(parentPath, _fileSystem.GetDirectoryName(refresher.Path), StringComparison.Ordinal))
                     {
                         refresher.ResetPath(parentPath, path);
                         return;

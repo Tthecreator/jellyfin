@@ -1,8 +1,8 @@
-using System;
-using System.IO;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
+using System;
+using System.IO;
 
 namespace MediaBrowser.Common.Plugins
 {
@@ -18,7 +18,10 @@ namespace MediaBrowser.Common.Plugins
         /// Gets the description.
         /// </summary>
         /// <value>The description.</value>
-        public virtual string Description => string.Empty;
+        public virtual string Description
+        {
+            get { return string.Empty; }
+        }
 
         /// <summary>
         /// Gets the unique id.
@@ -105,7 +108,10 @@ namespace MediaBrowser.Common.Plugins
         /// Gets the type of configuration this plugin uses
         /// </summary>
         /// <value>The type of the configuration.</value>
-        public Type ConfigurationType => typeof(TConfigurationType);
+        public Type ConfigurationType
+        {
+            get { return typeof(TConfigurationType); }
+        }
 
         private Action<string> _directoryCreateFn;
         public void SetStartupInfo(Action<string> directoryCreateFn)
@@ -118,7 +124,13 @@ namespace MediaBrowser.Common.Plugins
         /// Gets the name the assembly file
         /// </summary>
         /// <value>The name of the assembly file.</value>
-        protected string AssemblyFileName => Path.GetFileName(AssemblyFilePath);
+        protected string AssemblyFileName
+        {
+            get
+            {
+                return Path.GetFileName(AssemblyFilePath);
+            }
+        }
 
         /// <summary>
         /// The _configuration sync lock
@@ -149,7 +161,10 @@ namespace MediaBrowser.Common.Plugins
                 }
                 return _configuration;
             }
-            protected set => _configuration = value;
+            protected set
+            {
+                _configuration = value;
+            }
         }
 
         private TConfigurationType LoadConfiguration()
@@ -170,13 +185,22 @@ namespace MediaBrowser.Common.Plugins
         /// Gets the name of the configuration file. Subclasses should override
         /// </summary>
         /// <value>The name of the configuration file.</value>
-        public virtual string ConfigurationFileName => Path.ChangeExtension(AssemblyFileName, ".xml");
+        public virtual string ConfigurationFileName
+        {
+            get { return Path.ChangeExtension(AssemblyFileName, ".xml"); }
+        }
 
         /// <summary>
         /// Gets the full path to the configuration file
         /// </summary>
         /// <value>The configuration file path.</value>
-        public string ConfigurationFilePath => Path.Combine(ApplicationPaths.PluginConfigurationsPath, ConfigurationFileName);
+        public string ConfigurationFilePath
+        {
+            get
+            {
+                return Path.Combine(ApplicationPaths.PluginConfigurationsPath, ConfigurationFileName);
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BasePlugin{TConfigurationType}" /> class.
@@ -212,12 +236,12 @@ namespace MediaBrowser.Common.Plugins
         /// Returns true or false indicating success or failure
         /// </summary>
         /// <param name="configuration">The configuration.</param>
-        /// <exception cref="ArgumentNullException">configuration</exception>
+        /// <exception cref="System.ArgumentNullException">configuration</exception>
         public virtual void UpdateConfiguration(BasePluginConfiguration configuration)
         {
             if (configuration == null)
             {
-                throw new ArgumentNullException(nameof(configuration));
+                throw new ArgumentNullException("configuration");
             }
 
             Configuration = (TConfigurationType)configuration;
@@ -229,7 +253,10 @@ namespace MediaBrowser.Common.Plugins
         /// Gets the plugin's configuration
         /// </summary>
         /// <value>The configuration.</value>
-        BasePluginConfiguration IHasPluginConfiguration.Configuration => Configuration;
+        BasePluginConfiguration IHasPluginConfiguration.Configuration
+        {
+            get { return Configuration; }
+        }
 
         public override PluginInfo GetPluginInfo()
         {

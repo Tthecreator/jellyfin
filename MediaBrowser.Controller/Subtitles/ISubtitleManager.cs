@@ -1,10 +1,10 @@
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Model.Providers;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Providers;
 
 namespace MediaBrowser.Controller.Subtitles
 {
@@ -14,6 +14,11 @@ namespace MediaBrowser.Controller.Subtitles
         /// Occurs when [subtitle download failure].
         /// </summary>
         event EventHandler<SubtitleDownloadFailureEventArgs> SubtitleDownloadFailure;
+
+        /// <summary>
+        /// Occurs when [subtitles downloaded].
+        /// </summary>
+        event EventHandler<SubtitleDownloadEventArgs> SubtitlesDownloaded;
 
         /// <summary>
         /// Adds the parts.

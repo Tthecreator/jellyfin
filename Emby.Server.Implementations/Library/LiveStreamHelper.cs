@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.MediaInfo;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.MediaInfo;
+using System.Collections.Generic;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Common.Configuration;
+using System.IO;
+using MediaBrowser.Common.Extensions;
 
 namespace Emby.Server.Implementations.Library
 {

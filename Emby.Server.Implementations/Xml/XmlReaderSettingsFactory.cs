@@ -1,4 +1,4 @@
-using System.Xml;
+﻿using System.Xml;
 using MediaBrowser.Model.Xml;
 
 namespace Emby.Server.Implementations.Xml

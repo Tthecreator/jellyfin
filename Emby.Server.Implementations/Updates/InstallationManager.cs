@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -10,14 +10,15 @@ using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Common.Progress;
+using MediaBrowser.Common.Security;
 using MediaBrowser.Common.Updates;
-using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Model.Cryptography;
 using MediaBrowser.Model.Events;
 using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Updates;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Controller.Configuration;
 
 namespace Emby.Server.Implementations.Updates
 {
@@ -41,7 +42,10 @@ namespace Emby.Server.Implementations.Updates
         /// </summary>
         private ConcurrentBag<InstallationInfo> CompletedInstallationsInternal { get; set; }
 
-        public IEnumerable<InstallationInfo> CompletedInstallations => CompletedInstallationsInternal;
+        public IEnumerable<InstallationInfo> CompletedInstallations
+        {
+            get { return CompletedInstallationsInternal; }
+        }
 
         #region PluginUninstalled Event
         /// <summary>
@@ -106,6 +110,7 @@ namespace Emby.Server.Implementations.Updates
         private readonly IApplicationPaths _appPaths;
         private readonly IHttpClient _httpClient;
         private readonly IJsonSerializer _jsonSerializer;
+        private readonly ISecurityManager _securityManager;
         private readonly IServerConfigurationManager _config;
         private readonly IFileSystem _fileSystem;
 
@@ -120,20 +125,11 @@ namespace Emby.Server.Implementations.Updates
         // netframework or netcore
         private readonly string _packageRuntime;
 
-        public InstallationManager(
-            ILoggerFactory loggerFactory,
-            IApplicationHost appHost,
-            IApplicationPaths appPaths,
-            IHttpClient httpClient,
-            IJsonSerializer jsonSerializer,
-            IServerConfigurationManager config,
-            IFileSystem fileSystem,
-            ICryptoProvider cryptographyProvider,
-            string packageRuntime)
+        public InstallationManager(ILogger logger, IApplicationHost appHost, IApplicationPaths appPaths, IHttpClient httpClient, IJsonSerializer jsonSerializer, ISecurityManager securityManager, IServerConfigurationManager config, IFileSystem fileSystem, ICryptoProvider cryptographyProvider, string packageRuntime)
         {
-            if (loggerFactory == null)
+            if (logger == null)
             {
-                throw new ArgumentNullException(nameof(loggerFactory));
+                throw new ArgumentNullException("logger");
             }
 
             CurrentInstallations = new List<Tuple<InstallationInfo, CancellationTokenSource>>();
@@ -143,14 +139,15 @@ namespace Emby.Server.Implementations.Updates
             _appPaths = appPaths;
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
+            _securityManager = securityManager;
             _config = config;
             _fileSystem = fileSystem;
             _cryptographyProvider = cryptographyProvider;
             _packageRuntime = packageRuntime;
-            _logger = loggerFactory.CreateLogger(nameof(InstallationManager));
+            _logger = logger;
         }
 
-        private static Version GetPackageVersion(PackageVersionInfo version)
+        private Version GetPackageVersion(PackageVersionInfo version)
         {
             return new Version(ValueOrDefault(version.versionStr, "0.0.0.1"));
         }
@@ -169,10 +166,41 @@ namespace Emby.Server.Implementations.Updates
             string packageType = null,
             Version applicationVersion = null)
         {
-            // TODO cvium: when plugins get back this would need to be fixed
-            // var packages = await GetAvailablePackagesWithoutRegistrationInfo(cancellationToken).ConfigureAwait(false);
+            if (withRegistration)
+            {
+                var data = new Dictionary<string, string>
+                {
+                    { "key", _securityManager.SupporterKey },
+                    { "mac", _applicationHost.SystemId },
+                    { "systemid", _applicationHost.SystemId }
+                };
 
-            return new List<PackageInfo>(); //FilterPackages(packages, packageType, applicationVersion);
+                var options = new HttpRequestOptions
+                {
+                    Url = "https://www.mb3admin.local/admin/service/package/retrieveall?includeAllRuntimes=true",
+                    CancellationToken = cancellationToken
+                };
+
+                options.SetPostData(data);
+
+                using (var response = await _httpClient.SendAsync(options, "POST").ConfigureAwait(false))
+                {
+                    using (var json = response.Content)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var packages = await _jsonSerializer.DeserializeFromStreamAsync<PackageInfo[]>(json).ConfigureAwait(false);
+
+                        return FilterPackages(packages, packageType, applicationVersion);
+                    }
+                }
+            }
+            else
+            {
+                var packages = await GetAvailablePackagesWithoutRegistrationInfo(cancellationToken).ConfigureAwait(false);
+
+                return FilterPackages(packages, packageType, applicationVersion);
+            }
         }
 
         /// <summary>
@@ -186,7 +214,7 @@ namespace Emby.Server.Implementations.Updates
             {
                 Url = "https://www.mb3admin.local/admin/service/EmbyPackages.json",
                 CancellationToken = cancellationToken,
-                Progress = new SimpleProgress<double>(),
+                Progress = new SimpleProgress<Double>(),
                 CacheLength = GetCacheLength(),
                 CacheMode = CacheMode.Unconditional
 
@@ -204,7 +232,7 @@ namespace Emby.Server.Implementations.Updates
             return _applicationHost.SystemUpdateLevel;
         }
 
-        private static TimeSpan GetCacheLength()
+        private TimeSpan GetCacheLength()
         {
             return TimeSpan.FromMinutes(3);
         }
@@ -285,14 +313,16 @@ namespace Emby.Server.Implementations.Updates
         /// <param name="packageVersionInfo">The package version info.</param>
         /// <param name="currentServerVersion">The current server version.</param>
         /// <returns><c>true</c> if [is package version up to date] [the specified package version info]; otherwise, <c>false</c>.</returns>
-        private static bool IsPackageVersionUpToDate(PackageVersionInfo packageVersionInfo, Version currentServerVersion)
+        private bool IsPackageVersionUpToDate(PackageVersionInfo packageVersionInfo, Version currentServerVersion)
         {
             if (string.IsNullOrEmpty(packageVersionInfo.requiredVersionStr))
             {
                 return true;
             }
 
-            return Version.TryParse(packageVersionInfo.requiredVersionStr, out var requiredVersion) && currentServerVersion >= requiredVersion;
+            Version requiredVersion;
+
+            return Version.TryParse(packageVersionInfo.requiredVersionStr, out requiredVersion) && currentServerVersion >= requiredVersion;
         }
 
         /// <summary>
@@ -388,17 +418,17 @@ namespace Emby.Server.Implementations.Updates
         /// <param name="progress">The progress.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">package</exception>
+        /// <exception cref="System.ArgumentNullException">package</exception>
         public async Task InstallPackage(PackageVersionInfo package, bool isPlugin, IProgress<double> progress, CancellationToken cancellationToken)
         {
             if (package == null)
             {
-                throw new ArgumentNullException(nameof(package));
+                throw new ArgumentNullException("package");
             }
 
             if (progress == null)
             {
-                throw new ArgumentNullException(nameof(progress));
+                throw new ArgumentNullException("progress");
             }
 
             var installationInfo = new InstallationInfo
@@ -555,9 +585,9 @@ namespace Emby.Server.Implementations.Updates
             var packageChecksum = string.IsNullOrWhiteSpace(package.checksum) ? Guid.Empty : new Guid(package.checksum);
             if (!packageChecksum.Equals(Guid.Empty)) // support for legacy uploads for now
             {
-                using (var stream = File.OpenRead(tempFile))
+                using (var stream = _fileSystem.OpenRead(tempFile))
                 {
-                    var check = Guid.Parse(BitConverter.ToString(_cryptographyProvider.ComputeMD5(stream)).Replace("-", string.Empty));
+                    var check = Guid.Parse(BitConverter.ToString(_cryptographyProvider.ComputeMD5(stream)).Replace("-", String.Empty));
                     if (check != packageChecksum)
                     {
                         throw new Exception(string.Format("Download validation failed for {0}.  Probably corrupted during transfer.", package.name));
@@ -567,15 +597,15 @@ namespace Emby.Server.Implementations.Updates
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Success - move it to the real target
+            // Success - move it to the real target 
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(target));
-                File.Copy(tempFile, target, true);
+                _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(target));
+                _fileSystem.CopyFile(tempFile, target, true);
                 //If it is an archive - write out a version file so we know what it is
                 if (isArchive)
                 {
-                    File.WriteAllText(target + ".ver", package.versionStr);
+                    _fileSystem.WriteAllText(target + ".ver", package.versionStr);
                 }
             }
             catch (IOException ex)
@@ -599,7 +629,7 @@ namespace Emby.Server.Implementations.Updates
         /// Uninstalls a plugin
         /// </summary>
         /// <param name="plugin">The plugin.</param>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="System.ArgumentException"></exception>
         public void UninstallPlugin(IPlugin plugin)
         {
             plugin.OnUninstalling();
@@ -611,7 +641,7 @@ namespace Emby.Server.Implementations.Updates
             _logger.LogInformation("Deleting plugin file {0}", path);
 
             // Make this case-insensitive to account for possible incorrect assembly naming
-            var file = _fileSystem.GetFilePaths(Path.GetDirectoryName(path))
+            var file = _fileSystem.GetFilePaths(_fileSystem.GetDirectoryName(path))
                 .FirstOrDefault(i => string.Equals(i, path, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrWhiteSpace(file))

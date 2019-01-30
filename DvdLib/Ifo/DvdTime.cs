@@ -1,4 +1,7 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace DvdLib.Ifo
 {
@@ -17,7 +20,7 @@ namespace DvdLib.Ifo
             else if ((data[3] & 0x40) != 0) FrameRate = 25;
         }
 
-        private static byte GetBCDValue(byte data)
+        private byte GetBCDValue(byte data)
         {
             return (byte)((((data & 0xF0) >> 4) * 10) + (data & 0x0F));
         }

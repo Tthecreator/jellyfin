@@ -17,6 +17,7 @@
  - [TtheCreator](https://github.com/Tthecreator)
  - [LogicalPhallacy](https://github.com/LogicalPhallacy/)
  - [RazeLighter777](https://github.com/RazeLighter777)
+ - [TtheCreator](https://github.com/Tthecreator)
 
 # Emby Contributors
 

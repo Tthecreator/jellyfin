@@ -1,15 +1,15 @@
-﻿using System;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Emby.Server.Implementations.Net;
+﻿using System.Text;
 using MediaBrowser.Controller.Net;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using MediaBrowser.Model.Services;
-using Microsoft.Extensions.Logging;
-using UtfUnknown;
+using MediaBrowser.Model.Text;
+using System.Net.WebSockets;
+using Emby.Server.Implementations.Net;
 
 namespace Emby.Server.Implementations.HttpServer
 {
@@ -68,6 +68,7 @@ namespace Emby.Server.Implementations.HttpServer
         /// </summary>
         /// <value>The query string.</value>
         public QueryParamCollection QueryString { get; set; }
+        private readonly ITextEncoding _textEncoding;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WebSocketConnection" /> class.
@@ -76,24 +77,24 @@ namespace Emby.Server.Implementations.HttpServer
         /// <param name="remoteEndPoint">The remote end point.</param>
         /// <param name="jsonSerializer">The json serializer.</param>
         /// <param name="logger">The logger.</param>
-        /// <exception cref="ArgumentNullException">socket</exception>
-        public WebSocketConnection(IWebSocket socket, string remoteEndPoint, IJsonSerializer jsonSerializer, ILogger logger)
+        /// <exception cref="System.ArgumentNullException">socket</exception>
+        public WebSocketConnection(IWebSocket socket, string remoteEndPoint, IJsonSerializer jsonSerializer, ILogger logger, ITextEncoding textEncoding)
         {
             if (socket == null)
             {
-                throw new ArgumentNullException(nameof(socket));
+                throw new ArgumentNullException("socket");
             }
             if (string.IsNullOrEmpty(remoteEndPoint))
             {
-                throw new ArgumentNullException(nameof(remoteEndPoint));
+                throw new ArgumentNullException("remoteEndPoint");
             }
             if (jsonSerializer == null)
             {
-                throw new ArgumentNullException(nameof(jsonSerializer));
+                throw new ArgumentNullException("jsonSerializer");
             }
             if (logger == null)
             {
-                throw new ArgumentNullException(nameof(logger));
+                throw new ArgumentNullException("logger");
             }
 
             Id = Guid.NewGuid();
@@ -109,6 +110,7 @@ namespace Emby.Server.Implementations.HttpServer
 
             RemoteEndPoint = remoteEndPoint;
             _logger = logger;
+            _textEncoding = textEncoding;
 
             socket.Closed += socket_Closed;
         }
@@ -130,7 +132,8 @@ namespace Emby.Server.Implementations.HttpServer
             {
                 return;
             }
-            var charset = CharsetDetector.DetectFromBytes(bytes).Detected?.EncodingName;
+
+            var charset = _textEncoding.GetDetectedEncodingName(bytes, bytes.Length, null, false);
 
             if (string.Equals(charset, "utf-8", StringComparison.OrdinalIgnoreCase))
             {
@@ -138,15 +141,14 @@ namespace Emby.Server.Implementations.HttpServer
             }
             else
             {
-                OnReceiveInternal(Encoding.ASCII.GetString(bytes, 0, bytes.Length));
+                OnReceiveInternal(_textEncoding.GetASCIIEncoding().GetString(bytes, 0, bytes.Length));
             }
         }
 
         /// <summary>
         /// Called when [receive].
         /// </summary>
-        /// <param name="memory">The memory block.</param>
-        /// <param name="length">The length of the memory block.</param>
+        /// <param name="bytes">The bytes.</param>
         private void OnReceiveInternal(Memory<byte> memory, int length)
         {
             LastActivityDate = DateTime.UtcNow;
@@ -158,7 +160,7 @@ namespace Emby.Server.Implementations.HttpServer
 
             var bytes = memory.Slice(0, length).ToArray();
 
-            var charset = CharsetDetector.DetectFromBytes(bytes).Detected?.EncodingName;
+            var charset = _textEncoding.GetDetectedEncodingName(bytes, bytes.Length, null, false);
 
             if (string.Equals(charset, "utf-8", StringComparison.OrdinalIgnoreCase))
             {
@@ -166,7 +168,7 @@ namespace Emby.Server.Implementations.HttpServer
             }
             else
             {
-                OnReceiveInternal(Encoding.ASCII.GetString(bytes, 0, bytes.Length));
+                OnReceiveInternal(_textEncoding.GetASCIIEncoding().GetString(bytes, 0, bytes.Length));
             }
         }
 
@@ -212,12 +214,12 @@ namespace Emby.Server.Implementations.HttpServer
         /// <param name="message">The message.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">message</exception>
+        /// <exception cref="System.ArgumentNullException">message</exception>
         public Task SendAsync<T>(WebSocketMessage<T> message, CancellationToken cancellationToken)
         {
             if (message == null)
             {
-                throw new ArgumentNullException(nameof(message));
+                throw new ArgumentNullException("message");
             }
 
             var json = _jsonSerializer.SerializeToString(message);
@@ -235,7 +237,7 @@ namespace Emby.Server.Implementations.HttpServer
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException(nameof(buffer));
+                throw new ArgumentNullException("buffer");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -247,7 +249,7 @@ namespace Emby.Server.Implementations.HttpServer
         {
             if (string.IsNullOrEmpty(text))
             {
-                throw new ArgumentNullException(nameof(text));
+                throw new ArgumentNullException("text");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -259,7 +261,10 @@ namespace Emby.Server.Implementations.HttpServer
         /// Gets the state.
         /// </summary>
         /// <value>The state.</value>
-        public WebSocketState State => _socket.State;
+        public WebSocketState State
+        {
+            get { return _socket.State; }
+        }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.

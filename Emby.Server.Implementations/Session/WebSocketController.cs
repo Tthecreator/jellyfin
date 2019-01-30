@@ -1,13 +1,16 @@
+﻿using MediaBrowser.Controller.Net;
+using MediaBrowser.Controller.Session;
+using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Session;
+using MediaBrowser.Model.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Net;
-using MediaBrowser.Controller.Session;
-using MediaBrowser.Model.Net;
-using Microsoft.Extensions.Logging;
+using System.Net.WebSockets;
 
 namespace Emby.Server.Implementations.Session
 {
@@ -28,11 +31,23 @@ namespace Emby.Server.Implementations.Session
             Sockets = new List<IWebSocketConnection>();
         }
 
-        private bool HasOpenSockets => GetActiveSockets().Any();
+        private bool HasOpenSockets
+        {
+            get { return GetActiveSockets().Any(); }
+        }
 
-        public bool SupportsMediaControl => HasOpenSockets;
+        public bool SupportsMediaControl
+        {
+            get { return HasOpenSockets; }
+        }
 
-        public bool IsSessionActive => HasOpenSockets;
+        public bool IsSessionActive
+        {
+            get
+            {
+                return HasOpenSockets;
+            }
+        }
 
         private IEnumerable<IWebSocketConnection> GetActiveSockets()
         {

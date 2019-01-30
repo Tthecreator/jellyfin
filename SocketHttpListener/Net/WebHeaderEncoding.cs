@@ -1,4 +1,7 @@
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SocketHttpListener.Net
 {
@@ -71,7 +74,7 @@ namespace SocketHttpListener.Net
                 }
             }
         }
-        internal static byte[] GetBytes(string myString)
+        internal static unsafe byte[] GetBytes(string myString)
         {
             byte[] bytes = new byte[myString.Length];
             if (myString.Length != 0)

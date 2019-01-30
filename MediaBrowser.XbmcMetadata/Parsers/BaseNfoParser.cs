@@ -1,3 +1,11 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Extensions;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.XbmcMetadata.Configuration;
+using MediaBrowser.XbmcMetadata.Savers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,17 +15,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Extensions;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Xml;
-using MediaBrowser.XbmcMetadata.Configuration;
-using MediaBrowser.XbmcMetadata.Savers;
-using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.XbmcMetadata.Parsers
 {
@@ -54,18 +54,18 @@ namespace MediaBrowser.XbmcMetadata.Parsers
         /// <param name="item">The item.</param>
         /// <param name="metadataFile">The metadata file.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <exception cref="ArgumentNullException">
+        /// <exception cref="System.ArgumentNullException">
         /// </exception>
         public void Fetch(MetadataResult<T> item, string metadataFile, CancellationToken cancellationToken)
         {
             if (item == null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException();
             }
 
             if (string.IsNullOrEmpty(metadataFile))
             {
-                throw new ArgumentException("The metadata file was empty or null.", nameof(metadataFile));
+                throw new ArgumentNullException();
             }
 
             var settings = XmlReaderSettingsFactory.Create(false);
@@ -95,7 +95,10 @@ namespace MediaBrowser.XbmcMetadata.Parsers
             Fetch(item, metadataFile, settings, cancellationToken);
         }
 
-        protected virtual bool SupportsUrlAfterClosingXmlTag => false;
+        protected virtual bool SupportsUrlAfterClosingXmlTag
+        {
+            get { return false; }
+        }
 
         /// <summary>
         /// Fetches the specified item.
@@ -108,7 +111,7 @@ namespace MediaBrowser.XbmcMetadata.Parsers
         {
             if (!SupportsUrlAfterClosingXmlTag)
             {
-                using (var fileStream = File.OpenRead(metadataFile))
+                using (var fileStream = FileSystem.OpenRead(metadataFile))
                 {
                     using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
                     {
@@ -140,7 +143,7 @@ namespace MediaBrowser.XbmcMetadata.Parsers
                 return;
             }
 
-            using (var fileStream = File.OpenRead(metadataFile))
+            using (var fileStream = FileSystem.OpenRead(metadataFile))
             {
                 using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
                 {
@@ -220,12 +223,15 @@ namespace MediaBrowser.XbmcMetadata.Parsers
             }
         }
 
-        protected virtual string MovieDbParserSearchString => "themoviedb.org/movie/";
+        protected virtual string MovieDbParserSearchString
+        {
+            get { return "themoviedb.org/movie/"; }
+        }
 
         protected void ParseProviderLinks(T item, string xml)
         {
             //Look for a match for the Regex pattern "tt" followed by 7 digits
-            var m = Regex.Match(xml, @"tt([0-9]{7})", RegexOptions.IgnoreCase);
+            Match m = Regex.Match(xml, @"tt([0-9]{7})", RegexOptions.IgnoreCase);
             if (m.Success)
             {
                 item.SetProviderId(MetadataProviders.Imdb, m.Value);
@@ -239,7 +245,8 @@ namespace MediaBrowser.XbmcMetadata.Parsers
             if (index != -1)
             {
                 var tmdbId = xml.Substring(index + srch.Length).TrimEnd('/').Split('-')[0];
-                if (!string.IsNullOrWhiteSpace(tmdbId) && int.TryParse(tmdbId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+                int value;
+                if (!string.IsNullOrWhiteSpace(tmdbId) && int.TryParse(tmdbId, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
                 {
                     item.SetProviderId(MetadataProviders.Tmdb, value.ToString(_usCulture));
                 }
@@ -254,7 +261,8 @@ namespace MediaBrowser.XbmcMetadata.Parsers
                 if (index != -1)
                 {
                     var tvdbId = xml.Substring(index + srch.Length).TrimEnd('/');
-                    if (!string.IsNullOrWhiteSpace(tvdbId) && int.TryParse(tvdbId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+                    int value;
+                    if (!string.IsNullOrWhiteSpace(tvdbId) && int.TryParse(tvdbId, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
                     {
                         item.SetProviderId(MetadataProviders.Tvdb, value.ToString(_usCulture));
                     }
@@ -275,7 +283,8 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            if (DateTime.TryParseExact(val, BaseNfoSaver.DateAddedFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var added))
+                            DateTime added;
+                            if (DateTime.TryParseExact(val, BaseNfoSaver.DateAddedFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out added))
                             {
                                 item.DateCreated = added.ToUniversalTime();
                             }
@@ -313,7 +322,8 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                         if (!string.IsNullOrEmpty(text))
                         {
-                            if (float.TryParse(text, NumberStyles.Any, _usCulture, out var value))
+                            float value;
+                            if (float.TryParse(text, NumberStyles.Any, _usCulture, out value))
                             {
                                 item.CriticRating = value;
                             }
@@ -373,7 +383,9 @@ namespace MediaBrowser.XbmcMetadata.Parsers
                         {
                             item.LockedFields = val.Split('|').Select(i =>
                             {
-                                if (Enum.TryParse(i, true, out MetadataFields field))
+                                MetadataFields field;
+
+                                if (Enum.TryParse<MetadataFields>(i, true, out field))
                                 {
                                     return (MetadataFields?)field;
                                 }
@@ -439,7 +451,8 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(text))
                         {
-                            if (int.TryParse(text.Split(' ')[0], NumberStyles.Integer, _usCulture, out var runtime))
+                            int runtime;
+                            if (int.TryParse(text.Split(' ')[0], NumberStyles.Integer, _usCulture, out runtime))
                             {
                                 item.RunTimeTicks = TimeSpan.FromMinutes(runtime).Ticks;
                             }
@@ -592,7 +605,8 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            if (int.TryParse(val, out var productionYear) && productionYear > 1850)
+                            int productionYear;
+                            if (int.TryParse(val, out productionYear) && productionYear > 1850)
                             {
                                 item.ProductionYear = productionYear;
                             }
@@ -608,8 +622,9 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(rating))
                         {
+                            float val;
                             // All external meta is saving this as '.' for decimal I believe...but just to be sure
-                            if (float.TryParse(rating.Replace(',', '.'), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var val))
+                            if (float.TryParse(rating.Replace(',', '.'), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out val))
                             {
                                 item.CommunityRating = val;
                             }
@@ -628,7 +643,9 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            if (DateTime.TryParseExact(val, formatString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var date) && date.Year > 1850)
+                            DateTime date;
+
+                            if (DateTime.TryParseExact(val, formatString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out date) && date.Year > 1850)
                             {
                                 item.PremiereDate = date.ToUniversalTime();
                                 item.ProductionYear = date.Year;
@@ -646,7 +663,9 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            if (DateTime.TryParseExact(val, formatString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var date) && date.Year > 1850)
+                            DateTime date;
+
+                            if (DateTime.TryParseExact(val, formatString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out date) && date.Year > 1850)
                             {
                                 item.EndDate = date.ToUniversalTime();
                             }
@@ -702,7 +721,8 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                 default:
                     string readerName = reader.Name;
-                    if (_validProviderIds.TryGetValue(readerName, out string providerIdValue))
+                    string providerIdValue;
+                    if (_validProviderIds.TryGetValue(readerName, out providerIdValue))
                     {
                         var id = reader.ReadElementContentAsString();
                         if (!string.IsNullOrWhiteSpace(id))
@@ -892,7 +912,8 @@ namespace MediaBrowser.XbmcMetadata.Parsers
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
-                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var intVal))
+                                    int intVal;
+                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out intVal))
                                     {
                                         sortOrder = intVal;
                                     }

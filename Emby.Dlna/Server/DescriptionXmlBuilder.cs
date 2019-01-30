@@ -1,11 +1,12 @@
+﻿using Emby.Dlna.Common;
+using MediaBrowser.Model.Dlna;
+using MediaBrowser.Model.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security;
 using System.Text;
-using Emby.Dlna.Common;
-using MediaBrowser.Model.Dlna;
-using MediaBrowser.Model.Extensions;
 
 namespace Emby.Dlna.Server
 {
@@ -23,12 +24,12 @@ namespace Emby.Dlna.Server
         {
             if (string.IsNullOrEmpty(serverUdn))
             {
-                throw new ArgumentNullException(nameof(serverUdn));
+                throw new ArgumentNullException("serverUdn");
             }
 
             if (string.IsNullOrEmpty(serverAddress))
             {
-                throw new ArgumentNullException(nameof(serverAddress));
+                throw new ArgumentNullException("serverAddress");
             }
 
             _profile = profile;
@@ -38,7 +39,10 @@ namespace Emby.Dlna.Server
             _serverId = serverId;
         }
 
-        private static bool EnableAbsoluteUrls => false;
+        private bool EnableAbsoluteUrls
+        {
+            get { return false; }
+        }
 
         public string GetXml()
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -179,7 +179,7 @@ namespace MediaBrowser.Providers.Manager
         {
             if (string.IsNullOrWhiteSpace(source))
             {
-                throw new ArgumentNullException(nameof(source));
+                throw new ArgumentNullException("source");
             }
 
             var fileStream = _fileSystem.GetFileStream(source, FileOpenMode.Open, FileAccessMode.Read, FileShareMode.ReadWrite, true);
@@ -703,7 +703,7 @@ namespace MediaBrowser.Providers.Manager
 
                                 // Manual edit occurred
                                 // Even if save local is off, save locally anyway if the metadata file already exists
-                                if (fileSaver == null || !File.Exists(fileSaver.GetSavePath(item)))
+                                if (fileSaver == null || !_fileSystem.FileExists(fileSaver.GetSavePath(item)))
                                 {
                                     return false;
                                 }
@@ -968,7 +968,8 @@ namespace MediaBrowser.Providers.Manager
         {
             lock (_activeRefreshes)
             {
-                if (_activeRefreshes.TryGetValue(id, out double value))
+                double value;
+                if (_activeRefreshes.TryGetValue(id, out value))
                 {
                     return value;
                 }
@@ -1028,6 +1029,7 @@ namespace MediaBrowser.Providers.Manager
 
         private async Task StartProcessingRefreshQueue()
         {
+            Tuple<Guid, MetadataRefreshOptions> refreshItem;
             var libraryManager = _libraryManagerFactory();
 
             if (_disposed)
@@ -1037,7 +1039,7 @@ namespace MediaBrowser.Providers.Manager
 
             var cancellationToken = _disposeCancellationTokenSource.Token;
 
-            while (_refreshQueue.TryDequeue(out Tuple<Guid, MetadataRefreshOptions> refreshItem))
+            while (_refreshQueue.TryDequeue(out refreshItem))
             {
                 if (_disposed)
                 {

@@ -1,6 +1,7 @@
-using MediaBrowser.Controller.Net;
+﻿using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Globalization;
+using System.Collections.Generic;
 using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Api
@@ -33,7 +34,7 @@ namespace MediaBrowser.Api
     /// Class ParentalRatings
     /// </summary>
     [Route("/Localization/Options", "GET", Summary = "Gets localization options")]
-    public class GetLocalizationOptions : IReturn<LocalizationOption[]>
+    public class GetLocalizationOptions : IReturn<LocalizatonOption[]>
     {
     }
 

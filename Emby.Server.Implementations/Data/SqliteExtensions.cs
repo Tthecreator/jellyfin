@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Serialization;
 using SQLitePCL.pretty;
+using System.IO;
 
 namespace Emby.Server.Implementations.Data
 {
@@ -13,7 +14,7 @@ namespace Emby.Server.Implementations.Data
         {
             if (queries == null)
             {
-                throw new ArgumentNullException(nameof(queries));
+                throw new ArgumentNullException("queries");
             }
 
             connection.RunInTransaction(conn =>
@@ -114,7 +115,9 @@ namespace Emby.Server.Implementations.Data
         {
             var dateText = result.ToString();
 
-            if (DateTime.TryParseExact(dateText, _datetimeFormats, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out var dateTimeResult))
+            DateTime dateTimeResult;
+
+            if (DateTime.TryParseExact(dateText, _datetimeFormats, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.None, out dateTimeResult))
             {
                 return dateTimeResult.ToUniversalTime();
             }
@@ -126,12 +129,12 @@ namespace Emby.Server.Implementations.Data
         /// Serializes to bytes.
         /// </summary>
         /// <returns>System.Byte[][].</returns>
-        /// <exception cref="ArgumentNullException">obj</exception>
+        /// <exception cref="System.ArgumentNullException">obj</exception>
         public static byte[] SerializeToBytes(this IJsonSerializer json, object obj)
         {
             if (obj == null)
             {
-                throw new ArgumentNullException(nameof(obj));
+                throw new ArgumentNullException("obj");
             }
 
             using (var stream = new MemoryStream())
@@ -199,7 +202,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, double value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.Bind(value);
             }
@@ -211,7 +215,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, string value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 if (value == null)
                 {
@@ -230,7 +235,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, bool value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.Bind(value);
             }
@@ -242,7 +248,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, float value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.Bind(value);
             }
@@ -254,7 +261,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, int value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.Bind(value);
             }
@@ -266,7 +274,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, Guid value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.Bind(value.ToGuidBlob());
             }
@@ -278,7 +287,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, DateTime value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.Bind(value.ToDateTimeParamValue());
             }
@@ -290,7 +300,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, long value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.Bind(value);
             }
@@ -302,7 +313,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBind(this IStatement statement, string name, byte[] value)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.Bind(value);
             }
@@ -314,7 +326,8 @@ namespace Emby.Server.Implementations.Data
 
         public static void TryBindNull(this IStatement statement, string name)
         {
-            if (statement.BindParameters.TryGetValue(name, out IBindParameter bindParam))
+            IBindParameter bindParam;
+            if (statement.BindParameters.TryGetValue(name, out bindParam))
             {
                 bindParam.BindNull();
             }

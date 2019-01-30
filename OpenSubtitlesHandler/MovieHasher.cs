@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 
@@ -37,7 +37,7 @@ namespace OpenSubtitlesHandler
 
         public static string ToHexadecimal(byte[] bytes)
         {
-            var hexBuilder = new StringBuilder();
+            StringBuilder hexBuilder = new StringBuilder();
             for (int i = 0; i < bytes.Length; i++)
             {
                 hexBuilder.Append(bytes[i].ToString("x2"));

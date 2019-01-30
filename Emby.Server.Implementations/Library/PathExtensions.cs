@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 
 namespace Emby.Server.Implementations.Library
@@ -11,17 +11,17 @@ namespace Emby.Server.Implementations.Library
         /// <param name="str">The STR.</param>
         /// <param name="attrib">The attrib.</param>
         /// <returns>System.String.</returns>
-        /// <exception cref="ArgumentNullException">attrib</exception>
+        /// <exception cref="System.ArgumentNullException">attrib</exception>
         public static string GetAttributeValue(this string str, string attrib)
         {
             if (string.IsNullOrEmpty(str))
             {
-                throw new ArgumentNullException(nameof(str));
+                throw new ArgumentNullException("str");
             }
 
             if (string.IsNullOrEmpty(attrib))
             {
-                throw new ArgumentNullException(nameof(attrib));
+                throw new ArgumentNullException("attrib");
             }
 
             string srch = "[" + attrib + "=";

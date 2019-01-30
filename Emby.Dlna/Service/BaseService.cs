@@ -1,5 +1,6 @@
+﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Dlna;
 using Emby.Dlna.Eventing;
-using MediaBrowser.Common.Net;
 using Microsoft.Extensions.Logging;
 
 namespace Emby.Dlna.Service
@@ -13,7 +14,7 @@ namespace Emby.Dlna.Service
         protected BaseService(ILogger logger, IHttpClient httpClient)
         {
             Logger = logger;
-            HttpClient = httpClient;
+            HttpClient = httpClient;  
 
             EventManager = new EventManager(Logger, HttpClient);
         }

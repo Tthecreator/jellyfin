@@ -1,4 +1,4 @@
-namespace MediaBrowser.Model.Session
+﻿namespace MediaBrowser.Model.Session
 {
     public class PlaystateRequest
     {

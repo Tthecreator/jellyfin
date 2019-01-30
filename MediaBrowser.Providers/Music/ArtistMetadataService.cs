@@ -1,13 +1,16 @@
-using System.Collections.Generic;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Providers.Manager;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Providers.Manager;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.Entities;
 
 namespace MediaBrowser.Providers.Music
 {
@@ -16,7 +19,7 @@ namespace MediaBrowser.Providers.Music
         protected override IList<BaseItem> GetChildrenForMetadataUpdates(MusicArtist item)
         {
             return item.IsAccessedByName ?
-                item.GetTaggedItems(new InternalItemsQuery
+                item.GetTaggedItems(new Controller.Entities.InternalItemsQuery
                 {
                     Recursive = true,
                     IsFolder = false
@@ -24,7 +27,13 @@ namespace MediaBrowser.Providers.Music
                 item.GetRecursiveChildren(i => i is IHasArtist && !i.IsFolder);
         }
 
-        protected override bool EnableUpdatingGenresFromChildren => true;
+        protected override bool EnableUpdatingGenresFromChildren
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         protected override void MergeData(MetadataResult<MusicArtist> source, MetadataResult<MusicArtist> target, MetadataFields[] lockedFields, bool replaceData, bool mergeMetadataSettings)
         {

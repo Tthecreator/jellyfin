@@ -1,17 +1,21 @@
+﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Configuration;
+using Emby.Dlna.Common;
+using Emby.Dlna.Ssdp;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Emby.Dlna.Common;
 using Emby.Dlna.Server;
-using Emby.Dlna.Ssdp;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Model.Threading;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Extensions;
 
 namespace Emby.Dlna.PlayTo
 {
@@ -35,7 +39,10 @@ namespace Emby.Dlna.PlayTo
                 RefreshVolumeIfNeeded();
                 return _volume;
             }
-            set => _volume = value;
+            set
+            {
+                _volume = value;
+            }
         }
 
         public TimeSpan? Duration { get; set; }
@@ -43,17 +50,41 @@ namespace Emby.Dlna.PlayTo
         private TimeSpan _position = TimeSpan.FromSeconds(0);
         public TimeSpan Position
         {
-            get => _position;
-            set => _position = value;
+            get
+            {
+                return _position;
+            }
+            set
+            {
+                _position = value;
+            }
         }
 
         public TRANSPORTSTATE TransportState { get; private set; }
 
-        public bool IsPlaying => TransportState == TRANSPORTSTATE.PLAYING;
+        public bool IsPlaying
+        {
+            get
+            {
+                return TransportState == TRANSPORTSTATE.PLAYING;
+            }
+        }
 
-        public bool IsPaused => TransportState == TRANSPORTSTATE.PAUSED || TransportState == TRANSPORTSTATE.PAUSED_PLAYBACK;
+        public bool IsPaused
+        {
+            get
+            {
+                return TransportState == TRANSPORTSTATE.PAUSED || TransportState == TRANSPORTSTATE.PAUSED_PLAYBACK;
+            }
+        }
 
-        public bool IsStopped => TransportState == TRANSPORTSTATE.STOPPED;
+        public bool IsStopped
+        {
+            get
+            {
+                return TransportState == TRANSPORTSTATE.STOPPED;
+            }
+        }
 
         #endregion
 
@@ -280,7 +311,7 @@ namespace Emby.Dlna.PlayTo
                 throw new InvalidOperationException("Unable to find service");
             }
 
-            await new SsdpHttpClient(_httpClient, _config).SendCommandAsync(Properties.BaseUrl, service, command.Name, avCommands.BuildPost(command, service.ServiceType, string.Format("{0:hh}:{0:mm}:{0:ss}", value), "REL_TIME"))
+            await new SsdpHttpClient(_httpClient, _config).SendCommandAsync(Properties.BaseUrl, service, command.Name, avCommands.BuildPost(command, service.ServiceType, String.Format("{0:hh}:{0:mm}:{0:ss}", value), "REL_TIME"))
                 .ConfigureAwait(false);
 
             RestartTimer(true);
@@ -333,7 +364,7 @@ namespace Emby.Dlna.PlayTo
         private string CreateDidlMeta(string value)
         {
             if (string.IsNullOrEmpty(value))
-                return string.Empty;
+                return String.Empty;
 
             return DescriptionXmlBuilder.Escape(value);
         }
@@ -589,7 +620,9 @@ namespace Emby.Dlna.PlayTo
 
             if (transportStateValue != null)
             {
-                if (Enum.TryParse(transportStateValue, true, out TRANSPORTSTATE state))
+                TRANSPORTSTATE state;
+
+                if (Enum.TryParse(transportStateValue, true, out state))
                 {
                     return state;
                 }
@@ -706,7 +739,7 @@ namespace Emby.Dlna.PlayTo
 
             if (track == null)
             {
-                //If track is null, some vendors do this, use GetMediaInfo instead
+                //If track is null, some vendors do this, use GetMediaInfo instead                    
                 return new Tuple<bool, uBaseObject>(true, null);
             }
 
@@ -750,7 +783,7 @@ namespace Emby.Dlna.PlayTo
         {
             if (container == null)
             {
-                throw new ArgumentNullException(nameof(container));
+                throw new ArgumentNullException("container");
             }
 
             var url = container.GetValue(uPnpNamespaces.Res);
@@ -777,7 +810,7 @@ namespace Emby.Dlna.PlayTo
         {
             if (container == null)
             {
-                throw new ArgumentNullException(nameof(container));
+                throw new ArgumentNullException("container");
             }
 
             var resElement = container.Element(uPnpNamespaces.Res);
@@ -946,7 +979,7 @@ namespace Emby.Dlna.PlayTo
             if (modelDescription != null)
                 deviceProperties.ModelDescription = modelDescription.Value;
 
-            deviceProperties.BaseUrl = string.Format("http://{0}:{1}", url.Host, url.Port);
+            deviceProperties.BaseUrl = String.Format("http://{0}:{1}", url.Host, url.Port);
 
             var icon = document.Descendants(uPnpNamespaces.ud.GetName("icon")).FirstOrDefault();
 
@@ -988,7 +1021,7 @@ namespace Emby.Dlna.PlayTo
         {
             if (element == null)
             {
-                throw new ArgumentNullException(nameof(element));
+                throw new ArgumentNullException("element");
             }
 
             var mimeType = element.GetDescendantValue(uPnpNamespaces.ud.GetName("mimetype"));
@@ -1140,7 +1173,7 @@ namespace Emby.Dlna.PlayTo
 
         public override string ToString()
         {
-            return string.Format("{0} - {1}", Properties.Name, Properties.BaseUrl);
+            return String.Format("{0} - {1}", Properties.Name, Properties.BaseUrl);
         }
     }
 }

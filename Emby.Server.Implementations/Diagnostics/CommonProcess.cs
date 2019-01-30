@@ -1,9 +1,10 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Diagnostics;
+using System.Threading;
+using System.Collections.Generic;
 
 namespace Emby.Server.Implementations.Diagnostics
 {
@@ -47,9 +48,13 @@ namespace Emby.Server.Implementations.Diagnostics
                 _process.EnableRaisingEvents = true;
                 _process.Exited += _process_Exited;
             }
+
         }
 
+
+
         private bool _hasExited;
+
         private bool HasExited
         {
             get
@@ -81,15 +86,30 @@ namespace Emby.Server.Implementations.Diagnostics
             }
         }
 
-        public ProcessOptions StartInfo => _options;
+        public ProcessOptions StartInfo
+        {
+            get { return _options; }
+        }
 
-        public StreamWriter StandardInput => _process.StandardInput;
+        public StreamWriter StandardInput
+        {
+            get { return _process.StandardInput; }
+        }
 
-        public StreamReader StandardError => _process.StandardError;
+        public StreamReader StandardError
+        {
+            get { return _process.StandardError; }
+        }
 
-        public StreamReader StandardOutput => _process.StandardOutput;
+        public StreamReader StandardOutput
+        {
+            get { return _process.StandardOutput; }
+        }
 
-        public int ExitCode => _process.ExitCode;
+        public int ExitCode
+        {
+            get { return _process.ExitCode; }
+        }
 
         public void Start()
         {
@@ -105,10 +125,9 @@ namespace Emby.Server.Implementations.Diagnostics
         {
             return _process.WaitForExit(timeMs);
         }
-        
+
         public Task<bool> WaitForExitAsync(int timeMs)
         {
-            //Note: For this function to work correctly, the option EnableRisingEvents needs to be set to true.
 
             if (HasExited)
             {
@@ -117,15 +136,16 @@ namespace Emby.Server.Implementations.Diagnostics
 
             timeMs = Math.Max(0, timeMs);
 
-            var tcs = new TaskCompletionSource<bool>();
+            var taskSource = new TaskCompletionSource<bool>();
 
             var cancellationToken = new CancellationTokenSource(timeMs).Token;
 
-            _process.Exited += (sender, args) => tcs.TrySetResult(true);
+            _process.Exited += (sender, args) => taskSource.TrySetResult(true);
 
-            cancellationToken.Register(() => tcs.TrySetResult(HasExited));
+            cancellationToken.Register(() => taskSource.TrySetResult(HasExited));
 
-            return tcs.Task;
+
+            return taskSource.Task;
         }
 
         public void Dispose()

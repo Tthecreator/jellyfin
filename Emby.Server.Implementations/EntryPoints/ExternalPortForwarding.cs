@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
@@ -10,9 +9,10 @@ using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Events;
-using MediaBrowser.Model.Threading;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Threading;
 using Mono.Nat;
+using System.Threading;
 
 namespace Emby.Server.Implementations.EntryPoints
 {
@@ -108,9 +108,11 @@ namespace Emby.Server.Implementations.EntryPoints
 
             var info = e.Argument;
 
-            if (!info.Headers.TryGetValue("USN", out string usn)) usn = string.Empty;
+            string usn;
+            if (!info.Headers.TryGetValue("USN", out usn)) usn = string.Empty;
 
-            if (!info.Headers.TryGetValue("NT", out string nt)) nt = string.Empty;
+            string nt;
+            if (!info.Headers.TryGetValue("NT", out nt)) nt = string.Empty;
 
             // Filter device type
             if (usn.IndexOf("WANIPConnection:", StringComparison.OrdinalIgnoreCase) == -1 &&
@@ -139,7 +141,8 @@ namespace Emby.Server.Implementations.EntryPoints
 
             _logger.LogDebug("Found NAT device: " + identifier);
 
-            if (IPAddress.TryParse(info.Location.Host, out var address))
+            IPAddress address;
+            if (IPAddress.TryParse(info.Location.Host, out address))
             {
                 // The Handle method doesn't need the port
                 var endpoint = new IPEndPoint(address, info.Location.Port);
@@ -150,7 +153,8 @@ namespace Emby.Server.Implementations.EntryPoints
                 {
                     var localAddressString = await _appHost.GetLocalApiUrl(CancellationToken.None).ConfigureAwait(false);
 
-                    if (Uri.TryCreate(localAddressString, UriKind.Absolute, out var uri))
+                    Uri uri;
+                    if (Uri.TryCreate(localAddressString, UriKind.Absolute, out uri))
                     {
                         localAddressString = uri.Host;
 
@@ -223,7 +227,7 @@ namespace Emby.Server.Implementations.EntryPoints
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(GetType().Name);
+                throw new ObjectDisposedException("PortMapper");
             }
 
             // On some systems the device discovered event seems to fire repeatedly

@@ -6,18 +6,19 @@ using System.Net;
 using System.Net.Security;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Emby.Drawing;
+using Emby.Drawing.Skia;
 using Emby.Server.Implementations;
 using Emby.Server.Implementations.EnvironmentInfo;
 using Emby.Server.Implementations.IO;
 using Emby.Server.Implementations.Networking;
-using Jellyfin.Drawing.Skia;
 using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -28,12 +29,12 @@ namespace Jellyfin.Server
 {
     public static class Program
     {
-        private static readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
-        private static readonly ILoggerFactory _loggerFactory = new SerilogLoggerFactory();
+        private static readonly TaskCompletionSource<bool> ApplicationTaskCompletionSource = new TaskCompletionSource<bool>();
+        private static ILoggerFactory _loggerFactory;
         private static ILogger _logger;
         private static bool _restartOnShutdown;
 
-        public static async Task Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             StartupOptions options = new StartupOptions(args);
             Version version = Assembly.GetEntryAssembly().GetName().Version;
@@ -41,42 +42,18 @@ namespace Jellyfin.Server
             if (options.ContainsOption("-v") || options.ContainsOption("--version"))
             {
                 Console.WriteLine(version.ToString());
+                return 0;
             }
 
-            ServerApplicationPaths appPaths = CreateApplicationPaths(options);
-
+            ServerApplicationPaths appPaths = createApplicationPaths(options);
             // $JELLYFIN_LOG_DIR needs to be set for the logger configuration manager
             Environment.SetEnvironmentVariable("JELLYFIN_LOG_DIR", appPaths.LogDirectoryPath);
             await createLogger(appPaths);
+            _loggerFactory = new SerilogLoggerFactory();
             _logger = _loggerFactory.CreateLogger("Main");
 
-            AppDomain.CurrentDomain.UnhandledException += (sender, e)
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) 
                 => _logger.LogCritical((Exception)e.ExceptionObject, "Unhandled Exception");
-
-            // Intercept Ctrl+C and Ctrl+Break
-            Console.CancelKeyPress += (sender, e) =>
-            {
-                if (_tokenSource.IsCancellationRequested)
-                {
-                    return; // Already shutting down
-                }
-                e.Cancel = true;
-                _logger.LogInformation("Ctrl+C, shutting down");
-                Environment.ExitCode = 128 + 2;
-                Shutdown();
-            };
-
-            // Register a SIGTERM handler
-            AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
-            {
-                if (_tokenSource.IsCancellationRequested)
-                {
-                    return; // Already shutting down
-                }
-                _logger.LogInformation("Received a SIGTERM signal, shutting down");
-                Environment.ExitCode = 128 + 15;
-                Shutdown();
-            };
 
             _logger.LogInformation("Jellyfin version: {Version}", version);
 
@@ -88,7 +65,7 @@ namespace Jellyfin.Server
             // Allow all https requests
             ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(delegate { return true; });
 
-            var fileSystem = new ManagedFileSystem(_loggerFactory, environmentInfo, null, appPaths.TempDirectory, true);
+            var fileSystem = new ManagedFileSystem(_loggerFactory.CreateLogger("FileSystem"), environmentInfo, null, appPaths.TempDirectory, true);
 
             using (var appHost = new CoreAppHost(
                 appPaths,
@@ -97,27 +74,20 @@ namespace Jellyfin.Server
                 fileSystem,
                 environmentInfo,
                 new NullImageEncoder(),
-                new NetworkManager(_loggerFactory, environmentInfo)))
+                new SystemEvents(_loggerFactory.CreateLogger("SystemEvents")),
+                new NetworkManager(_loggerFactory.CreateLogger("NetworkManager"), environmentInfo)))
             {
                 appHost.Init();
 
-                appHost.ImageProcessor.ImageEncoder = GetImageEncoder(fileSystem, appPaths, appHost.LocalizationManager);
+                appHost.ImageProcessor.ImageEncoder = getImageEncoder(_logger, fileSystem, options, () => appHost.HttpClient, appPaths, environmentInfo, appHost.LocalizationManager);
 
                 _logger.LogInformation("Running startup tasks");
 
                 await appHost.RunStartupTasks();
 
                 // TODO: read input for a stop command
-
-                try
-                {
-                    // Block main thread until shutdown
-                    await Task.Delay(-1, _tokenSource.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                    // Don't throw on cancellation
-                }
+                // Block main thread until shutdown
+                await ApplicationTaskCompletionSource.Task;
 
                 _logger.LogInformation("Disposing app host");
             }
@@ -126,9 +96,11 @@ namespace Jellyfin.Server
             {
                 StartNewInstance(options);
             }
+
+            return 0;
         }
 
-        private static ServerApplicationPaths CreateApplicationPaths(StartupOptions options)
+        private static ServerApplicationPaths createApplicationPaths(StartupOptions options)
         {
             string programDataPath = Environment.GetEnvironmentVariable("JELLYFIN_DATA_PATH");
             if (string.IsNullOrEmpty(programDataPath))
@@ -153,19 +125,10 @@ namespace Jellyfin.Server
                             programDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
                         }
                     }
-
                     programDataPath = Path.Combine(programDataPath, "jellyfin");
+                    // Ensure the dir exists
+                    Directory.CreateDirectory(programDataPath);
                 }
-            }
-
-            if (string.IsNullOrEmpty(programDataPath))
-            {
-                Console.WriteLine("Cannot continue without path to program data folder (try -programdata)");
-                Environment.Exit(1);
-            }
-            else
-            {
-                Directory.CreateDirectory(programDataPath);
             }
 
             string configDir = Environment.GetEnvironmentVariable("JELLYFIN_CONFIG_DIR");
@@ -182,11 +145,6 @@ namespace Jellyfin.Server
                 }
             }
 
-            if (configDir != null)
-            {
-                Directory.CreateDirectory(configDir);
-            }
-
             string logDir = Environment.GetEnvironmentVariable("JELLYFIN_LOG_DIR");
             if (string.IsNullOrEmpty(logDir))
             {
@@ -199,11 +157,6 @@ namespace Jellyfin.Server
                     // Let BaseApplicationPaths set up the default value
                     logDir = null;
                 }
-            }
-
-            if (logDir != null)
-            {
-                Directory.CreateDirectory(logDir);
             }
 
             string appPath = AppContext.BaseDirectory;
@@ -224,7 +177,7 @@ namespace Jellyfin.Server
                         .GetManifestResourceStream("Jellyfin.Server.Resources.Configuration.logging.json"))
                     using (Stream fstr = File.Open(configPath, FileMode.CreateNew))
                     {
-                        await rscstr.CopyToAsync(fstr).ConfigureAwait(false);
+                        await rscstr.CopyToAsync(fstr);
                     }
                 }
                 var configuration = new ConfigurationBuilder()
@@ -254,25 +207,28 @@ namespace Jellyfin.Server
             }
         }
 
-        public static IImageEncoder GetImageEncoder(
-            IFileSystem fileSystem,
+        public static IImageEncoder getImageEncoder(
+            ILogger logger, 
+            IFileSystem fileSystem, 
+            StartupOptions startupOptions, 
+            Func<IHttpClient> httpClient,
             IApplicationPaths appPaths,
+            IEnvironmentInfo environment,
             ILocalizationManager localizationManager)
         {
             try
             {
-                return new SkiaEncoder(_loggerFactory, appPaths, fileSystem, localizationManager);
+                return new SkiaEncoder(logger, appPaths, httpClient, fileSystem, localizationManager);
             }
             catch (Exception ex)
             {
-                _logger.LogInformation(ex, "Skia not available. Will fallback to NullIMageEncoder. {0}");
+                logger.LogInformation(ex, "Skia not available. Will fallback to NullIMageEncoder. {0}");
             }
 
             return new NullImageEncoder();
         }
 
-        private static MediaBrowser.Model.System.OperatingSystem getOperatingSystem()
-        {
+        private static MediaBrowser.Model.System.OperatingSystem getOperatingSystem() {
             switch (Environment.OSVersion.Platform)
             {
                 case PlatformID.MacOSX:
@@ -281,31 +237,28 @@ namespace Jellyfin.Server
                     return MediaBrowser.Model.System.OperatingSystem.Windows;
                 case PlatformID.Unix:
                 default:
+                {
+                    string osDescription = RuntimeInformation.OSDescription;
+                    if (osDescription.Contains("linux", StringComparison.OrdinalIgnoreCase))
                     {
-                        string osDescription = RuntimeInformation.OSDescription;
-                        if (osDescription.Contains("linux", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return MediaBrowser.Model.System.OperatingSystem.Linux;
-                        }
-                        else if (osDescription.Contains("darwin", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return MediaBrowser.Model.System.OperatingSystem.OSX;
-                        }
-                        else if (osDescription.Contains("bsd", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return MediaBrowser.Model.System.OperatingSystem.BSD;
-                        }
-                        throw new Exception($"Can't resolve OS with description: '{osDescription}'");
+                        return MediaBrowser.Model.System.OperatingSystem.Linux;
                     }
+                    else if (osDescription.Contains("darwin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return MediaBrowser.Model.System.OperatingSystem.OSX;
+                    }
+                    else if (osDescription.Contains("bsd", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return MediaBrowser.Model.System.OperatingSystem.BSD;
+                    }
+                    throw new Exception($"Can't resolve OS with description: '{osDescription}'");
+                }
             }
         }
 
         public static void Shutdown()
         {
-            if (!_tokenSource.IsCancellationRequested)
-            {
-                _tokenSource.Cancel();
-            }
+            ApplicationTaskCompletionSource.SetResult(true);
         }
 
         public static void Restart()
@@ -334,9 +287,11 @@ namespace Jellyfin.Server
             }
             else
             {
-                commandLineArgsString = string.Join(
-                    " ",
-                    Environment.GetCommandLineArgs().Skip(1).Select(NormalizeCommandLineArgument));
+                commandLineArgsString = string .Join(" ", 
+                    Environment.GetCommandLineArgs()
+                        .Skip(1)
+                        .Select(NormalizeCommandLineArgument)
+                    );
             }
 
             _logger.LogInformation("Executable: {0}", module);

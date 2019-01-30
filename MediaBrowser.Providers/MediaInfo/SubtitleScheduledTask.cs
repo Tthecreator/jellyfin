@@ -1,19 +1,23 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Subtitles;
+using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Controller.Configuration;
+using System.IO;
 using MediaBrowser.Controller.Dto;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Subtitles;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Tasks;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Providers.MediaInfo
 {
@@ -36,11 +40,20 @@ namespace MediaBrowser.Providers.MediaInfo
             _json = json;
         }
 
-        public string Name => "Download missing subtitles";
+        public string Name
+        {
+            get { return "Download missing subtitles"; }
+        }
 
-        public string Description => "Searches the internet for missing subtitles based on metadata configuration.";
+        public string Description
+        {
+            get { return "Searches the internet for missing subtitles based on metadata configuration."; }
+        }
 
-        public string Category => "Library";
+        public string Category
+        {
+            get { return "Library"; }
+        }
 
         private SubtitleOptions GetOptions()
         {
@@ -197,13 +210,16 @@ namespace MediaBrowser.Providers.MediaInfo
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {
-            return new[] {
-
+            return new[] { 
+            
                 // Every so often
                 new TaskTriggerInfo { Type = TaskTriggerInfo.TriggerInterval, IntervalTicks = TimeSpan.FromHours(24).Ticks}
             };
         }
 
-        public string Key => "DownloadSubtitles";
+        public string Key
+        {
+            get { return "DownloadSubtitles"; }
+        }
     }
 }

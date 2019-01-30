@@ -1,5 +1,4 @@
-using System;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
 
@@ -15,12 +14,6 @@ namespace Emby.Server.Implementations.Sorting
         /// <returns>System.Int32.</returns>
         public int Compare(BaseItem x, BaseItem y)
         {
-            if (x == null)
-                throw new ArgumentNullException(nameof(x));
-
-            if (y == null)
-                throw new ArgumentNullException(nameof(y));
-
             return (x.CommunityRating ?? 0).CompareTo(y.CommunityRating ?? 0);
         }
 
@@ -28,6 +21,9 @@ namespace Emby.Server.Implementations.Sorting
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name => ItemSortBy.CommunityRating;
+        public string Name
+        {
+            get { return ItemSortBy.CommunityRating; }
+        }
     }
 }

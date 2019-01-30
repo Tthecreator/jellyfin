@@ -1,4 +1,6 @@
+﻿
 using System;
+using Emby.Naming.Video;
 
 namespace Emby.Naming.AudioBook
 {

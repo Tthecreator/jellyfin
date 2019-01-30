@@ -1,19 +1,21 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.IO;
 
 namespace MediaBrowser.Providers.Music
 {
@@ -82,7 +84,7 @@ namespace MediaBrowser.Providers.Music
 
             if (!string.IsNullOrEmpty(result.strGenre))
             {
-                item.Genres = new[] { result.strGenre };
+                item.Genres = new [] { result.strGenre };
             }
 
             item.SetProviderId(MetadataProviders.AudioDbArtist, result.idArtist);
@@ -126,7 +128,10 @@ namespace MediaBrowser.Providers.Music
             item.Overview = (overview ?? string.Empty).StripHtml();
         }
 
-        public string Name => "TheAudioDB";
+        public string Name
+        {
+            get { return "TheAudioDB"; }
+        }
 
         internal Task EnsureInfo(string musicBrainzReleaseGroupId, CancellationToken cancellationToken)
         {
@@ -153,7 +158,7 @@ namespace MediaBrowser.Providers.Music
 
             var path = GetAlbumInfoPath(_config.ApplicationPaths, musicBrainzReleaseGroupId);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+			_fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
             using (var httpResponse = await _httpClient.SendAsync(new HttpRequestOptions
             {
@@ -192,8 +197,15 @@ namespace MediaBrowser.Providers.Music
 
             return Path.Combine(dataPath, "album.json");
         }
-        // After music brainz
-        public int Order => 1;
+
+        public int Order
+        {
+            get
+            {
+                // After music brainz
+                return 1;
+            }
+        }
 
         public class Album
         {

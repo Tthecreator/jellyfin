@@ -1,3 +1,15 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Providers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,20 +20,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Globalization;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Net;
-using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Xml;
-using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Providers.TV
 {
@@ -137,7 +137,8 @@ namespace MediaBrowser.Providers.TV
         {
             var series = result.Item;
 
-            if (seriesProviderIds.TryGetValue(MetadataProviders.Tvdb.ToString(), out string id) && !string.IsNullOrEmpty(id))
+            string id;
+            if (seriesProviderIds.TryGetValue(MetadataProviders.Tvdb.ToString(), out id) && !string.IsNullOrEmpty(id))
             {
                 series.SetProviderId(MetadataProviders.Tvdb, id);
             }
@@ -194,7 +195,7 @@ namespace MediaBrowser.Providers.TV
         {
             if (string.IsNullOrWhiteSpace(seriesId))
             {
-                throw new ArgumentNullException(nameof(seriesId));
+                throw new ArgumentNullException("seriesId");
             }
 
             if (!string.Equals(idType, "tvdb", StringComparison.OrdinalIgnoreCase))
@@ -221,7 +222,7 @@ namespace MediaBrowser.Providers.TV
 
             if (string.IsNullOrWhiteSpace(seriesId))
             {
-                throw new ArgumentNullException(nameof(seriesId));
+                throw new ArgumentNullException("seriesId");
             }
 
             var url = string.Format(SeriesGetZip, TVUtils.TvdbApiKey, seriesId, NormalizeLanguage(preferredMetadataLanguage));
@@ -263,7 +264,7 @@ namespace MediaBrowser.Providers.TV
 
             if (!string.Equals(downloadLangaugeXmlFile, saveAsLanguageXmlFile, StringComparison.OrdinalIgnoreCase))
             {
-                File.Copy(downloadLangaugeXmlFile, saveAsLanguageXmlFile, true);
+                _fileSystem.CopyFile(downloadLangaugeXmlFile, saveAsLanguageXmlFile, true);
             }
 
             await ExtractEpisodes(seriesDataPath, downloadLangaugeXmlFile, lastTvDbUpdateTime).ConfigureAwait(false);
@@ -271,7 +272,7 @@ namespace MediaBrowser.Providers.TV
 
         private async Task<string> GetSeriesByRemoteId(string id, string idType, string language, CancellationToken cancellationToken)
         {
-            string url;
+            String url;
             if (string.Equals(idType, MetadataProviders.Zap2It.ToString(), StringComparison.OrdinalIgnoreCase))
             {
                 url = string.Format(GetSeriesByZap2ItId, id, NormalizeLanguage(language));
@@ -388,7 +389,8 @@ namespace MediaBrowser.Providers.TV
 
         internal static bool IsValidSeries(Dictionary<string, string> seriesProviderIds)
         {
-            if (seriesProviderIds.TryGetValue(MetadataProviders.Tvdb.ToString(), out string id))
+            string id;
+            if (seriesProviderIds.TryGetValue(MetadataProviders.Tvdb.ToString(), out id))
             {
                 // This check should ideally never be necessary but we're seeing some cases of this and haven't tracked them down yet.
                 if (!string.IsNullOrWhiteSpace(id))
@@ -424,7 +426,8 @@ namespace MediaBrowser.Providers.TV
 
             try
             {
-                if (seriesProviderIds.TryGetValue(MetadataProviders.Tvdb.ToString(), out string seriesId) && !string.IsNullOrWhiteSpace(seriesId))
+                string seriesId;
+                if (seriesProviderIds.TryGetValue(MetadataProviders.Tvdb.ToString(), out seriesId) && !string.IsNullOrWhiteSpace(seriesId))
                 {
                     var seriesDataPath = GetSeriesDataPath(_config.ApplicationPaths, seriesProviderIds);
 
@@ -718,7 +721,8 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
-                                    if (DateTime.TryParse(val, out var date))
+                                    DateTime date;
+                                    if (DateTime.TryParse(val, out date))
                                     {
                                         searchResult.ProductionYear = date.Year;
                                     }
@@ -783,7 +787,7 @@ namespace MediaBrowser.Providers.TV
             {
                 if ((int)c >= 0x2B0 && (int)c <= 0x0333)
                 {
-                    // skip char modifier and diacritics
+                    // skip char modifier and diacritics 
                 }
                 else if (remove.IndexOf(c) > -1)
                 {
@@ -922,7 +926,8 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
-                                    if (DateTime.TryParse(val, out var date))
+                                    DateTime date;
+                                    if (DateTime.TryParse(val, out date))
                                     {
                                         airDate = date.ToUniversalTime();
                                     }
@@ -937,8 +942,10 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
+                                    int rval;
+
                                     // int.TryParse is local aware, so it can be probamatic, force us culture
-                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var rval))
+                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out rval))
                                     {
                                         seasonNumber = rval;
                                     }
@@ -1079,8 +1086,10 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
+                                    int rval;
+
                                     // int.TryParse is local aware, so it can be probamatic, force us culture
-                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var rval))
+                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out rval))
                                     {
                                         personInfo.SortOrder = rval;
                                     }
@@ -1186,8 +1195,10 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
+                                    float rval;
+
                                     // float.TryParse is local aware, so it can be probamatic, force us culture
-                                    if (float.TryParse(val, NumberStyles.AllowDecimalPoint, _usCulture, out var rval))
+                                    if (float.TryParse(val, NumberStyles.AllowDecimalPoint, _usCulture, out rval))
                                     {
                                         item.CommunityRating = rval;
                                     }
@@ -1200,8 +1211,10 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
+                                    int rval;
+
                                     // int.TryParse is local aware, so it can be probamatic, force us culture
-                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var rval))
+                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out rval))
                                     {
                                         //item.VoteCount = rval;
                                     }
@@ -1240,7 +1253,9 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
-                                    if (Enum.TryParse(val, true, out SeriesStatus seriesStatus))
+                                    SeriesStatus seriesStatus;
+
+                                    if (Enum.TryParse(val, true, out seriesStatus))
                                         item.Status = seriesStatus;
                                 }
 
@@ -1253,7 +1268,8 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
-                                    if (DateTime.TryParse(val, out var date))
+                                    DateTime date;
+                                    if (DateTime.TryParse(val, out date))
                                     {
                                         date = date.ToUniversalTime();
 
@@ -1271,8 +1287,10 @@ namespace MediaBrowser.Providers.TV
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
+                                    int rval;
+
                                     // int.TryParse is local aware, so it can be probamatic, force us culture
-                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var rval))
+                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out rval))
                                     {
                                         item.RunTimeTicks = TimeSpan.FromMinutes(rval).Ticks;
                                     }
@@ -1437,7 +1455,8 @@ namespace MediaBrowser.Providers.TV
                                         var val = reader.ReadElementContentAsString();
                                         if (!string.IsNullOrWhiteSpace(val))
                                         {
-                                            if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var num))
+                                            int num;
+                                            if (int.TryParse(val, NumberStyles.Integer, _usCulture, out num))
                                             {
                                                 episodeNumber = num;
                                             }
@@ -1451,7 +1470,9 @@ namespace MediaBrowser.Providers.TV
 
                                         if (!string.IsNullOrWhiteSpace(val))
                                         {
-                                            if (float.TryParse(val, NumberStyles.Any, _usCulture, out var num))
+                                            float num;
+
+                                            if (float.TryParse(val, NumberStyles.Any, _usCulture, out num))
                                             {
                                                 dvdEpisodeNumber = num;
                                             }
@@ -1466,7 +1487,9 @@ namespace MediaBrowser.Providers.TV
 
                                         if (!string.IsNullOrWhiteSpace(val))
                                         {
-                                            if (float.TryParse(val, NumberStyles.Any, _usCulture, out var num))
+                                            float num;
+
+                                            if (float.TryParse(val, NumberStyles.Any, _usCulture, out num))
                                             {
                                                 dvdSeasonNumber = Convert.ToInt32(num);
                                             }
@@ -1480,7 +1503,8 @@ namespace MediaBrowser.Providers.TV
                                         var val = reader.ReadElementContentAsString();
                                         if (!string.IsNullOrWhiteSpace(val))
                                         {
-                                            if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var num))
+                                            int num;
+                                            if (int.TryParse(val, NumberStyles.Integer, _usCulture, out num))
                                             {
                                                 absoluteNumber = num;
                                             }
@@ -1493,7 +1517,8 @@ namespace MediaBrowser.Providers.TV
                                         var val = reader.ReadElementContentAsString();
                                         if (!string.IsNullOrWhiteSpace(val))
                                         {
-                                            if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var num))
+                                            int num;
+                                            if (int.TryParse(val, NumberStyles.Integer, _usCulture, out num))
                                             {
                                                 seasonNumber = num;
                                             }
@@ -1517,7 +1542,8 @@ namespace MediaBrowser.Providers.TV
             var hasEpisodeChanged = true;
             if (!string.IsNullOrWhiteSpace(lastUpdateString) && lastTvDbUpdateTime.HasValue)
             {
-                if (long.TryParse(lastUpdateString, NumberStyles.Any, _usCulture, out var num))
+                long num;
+                if (long.TryParse(lastUpdateString, NumberStyles.Any, _usCulture, out num))
                 {
                     hasEpisodeChanged = num >= lastTvDbUpdateTime.Value;
                 }
@@ -1526,7 +1552,7 @@ namespace MediaBrowser.Providers.TV
             var file = Path.Combine(seriesDataPath, string.Format("episode-{0}-{1}.xml", seasonNumber, episodeNumber));
 
             // Only save the file if not already there, or if the episode has changed
-            if (hasEpisodeChanged || !File.Exists(file))
+            if (hasEpisodeChanged || !_fileSystem.FileExists(file))
             {
                 using (var fileStream = _fileSystem.GetFileStream(file, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.None, true))
                 {
@@ -1546,7 +1572,7 @@ namespace MediaBrowser.Providers.TV
                 file = Path.Combine(seriesDataPath, string.Format("episode-abs-{0}.xml", absoluteNumber));
 
                 // Only save the file if not already there, or if the episode has changed
-                if (hasEpisodeChanged || !File.Exists(file))
+                if (hasEpisodeChanged || !_fileSystem.FileExists(file))
                 {
                     using (var fileStream = _fileSystem.GetFileStream(file, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.None, true))
                     {
@@ -1567,7 +1593,7 @@ namespace MediaBrowser.Providers.TV
                 file = Path.Combine(seriesDataPath, string.Format("episode-dvd-{0}-{1}.xml", dvdSeasonNumber, dvdEpisodeNumber));
 
                 // Only save the file if not already there, or if the episode has changed
-                if (hasEpisodeChanged || !File.Exists(file))
+                if (hasEpisodeChanged || !_fileSystem.FileExists(file))
                 {
                     using (var fileStream = _fileSystem.GetFileStream(file, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.None, true))
                     {
@@ -1592,7 +1618,8 @@ namespace MediaBrowser.Providers.TV
         /// <returns>System.String.</returns>
         internal static string GetSeriesDataPath(IApplicationPaths appPaths, Dictionary<string, string> seriesProviderIds)
         {
-            if (seriesProviderIds.TryGetValue(MetadataProviders.Tvdb.ToString(), out string seriesId) && !string.IsNullOrEmpty(seriesId))
+            string seriesId;
+            if (seriesProviderIds.TryGetValue(MetadataProviders.Tvdb.ToString(), out seriesId) && !string.IsNullOrEmpty(seriesId))
             {
                 var seriesDataPath = Path.Combine(GetSeriesDataPath(appPaths), seriesId);
 
@@ -1708,7 +1735,10 @@ namespace MediaBrowser.Providers.TV
             return sbOutput.ToString();
         }
 
-        public string Name => "TheTVDB";
+        public string Name
+        {
+            get { return "TheTVDB"; }
+        }
 
         public async Task Identify(SeriesInfo info)
         {
@@ -1728,7 +1758,13 @@ namespace MediaBrowser.Providers.TV
             }
         }
 
-        public int Order => 0;
+        public int Order
+        {
+            get
+            {
+                return 0;
+            }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {

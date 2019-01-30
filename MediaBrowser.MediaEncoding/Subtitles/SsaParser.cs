@@ -1,10 +1,10 @@
+﻿using MediaBrowser.Model.Extensions;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-using MediaBrowser.Model.Extensions;
 using MediaBrowser.Model.MediaInfo;
+using System.Collections.Generic;
 
 namespace MediaBrowser.MediaEncoding.Subtitles
 {
@@ -16,7 +16,7 @@ namespace MediaBrowser.MediaEncoding.Subtitles
         public SubtitleTrackInfo Parse(Stream stream, CancellationToken cancellationToken)
         {
             var trackInfo = new SubtitleTrackInfo();
-            var trackEvents = new List<SubtitleTrackEvent>();
+            List<SubtitleTrackEvent> trackEvents = new List<SubtitleTrackEvent>();
 
             using (var reader = new StreamReader(stream))
             {
@@ -129,10 +129,10 @@ namespace MediaBrowser.MediaEncoding.Subtitles
                             }
                         }
                     }
-                }
-
+                } 
+                
                 //if (header.Length > 0)
-                //subtitle.Header = header.ToString();
+                    //subtitle.Header = header.ToString();
 
                 //subtitle.Renumber(1);
             }
@@ -288,7 +288,8 @@ namespace MediaBrowser.MediaEncoding.Subtitles
 
         private static bool IsInteger(string s)
         {
-            if (int.TryParse(s, out var i))
+            int i;
+            if (int.TryParse(s, out i))
                 return true;
             return false;
         }

@@ -1,25 +1,27 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Diagnostics;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Reflection;
-using MediaBrowser.Model.Serialization;
+using MediaBrowser.Model.LiveTv;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Common.Configuration;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Reflection;
 
 namespace Emby.Server.Implementations.LiveTv.EmbyTV
 {
@@ -53,7 +55,14 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
             _assemblyInfo = assemblyInfo;
         }
 
-        private static bool CopySubtitles => false;
+        private bool CopySubtitles
+        {
+            get
+            {
+                return false;
+                //return string.Equals(OutputFormat, "mkv", StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
         public string GetOutputPath(MediaSourceInfo mediaSource, string targetFile)
         {
@@ -79,7 +88,7 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
         private Task RecordFromFile(MediaSourceInfo mediaSource, string inputFile, string targetFile, TimeSpan duration, Action onStarted, CancellationToken cancellationToken)
         {
             _targetPath = targetFile;
-            Directory.CreateDirectory(Path.GetDirectoryName(targetFile));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(targetFile));
 
             var process = _processFactory.Create(new ProcessOptions
             {
@@ -105,7 +114,7 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
             _logger.LogInformation(commandLineLogMessage);
 
             var logFilePath = Path.Combine(_appPaths.LogDirectoryPath, "record-transcode-" + Guid.NewGuid() + ".txt");
-            Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(logFilePath));
 
             // FFMpeg writes debug/error info to stderr. This is useful when debugging so let's put it in the log directory.
             _logFileStream = _fileSystem.GetFileStream(logFilePath, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read, true);
@@ -175,6 +184,12 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
             }
 
             var videoStream = mediaSource.VideoStream;
+            string videoDecoder = null;
+
+            if (!string.IsNullOrEmpty(videoDecoder))
+            {
+                inputModifier += " " + videoDecoder;
+            }
 
             if (mediaSource.ReadAtNativeFramerate)
             {
@@ -199,19 +214,19 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
 
             var outputParam = string.Empty;
 
-            var commandLineArgs = string.Format("-i \"{0}\"{5} {2} -map_metadata -1 -threads 0 {3}{4}{6} -y \"{1}\"",
-                inputTempFile,
-                targetFile,
-                videoArgs,
-                GetAudioArgs(mediaSource),
-                subtitleArgs,
-                durationParam,
+            var commandLineArgs = string.Format("-i \"{0}\"{5} {2} -map_metadata -1 -threads 0 {3}{4}{6} -y \"{1}\"", 
+                inputTempFile, 
+                targetFile, 
+                videoArgs, 
+                GetAudioArgs(mediaSource), 
+                subtitleArgs, 
+                durationParam, 
                 outputParam);
 
             return inputModifier + " " + commandLineArgs;
         }
 
-        private static string GetAudioArgs(MediaSourceInfo mediaSource)
+        private string GetAudioArgs(MediaSourceInfo mediaSource)
         {
             var mediaStreams = mediaSource.MediaStreams ?? new List<MediaStream>();
             var inputAudioCodec = mediaStreams.Where(i => i.Type == MediaStreamType.Audio).Select(i => i.Codec).FirstOrDefault() ?? string.Empty;
@@ -227,7 +242,7 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
             //return "-codec:a:0 aac -strict experimental -ab 320000";
         }
 
-        private static bool EncodeVideo(MediaSourceInfo mediaSource)
+        private bool EncodeVideo(MediaSourceInfo mediaSource)
         {
             return false;
         }
@@ -368,7 +383,6 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
             }
             catch (ObjectDisposedException)
             {
-                // TODO Investigate and properly fix.
                 // Don't spam the log. This doesn't seem to throw in windows, but sometimes under linux
             }
             catch (Exception ex)

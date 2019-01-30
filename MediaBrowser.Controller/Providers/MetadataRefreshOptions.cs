@@ -1,6 +1,8 @@
-using System;
+﻿using System;
 using System.Linq;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Providers;
 
 namespace MediaBrowser.Controller.Providers

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using MediaBrowser.Model.IO;
@@ -18,7 +18,6 @@ namespace Emby.Server.Implementations.AppBase
         /// <param name="type">The type.</param>
         /// <param name="path">The path.</param>
         /// <param name="xmlSerializer">The XML serializer.</param>
-        /// <param name="fileSystem">The file system</param>
         /// <returns>System.Object.</returns>
         public static object GetXmlConfiguration(Type type, string path, IXmlSerializer xmlSerializer, IFileSystem fileSystem)
         {
@@ -29,7 +28,7 @@ namespace Emby.Server.Implementations.AppBase
             // Use try/catch to avoid the extra file system lookup using File.Exists
             try
             {
-                buffer = File.ReadAllBytes(path);
+                buffer = fileSystem.ReadAllBytes(path);
 
                 configuration = xmlSerializer.DeserializeFromBytes(type, buffer);
             }
@@ -48,10 +47,10 @@ namespace Emby.Server.Implementations.AppBase
                 // If the file didn't exist before, or if something has changed, re-save
                 if (buffer == null || !buffer.SequenceEqual(newBytes))
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    fileSystem.CreateDirectory(fileSystem.GetDirectoryName(path));
 
                     // Save it after load in case we got new items
-                    File.WriteAllBytes(path, newBytes);
+                    fileSystem.WriteAllBytes(path, newBytes);
                 }
 
                 return configuration;

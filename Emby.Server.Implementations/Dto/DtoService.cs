@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using MediaBrowser.Common;
+﻿using MediaBrowser.Common;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Devices;
@@ -16,15 +11,21 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.Persistence;
-using MediaBrowser.Controller.Playlists;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Controller.Sync;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Extensions;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Querying;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Extensions;
+using MediaBrowser.Controller.Playlists;
 
 namespace Emby.Server.Implementations.Dto
 {
@@ -46,22 +47,9 @@ namespace Emby.Server.Implementations.Dto
         private readonly Func<IMediaSourceManager> _mediaSourceManager;
         private readonly Func<ILiveTvManager> _livetvManager;
 
-        public DtoService(
-            ILoggerFactory loggerFactory,
-            ILibraryManager libraryManager,
-            IUserDataManager userDataRepository,
-            IItemRepository itemRepo,
-            IImageProcessor imageProcessor,
-            IServerConfigurationManager config,
-            IFileSystem fileSystem,
-            IProviderManager providerManager,
-            Func<IChannelManager> channelManagerFactory,
-            IApplicationHost appHost,
-            Func<IDeviceManager> deviceManager,
-            Func<IMediaSourceManager> mediaSourceManager,
-            Func<ILiveTvManager> livetvManager)
+        public DtoService(ILogger logger, ILibraryManager libraryManager, IUserDataManager userDataRepository, IItemRepository itemRepo, IImageProcessor imageProcessor, IServerConfigurationManager config, IFileSystem fileSystem, IProviderManager providerManager, Func<IChannelManager> channelManagerFactory, IApplicationHost appHost, Func<IDeviceManager> deviceManager, Func<IMediaSourceManager> mediaSourceManager, Func<ILiveTvManager> livetvManager)
         {
-            _logger = loggerFactory.CreateLogger(nameof(DtoService));
+            _logger = logger;
             _libraryManager = libraryManager;
             _userDataRepository = userDataRepository;
             _itemRepo = itemRepo;
@@ -84,7 +72,7 @@ namespace Emby.Server.Implementations.Dto
         /// <param name="user">The user.</param>
         /// <param name="owner">The owner.</param>
         /// <returns>Task{DtoBaseItem}.</returns>
-        /// <exception cref="ArgumentNullException">item</exception>
+        /// <exception cref="System.ArgumentNullException">item</exception>
         public BaseItemDto GetBaseItemDto(BaseItem item, ItemFields[] fields, User user = null, BaseItem owner = null)
         {
             var options = new DtoOptions
@@ -201,7 +189,7 @@ namespace Emby.Server.Implementations.Dto
             return dto;
         }
 
-        private static IList<BaseItem> GetTaggedItems(IItemByName byName, User user, DtoOptions options)
+        private IList<BaseItem> GetTaggedItems(IItemByName byName, User user, DtoOptions options)
         {
             return byName.GetTaggedItems(new InternalItemsQuery(user)
             {
@@ -307,7 +295,7 @@ namespace Emby.Server.Implementations.Dto
             return dto;
         }
 
-        private static void NormalizeMediaSourceContainers(BaseItemDto dto)
+        private void NormalizeMediaSourceContainers(BaseItemDto dto)
         {
             foreach (var mediaSource in dto.MediaSources)
             {
@@ -359,7 +347,7 @@ namespace Emby.Server.Implementations.Dto
             return dto;
         }
 
-        private static void SetItemByNameInfo(BaseItem item, BaseItemDto dto, IList<BaseItem> taggedItems, User user = null)
+        private void SetItemByNameInfo(BaseItem item, BaseItemDto dto, IList<BaseItem> taggedItems, User user = null)
         {
             if (item is MusicArtist)
             {
@@ -459,7 +447,7 @@ namespace Emby.Server.Implementations.Dto
             }
         }
 
-        private static int GetChildCount(Folder folder, User user)
+        private int GetChildCount(Folder folder, User user)
         {
             // Right now this is too slow to calculate for top level folders on a per-user basis
             // Just return something so that apps that are expecting a value won't think the folders are empty
@@ -476,17 +464,17 @@ namespace Emby.Server.Implementations.Dto
         /// </summary>
         /// <param name="item">The item.</param>
         /// <returns>System.String.</returns>
-        /// <exception cref="ArgumentNullException">item</exception>
+        /// <exception cref="System.ArgumentNullException">item</exception>
         public string GetDtoId(BaseItem item)
         {
             return item.Id.ToString("N");
         }
 
-        private static void SetBookProperties(BaseItemDto dto, Book item)
+        private void SetBookProperties(BaseItemDto dto, Book item)
         {
             dto.SeriesName = item.SeriesName;
         }
-        private static void SetPhotoProperties(BaseItemDto dto, Photo item)
+        private void SetPhotoProperties(BaseItemDto dto, Photo item)
         {
             dto.CameraMake = item.CameraMake;
             dto.CameraModel = item.CameraModel;
@@ -532,13 +520,13 @@ namespace Emby.Server.Implementations.Dto
             dto.Album = item.Album;
         }
 
-        private static void SetGameProperties(BaseItemDto dto, Game item)
+        private void SetGameProperties(BaseItemDto dto, Game item)
         {
             dto.GameSystem = item.GameSystem;
             dto.MultiPartGameFiles = item.MultiPartGameFiles;
         }
 
-        private static void SetGameSystemProperties(BaseItemDto dto, GameSystem item)
+        private void SetGameSystemProperties(BaseItemDto dto, GameSystem item)
         {
             dto.GameSystem = item.GameSystemName;
         }
@@ -650,7 +638,9 @@ namespace Emby.Server.Implementations.Dto
                     Type = person.Type
                 };
 
-                if (dictionary.TryGetValue(person.Name, out Person entity))
+                Person entity;
+
+                if (dictionary.TryGetValue(person.Name, out entity))
                 {
                     baseItemPerson.PrimaryImageTag = GetImageCacheTag(entity, ImageType.Primary);
                     baseItemPerson.Id = entity.Id.ToString("N");
@@ -1428,7 +1418,7 @@ namespace Emby.Server.Implementations.Dto
 
             var supportedEnhancers = _imageProcessor.GetSupportedEnhancers(item, ImageType.Primary);
 
-            ImageDimensions size;
+            ImageSize size;
 
             var defaultAspectRatio = item.GetDefaultPrimaryImageAspectRatio();
 
@@ -1439,9 +1429,9 @@ namespace Emby.Server.Implementations.Dto
                     return defaultAspectRatio;
                 }
 
-                int dummyWidth = 200;
-                int dummyHeight = Convert.ToInt32(dummyWidth / defaultAspectRatio);
-                size = new ImageDimensions(dummyWidth, dummyHeight);
+                double dummyWidth = 200;
+                double dummyHeight = dummyWidth / defaultAspectRatio;
+                size = new ImageSize(dummyWidth, dummyHeight);
             }
             else
             {
@@ -1481,7 +1471,7 @@ namespace Emby.Server.Implementations.Dto
             var width = size.Width;
             var height = size.Height;
 
-            if (width <= 0 || height <= 0)
+            if (width.Equals(0) || height.Equals(0))
             {
                 return null;
             }

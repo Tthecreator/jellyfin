@@ -1,9 +1,9 @@
+﻿using MediaBrowser.Controller.Library;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 
 namespace Emby.Server.Implementations.ScheduledTasks
@@ -24,7 +24,6 @@ namespace Emby.Server.Implementations.ScheduledTasks
         /// Initializes a new instance of the <see cref="PeopleValidationTask" /> class.
         /// </summary>
         /// <param name="libraryManager">The library manager.</param>
-        /// <param name="appHost">The server application host</param>
         public PeopleValidationTask(ILibraryManager libraryManager, IServerApplicationHost appHost)
         {
             _libraryManager = libraryManager;
@@ -36,8 +35,8 @@ namespace Emby.Server.Implementations.ScheduledTasks
         /// </summary>
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {
-            return new[]
-            {
+            return new[] 
+            { 
                 // Every so often
                 new TaskTriggerInfo
                 {
@@ -47,7 +46,10 @@ namespace Emby.Server.Implementations.ScheduledTasks
             };
         }
 
-        public string Key => "RefreshPeople";
+        public string Key
+        {
+            get { return "RefreshPeople"; }
+        }
 
         /// <summary>
         /// Returns the task to be executed
@@ -64,18 +66,30 @@ namespace Emby.Server.Implementations.ScheduledTasks
         /// Gets the name of the task
         /// </summary>
         /// <value>The name.</value>
-        public string Name => "Refresh people";
+        public string Name
+        {
+            get { return "Refresh people"; }
+        }
 
         /// <summary>
         /// Gets the description.
         /// </summary>
         /// <value>The description.</value>
-        public string Description => "Updates metadata for actors and directors in your media library.";
+        public string Description
+        {
+            get { return "Updates metadata for actors and directors in your media library."; }
+        }
 
         /// <summary>
         /// Gets the category.
         /// </summary>
         /// <value>The category.</value>
-        public string Category => "Library";
+        public string Category
+        {
+            get
+            {
+                return "Library";
+            }
+        }
     }
 }

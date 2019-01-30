@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Model.Drawing;
 
@@ -6,15 +6,26 @@ namespace Emby.Drawing
 {
     public class NullImageEncoder : IImageEncoder
     {
-        public string[] SupportedInputFormats =>
-            new[]
+        public string[] SupportedInputFormats
+        {
+            get
             {
-                "png",
-                "jpeg",
-                "jpg"
-            };
+                return new[]
+                {
+                    "png",
+                    "jpeg",
+                    "jpg"
+                };
+            }
+        }
 
-        public ImageFormat[] SupportedOutputFormats => new[] { ImageFormat.Jpg, ImageFormat.Png };
+        public ImageFormat[] SupportedOutputFormats
+        {
+            get
+            {
+                return new[] { ImageFormat.Jpg, ImageFormat.Png };
+            }
+        }
 
         public void CropWhiteSpace(string inputPath, string outputPath)
         {
@@ -31,13 +42,22 @@ namespace Emby.Drawing
             throw new NotImplementedException();
         }
 
-        public string Name => "Null Image Encoder";
+        public string Name
+        {
+            get { return "Null Image Encoder"; }
+        }
 
-        public bool SupportsImageCollageCreation => false;
+        public bool SupportsImageCollageCreation
+        {
+            get { return false; }
+        }
 
-        public bool SupportsImageEncoding => false;
+        public bool SupportsImageEncoding
+        {
+            get { return false; }
+        }
 
-        public ImageDimensions GetImageSize(string path)
+        public ImageSize GetImageSize(string path)
         {
             throw new NotImplementedException();
         }

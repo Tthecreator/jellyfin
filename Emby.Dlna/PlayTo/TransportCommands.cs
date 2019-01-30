@@ -1,8 +1,8 @@
-using System;
+﻿using System;
+using Emby.Dlna.Common;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using Emby.Dlna.Common;
 using Emby.Dlna.Ssdp;
 
 namespace Emby.Dlna.PlayTo
@@ -12,15 +12,27 @@ namespace Emby.Dlna.PlayTo
         private List<StateVariable> _stateVariables = new List<StateVariable>();
         public List<StateVariable> StateVariables
         {
-            get => _stateVariables;
-            set => _stateVariables = value;
+            get
+            {
+                return _stateVariables;
+            }
+            set
+            {
+                _stateVariables = value;
+            }
         }
 
         private List<ServiceAction> _serviceActions = new List<ServiceAction>();
         public List<ServiceAction> ServiceActions
         {
-            get => _serviceActions;
-            set => _serviceActions = value;
+            get
+            {
+                return _serviceActions;
+            }
+            set
+            {
+                _serviceActions = value;
+            }
         }
 
         public static TransportCommands Create(XDocument document)
@@ -68,7 +80,7 @@ namespace Emby.Dlna.PlayTo
         {
             if (container == null)
             {
-                throw new ArgumentNullException(nameof(container));
+                throw new ArgumentNullException("container");
             }
 
             return new Argument
@@ -159,7 +171,7 @@ namespace Emby.Dlna.PlayTo
             if (state != null)
             {
                 var sendValue = state.AllowedValues.FirstOrDefault(a => string.Equals(a, commandParameter, StringComparison.OrdinalIgnoreCase)) ??
-                                 state.AllowedValues.FirstOrDefault() ??
+                                 state.AllowedValues.FirstOrDefault() ?? 
                                  value;
 
                 return string.Format("<{0} xmlns:dt=\"urn:schemas-microsoft-com:datatypes\" dt:dt=\"{1}\">{2}</{0}>", argument.Name, state.DataType ?? "string", sendValue);

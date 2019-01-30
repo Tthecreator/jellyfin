@@ -1,13 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Library;
@@ -15,13 +5,24 @@ using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Session;
 using MediaBrowser.MediaEncoding.Probing;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Diagnostics;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Configuration;
+using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Extensions;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Model.Diagnostics;
+using MediaBrowser.Model.System;
 using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.MediaEncoding.Encoder
@@ -69,9 +70,9 @@ namespace MediaBrowser.MediaEncoding.Encoder
         private readonly string _originalFFMpegPath;
         private readonly string _originalFFProbePath;
         private readonly int DefaultImageExtractionTimeoutMs;
+        private readonly IEnvironmentInfo _environmentInfo;
 
-        public MediaEncoder(
-            ILoggerFactory loggerFactory,
+        public MediaEncoder(ILogger logger,
             IJsonSerializer jsonSerializer,
             string ffMpegPath,
             string ffProbePath,
@@ -88,9 +89,10 @@ namespace MediaBrowser.MediaEncoding.Encoder
             IHttpClient httpClient,
             IZipClient zipClient,
             IProcessFactory processFactory,
-            int defaultImageExtractionTimeoutMs)
+            int defaultImageExtractionTimeoutMs,
+            IEnvironmentInfo environmentInfo)
         {
-            _logger = loggerFactory.CreateLogger(nameof(MediaEncoder));
+            _logger = logger;
             _jsonSerializer = jsonSerializer;
             ConfigurationManager = configurationManager;
             FileSystem = fileSystem;
@@ -105,11 +107,44 @@ namespace MediaBrowser.MediaEncoding.Encoder
             _zipClient = zipClient;
             _processFactory = processFactory;
             DefaultImageExtractionTimeoutMs = defaultImageExtractionTimeoutMs;
+            _environmentInfo = environmentInfo;
             FFProbePath = ffProbePath;
             FFMpegPath = ffMpegPath;
             _originalFFProbePath = ffProbePath;
             _originalFFMpegPath = ffMpegPath;
+
             _hasExternalEncoder = hasExternalEncoder;
+        }
+
+        private readonly object _logLock = new object();
+        public void SetLogFilename(string name)
+        {
+            lock (_logLock)
+            {
+                try
+                {
+                    _environmentInfo.SetProcessEnvironmentVariable("FFREPORT", "file=" + name + ":level=32");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error setting FFREPORT environment variable");
+                }
+            }
+        }
+
+        public void ClearLogFilename()
+        {
+            lock (_logLock)
+            {
+                try
+                {
+                    _environmentInfo.SetProcessEnvironmentVariable("FFREPORT", null);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error setting FFREPORT environment variable");
+                }
+            }
         }
 
         public string EncoderLocationType
@@ -211,10 +246,10 @@ namespace MediaBrowser.MediaEncoding.Encoder
             {
                 if (string.IsNullOrWhiteSpace(path))
                 {
-                    throw new ArgumentNullException(nameof(path));
+                    throw new ArgumentNullException("path");
                 }
 
-                if (!File.Exists(path) && !Directory.Exists(path))
+                if (!FileSystem.FileExists(path) && !FileSystem.DirectoryExists(path))
                 {
                     throw new ResourceNotFoundException();
                 }
@@ -288,12 +323,12 @@ namespace MediaBrowser.MediaEncoding.Encoder
 
             if (!string.IsNullOrWhiteSpace(appPath))
             {
-                if (Directory.Exists(appPath))
+                if (FileSystem.DirectoryExists(appPath))
                 {
                     return GetPathsFromDirectory(appPath);
                 }
 
-                if (File.Exists(appPath))
+                if (FileSystem.FileExists(appPath))
                 {
                     return new Tuple<string, string>(appPath, GetProbePathFromEncoderPath(appPath));
                 }
@@ -327,7 +362,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
 
         private Tuple<string, string> GetPathsFromDirectory(string path)
         {
-            // Since we can't predict the file extension, first try directly within the folder
+            // Since we can't predict the file extension, first try directly within the folder 
             // If that doesn't pan out, then do a recursive search
             var files = FileSystem.GetFilePaths(path);
 
@@ -336,7 +371,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
             var ffmpegPath = files.FirstOrDefault(i => string.Equals(Path.GetFileNameWithoutExtension(i), "ffmpeg", StringComparison.OrdinalIgnoreCase) && !excludeExtensions.Contains(Path.GetExtension(i) ?? string.Empty));
             var ffprobePath = files.FirstOrDefault(i => string.Equals(Path.GetFileNameWithoutExtension(i), "ffprobe", StringComparison.OrdinalIgnoreCase) && !excludeExtensions.Contains(Path.GetExtension(i) ?? string.Empty));
 
-            if (string.IsNullOrWhiteSpace(ffmpegPath) || !File.Exists(ffmpegPath))
+            if (string.IsNullOrWhiteSpace(ffmpegPath) || !FileSystem.FileExists(ffmpegPath))
             {
                 files = FileSystem.GetFilePaths(path, true);
 
@@ -353,7 +388,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
 
         private string GetProbePathFromEncoderPath(string appPath)
         {
-            return FileSystem.GetFilePaths(Path.GetDirectoryName(appPath))
+            return FileSystem.GetFilePaths(FileSystem.GetDirectoryName(appPath))
                 .FirstOrDefault(i => string.Equals(Path.GetFileNameWithoutExtension(i), "ffprobe", StringComparison.OrdinalIgnoreCase));
         }
 
@@ -416,7 +451,10 @@ namespace MediaBrowser.MediaEncoding.Encoder
         /// Gets the encoder path.
         /// </summary>
         /// <value>The encoder path.</value>
-        public string EncoderPath => FFMpegPath;
+        public string EncoderPath
+        {
+            get { return FFMpegPath; }
+        }
 
         /// <summary>
         /// Gets the media info.
@@ -458,7 +496,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
         /// <param name="inputFiles">The input files.</param>
         /// <param name="protocol">The protocol.</param>
         /// <returns>System.String.</returns>
-        /// <exception cref="ArgumentException">Unrecognized InputType</exception>
+        /// <exception cref="System.ArgumentException">Unrecognized InputType</exception>
         public string GetInputArgument(string[] inputFiles, MediaProtocol protocol)
         {
             return EncodingUtils.GetInputArgument(inputFiles.ToList(), protocol);
@@ -487,7 +525,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
                 CreateNoWindow = true,
                 UseShellExecute = false,
 
-                // Must consume both or ffmpeg may hang due to deadlocks. See comments below.
+                // Must consume both or ffmpeg may hang due to deadlocks. See comments below.   
                 RedirectStandardOutput = true,
                 FileName = FFProbePath,
                 Arguments = string.Format(args, probeSizeArgument, inputPath).Trim(),
@@ -604,13 +642,13 @@ namespace MediaBrowser.MediaEncoding.Encoder
         {
             if (string.IsNullOrEmpty(inputPath))
             {
-                throw new ArgumentNullException(nameof(inputPath));
+                throw new ArgumentNullException("inputPath");
             }
 
             var tempExtractPath = Path.Combine(ConfigurationManager.ApplicationPaths.TempDirectory, Guid.NewGuid() + ".jpg");
-            Directory.CreateDirectory(Path.GetDirectoryName(tempExtractPath));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(tempExtractPath));
 
-            // apply some filters to thumbnail extracted below (below) crop any black lines that we made and get the correct ar then scale to width 600.
+            // apply some filters to thumbnail extracted below (below) crop any black lines that we made and get the correct ar then scale to width 600. 
             // This filter chain may have adverse effects on recorded tv thumbnails if ar changes during presentation ex. commercials @ diff ar
             var vf = "scale=600:trunc(600/dar/2)*2";
 
@@ -638,7 +676,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
                         break;
                 }
             }
-
+            
             var mapArg = imageStreamIndex.HasValue ? (" -map 0:v:" + imageStreamIndex.Value.ToString(CultureInfo.InvariantCulture)) : string.Empty;
 
             var enableThumbnail = !new List<string> { "wtv" }.Contains(container ?? string.Empty, StringComparer.OrdinalIgnoreCase);
@@ -770,7 +808,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
                 vf += string.Format(",scale=min(iw\\,{0}):trunc(ow/dar/2)*2", maxWidthParam);
             }
 
-            Directory.CreateDirectory(targetDirectory);
+            FileSystem.CreateDirectory(targetDirectory);
             var outputPath = Path.Combine(targetDirectory, filenamePrefix + "%05d.jpg");
 
             var args = string.Format("-i {0} -threads 0 -v quiet -vf \"{2}\" -f image2 \"{1}\"", inputArgument, outputPath, vf);
@@ -1019,8 +1057,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
 
         public bool CanExtractSubtitles(string codec)
         {
-            // TODO is there ever a case when a subtitle can't be extracted??
-            return true;
+            return false;
         }
 
         private class ProcessWrapper : IDisposable

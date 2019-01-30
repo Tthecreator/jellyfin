@@ -1,10 +1,13 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Controller.Library;
+﻿using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Session;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Session;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using MediaBrowser.Model.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Api.Session
 {
@@ -17,7 +20,10 @@ namespace MediaBrowser.Api.Session
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        protected override string Name => "Sessions";
+        protected override string Name
+        {
+            get { return "Sessions"; }
+        }
 
         /// <summary>
         /// The _kernel

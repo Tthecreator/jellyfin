@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace MediaBrowser.Model.Extensions
 {
@@ -8,7 +8,7 @@ namespace MediaBrowser.Model.Extensions
         {
             if (value == null)
             {
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException("value");
             }
 
             foreach (var item in list)

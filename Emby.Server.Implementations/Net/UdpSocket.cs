@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -8,7 +8,7 @@ using MediaBrowser.Model.Net;
 
 namespace Emby.Server.Implementations.Net
 {
-    // THIS IS A LINKED FILE - SHARED AMONGST MULTIPLE PLATFORMS
+    // THIS IS A LINKED FILE - SHARED AMONGST MULTIPLE PLATFORMS	
     // Be careful to check any changes compile and work for all platform projects it is shared in.
 
     public sealed class UdpSocket : DisposableManagedObjectBase, ISocket
@@ -16,7 +16,10 @@ namespace Emby.Server.Implementations.Net
         private Socket _Socket;
         private int _LocalPort;
 
-        public Socket Socket => _Socket;
+        public Socket Socket
+        {
+            get { return _Socket; }
+        }
 
         private readonly SocketAsyncEventArgs _receiveSocketAsyncEventArgs = new SocketAsyncEventArgs()
         {
@@ -33,7 +36,7 @@ namespace Emby.Server.Implementations.Net
 
         public UdpSocket(Socket socket, int localPort, IPAddress ip)
         {
-            if (socket == null) throw new ArgumentNullException(nameof(socket));
+            if (socket == null) throw new ArgumentNullException("socket");
 
             _Socket = socket;
             _LocalPort = localPort;
@@ -99,7 +102,7 @@ namespace Emby.Server.Implementations.Net
 
         public UdpSocket(Socket socket, IpEndPointInfo endPoint)
         {
-            if (socket == null) throw new ArgumentNullException(nameof(socket));
+            if (socket == null) throw new ArgumentNullException("socket");
 
             _Socket = socket;
             _Socket.Connect(NetworkManager.ToIPEndPoint(endPoint));
@@ -133,8 +136,8 @@ namespace Emby.Server.Implementations.Net
         {
             ThrowIfDisposed();
 
-            var sender = new IPEndPoint(IPAddress.Any, 0);
-            var remoteEndPoint = (EndPoint)sender;
+            IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
+            EndPoint remoteEndPoint = (EndPoint)sender;
 
             var receivedBytes = _Socket.EndReceiveFrom(result, ref remoteEndPoint);
 

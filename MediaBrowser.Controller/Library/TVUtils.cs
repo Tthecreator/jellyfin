@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MediaBrowser.Controller.Library
 {
@@ -10,7 +11,7 @@ namespace MediaBrowser.Controller.Library
         /// <summary>
         /// The TVDB API key
         /// </summary>
-        public static readonly string TvdbApiKey = "72930AE1CB7E2DB3";
+        public static readonly string TvdbApiKey = "OG4V3YJ3FAP7FP2K";
         public static readonly string TvdbBaseUrl = "https://www.thetvdb.com/";
         /// <summary>
         /// The banner URL
@@ -40,7 +41,9 @@ namespace MediaBrowser.Controller.Library
                                };
                 }
 
-                if (Enum.TryParse(day, true, out DayOfWeek value))
+                DayOfWeek value;
+
+                if (Enum.TryParse(day, true, out value))
                 {
                     return new DayOfWeek[]
                                {
@@ -48,7 +51,7 @@ namespace MediaBrowser.Controller.Library
                                };
                 }
 
-                return new DayOfWeek[] { };
+                return new DayOfWeek[]{};
             }
             return null;
         }

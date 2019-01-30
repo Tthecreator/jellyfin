@@ -1,16 +1,21 @@
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Emby.Server.Implementations.IO;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
+using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.MediaInfo;
+using MediaBrowser.Model.System;
+using System.Globalization;
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.LiveTv;
+using System.Collections.Generic;
 
 namespace Emby.Server.Implementations.LiveTv.TunerHosts
 {
@@ -36,7 +41,7 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
 
             var url = mediaSource.Path;
 
-            Directory.CreateDirectory(Path.GetDirectoryName(TempFilePath));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(TempFilePath));
 
             var typeName = GetType().Name;
             Logger.LogInformation("Opening " + typeName + " Live stream from {0}", url);

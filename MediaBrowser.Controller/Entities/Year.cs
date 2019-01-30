@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using MediaBrowser.Model.Serialization;
@@ -25,7 +25,13 @@ namespace MediaBrowser.Controller.Entities
         /// </summary>
         /// <value>The containing folder path.</value>
         [IgnoreDataMember]
-        public override string ContainingFolderPath => Path;
+        public override string ContainingFolderPath
+        {
+            get
+            {
+                return Path;
+            }
+        }
 
         public override double GetDefaultPrimaryImageAspectRatio()
         {
@@ -36,7 +42,13 @@ namespace MediaBrowser.Controller.Entities
         }
 
         [IgnoreDataMember]
-        public override bool SupportsAncestors => false;
+        public override bool SupportsAncestors
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         public override bool CanDelete()
         {
@@ -50,9 +62,11 @@ namespace MediaBrowser.Controller.Entities
 
         public IList<BaseItem> GetTaggedItems(InternalItemsQuery query)
         {
+            int year;
+
             var usCulture = new CultureInfo("en-US");
 
-            if (!int.TryParse(Name, NumberStyles.Integer, usCulture, out var year))
+            if (!int.TryParse(Name, NumberStyles.Integer, usCulture, out year))
             {
                 return new List<BaseItem>();
             }
@@ -64,16 +78,24 @@ namespace MediaBrowser.Controller.Entities
 
         public int? GetYearValue()
         {
-            if (int.TryParse(Name, NumberStyles.Integer, CultureInfo.InvariantCulture, out var year))
+            int i;
+
+            if (int.TryParse(Name, NumberStyles.Integer, CultureInfo.InvariantCulture, out i))
             {
-                return year;
+                return i;
             }
 
             return null;
         }
 
         [IgnoreDataMember]
-        public override bool SupportsPeople => false;
+        public override bool SupportsPeople
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         public static string GetPath(string name)
         {

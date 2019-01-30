@@ -1,27 +1,27 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.LiveTv;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.MediaInfo;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
-using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.System;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Controller.Library;
 
 namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
 {
@@ -42,13 +42,28 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
             _environment = environment;
         }
 
-        public string Name => "HD Homerun";
+        public string Name
+        {
+            get { return "HD Homerun"; }
+        }
 
-        public override string Type => DeviceType;
+        public override string Type
+        {
+            get { return DeviceType; }
+        }
 
-        public static string DeviceType => "hdhomerun";
+        public static string DeviceType
+        {
+            get { return "hdhomerun"; }
+        }
 
-        protected override string ChannelIdPrefix => "hdhr_";
+        protected override string ChannelIdPrefix
+        {
+            get
+            {
+                return "hdhr_";
+            }
+        }
 
         private string GetChannelId(TunerHostInfo info, Channels i)
         {
@@ -118,7 +133,8 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
             {
                 if (!string.IsNullOrEmpty(cacheKey))
                 {
-                    if (_modelCache.TryGetValue(cacheKey, out DiscoverResponse response))
+                    DiscoverResponse response;
+                    if (_modelCache.TryGetValue(cacheKey, out response))
                     {
                         return response;
                     }
@@ -258,10 +274,10 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
 
                 for (int i = 0; i < model.TunerCount; ++i)
                 {
-                    var name = string.Format("Tuner {0}", i + 1);
-                    var currentChannel = "none"; /// @todo Get current channel and map back to Station Id
+                    var name = String.Format("Tuner {0}", i + 1);
+                    var currentChannel = "none"; /// @todo Get current channel and map back to Station Id      
                     var isAvailable = await manager.CheckTunerAvailability(ipInfo, i, cancellationToken).ConfigureAwait(false);
-                    var status = isAvailable ? LiveTvTunerStatus.Available : LiveTvTunerStatus.LiveTv;
+                    LiveTvTunerStatus status = isAvailable ? LiveTvTunerStatus.Available : LiveTvTunerStatus.LiveTv;
                     tuners.Add(new LiveTvTunerInfo
                     {
                         Name = name,
@@ -309,7 +325,7 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
             return await GetTunerInfosHttp(info, cancellationToken).ConfigureAwait(false);
         }
 
-        private static string GetApiUrl(TunerHostInfo info)
+        private string GetApiUrl(TunerHostInfo info)
         {
             var url = info.Url;
 
@@ -343,7 +359,7 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
             return Config.GetConfiguration<EncodingOptions>("encoding");
         }
 
-        private static string GetHdHrIdFromChannelId(string channelId)
+        private string GetHdHrIdFromChannelId(string channelId)
         {
             return channelId.Split('_')[1];
         }
@@ -354,8 +370,10 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
             int? height = null;
             bool isInterlaced = true;
             string videoCodec = null;
+            string audioCodec = null;
 
             int? videoBitrate = null;
+            int? audioBitrate = null;
 
             var isHd = channelInfo.IsHD ?? true;
 
@@ -425,17 +443,20 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(videoCodec))
+            if (channelInfo != null)
             {
-                videoCodec = channelInfo.VideoCodec;
-            }
-            string audioCodec = channelInfo.AudioCodec;
+                if (string.IsNullOrWhiteSpace(videoCodec))
+                {
+                    videoCodec = channelInfo.VideoCodec;
+                }
+                audioCodec = channelInfo.AudioCodec;
 
-            if (!videoBitrate.HasValue)
-            {
-                videoBitrate = isHd ? 15000000 : 2000000;
+                if (!videoBitrate.HasValue)
+                {
+                    videoBitrate = isHd ? 15000000 : 2000000;
+                }
+                audioBitrate = isHd ? 448000 : 192000;
             }
-            int? audioBitrate = isHd ? 448000 : 192000;
 
             // normalize
             if (string.Equals(videoCodec, "mpeg2", StringComparison.OrdinalIgnoreCase))

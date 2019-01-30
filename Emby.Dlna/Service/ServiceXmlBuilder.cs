@@ -1,6 +1,7 @@
+﻿using Emby.Dlna.Common;
 using System.Collections.Generic;
+using System.Security;
 using System.Text;
-using Emby.Dlna.Common;
 using Emby.Dlna.Server;
 
 namespace Emby.Dlna.Service
@@ -27,7 +28,7 @@ namespace Emby.Dlna.Service
             return builder.ToString();
         }
 
-        private static void AppendActionList(StringBuilder builder, IEnumerable<ServiceAction> actions)
+        private void AppendActionList(StringBuilder builder, IEnumerable<ServiceAction> actions)
         {
             builder.Append("<actionList>");
 
@@ -58,7 +59,7 @@ namespace Emby.Dlna.Service
             builder.Append("</actionList>");
         }
 
-        private static void AppendServiceStateTable(StringBuilder builder, IEnumerable<StateVariable> stateVariables)
+        private void AppendServiceStateTable(StringBuilder builder, IEnumerable<StateVariable> stateVariables)
         {
             builder.Append("<serviceStateTable>");
 

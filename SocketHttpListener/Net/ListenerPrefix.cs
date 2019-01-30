@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using MediaBrowser.Model.Net;
 
 namespace SocketHttpListener.Net
 {
@@ -26,21 +27,33 @@ namespace SocketHttpListener.Net
 
         public IPAddress[] Addresses
         {
-            get => _addresses;
-            set => _addresses = value;
+            get { return _addresses; }
+            set { _addresses = value; }
         }
-        public bool Secure => _secure;
+        public bool Secure
+        {
+            get { return _secure; }
+        }
 
-        public string Host => _host;
+        public string Host
+        {
+            get { return _host; }
+        }
 
-        public int Port => _port;
+        public int Port
+        {
+            get { return _port; }
+        }
 
-        public string Path => _path;
+        public string Path
+        {
+            get { return _path; }
+        }
 
         // Equals and GetHashCode are required to detect duplicates in HttpListenerPrefixCollection.
         public override bool Equals(object o)
         {
-            var other = o as ListenerPrefix;
+            ListenerPrefix other = o as ListenerPrefix;
             if (other == null)
                 return false;
 

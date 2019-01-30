@@ -15,6 +15,7 @@ namespace Emby.Server.Implementations.Services
         public HttpResult(object response, string contentType, HttpStatusCode statusCode)
         {
             this.Headers = new Dictionary<string, string>();
+            this.Cookies = new List<Cookie>();
 
             this.Response = response;
             this.ContentType = contentType;
@@ -25,28 +26,29 @@ namespace Emby.Server.Implementations.Services
 
         public IDictionary<string, string> Headers { get; private set; }
 
+        public List<Cookie> Cookies { get; private set; }
+
         public int Status { get; set; }
 
         public HttpStatusCode StatusCode
         {
-            get => (HttpStatusCode)Status;
-            set => Status = (int)value;
+            get { return (HttpStatusCode)Status; }
+            set { Status = (int)value; }
         }
 
         public IRequest RequestContext { get; set; }
 
         public async Task WriteToAsync(Stream responseStream, CancellationToken cancellationToken)
         {
-            var response = RequestContext == null ? null : RequestContext.Response;
+            var response = RequestContext != null ? RequestContext.Response : null;
 
-            if (this.Response is byte[] bytesResponse)
+            var bytesResponse = this.Response as byte[];
+            if (bytesResponse != null)
             {
                 var contentLength = bytesResponse.Length;
 
                 if (response != null)
-                {
                     response.SetContentLength(contentLength);
-                }
 
                 if (contentLength > 0)
                 {

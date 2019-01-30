@@ -36,9 +36,15 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
             _zipClient = zipClient;
         }
 
-        public string Name => "XmlTV";
+        public string Name
+        {
+            get { return "XmlTV"; }
+        }
 
-        public string Type => "xmltv";
+        public string Type
+        {
+            get { return "xmltv"; }
+        }
 
         private string GetLanguage(ListingsProviderInfo info)
         {
@@ -61,7 +67,7 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
 
             string cacheFilename = DateTime.UtcNow.DayOfYear.ToString(CultureInfo.InvariantCulture) + "-" + DateTime.UtcNow.Hour.ToString(CultureInfo.InvariantCulture) + ".xml";
             string cacheFile = Path.Combine(_config.ApplicationPaths.CachePath, "xmltv", cacheFilename);
-            if (File.Exists(cacheFile))
+            if (_fileSystem.FileExists(cacheFile))
             {
                 return UnzipIfNeeded(path, cacheFile);
             }
@@ -72,7 +78,7 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
             {
                 CancellationToken = cancellationToken,
                 Url = path,
-                Progress = new SimpleProgress<double>(),
+                Progress = new SimpleProgress<Double>(),
                 DecompressionMethod = CompressionMethod.Gzip,
 
                 // It's going to come back gzipped regardless of this value
@@ -83,9 +89,9 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
 
             }).ConfigureAwait(false);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(cacheFile));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(cacheFile));
 
-            File.Copy(tempFile, cacheFile, true);
+            _fileSystem.CopyFile(tempFile, cacheFile, true);
 
             return UnzipIfNeeded(path, cacheFile);
         }
@@ -122,10 +128,10 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
 
         private string ExtractFirstFileFromGz(string file)
         {
-            using (var stream = File.OpenRead(file))
+            using (var stream = _fileSystem.OpenRead(file))
             {
                 string tempFolder = Path.Combine(_config.ApplicationPaths.TempDirectory, Guid.NewGuid().ToString());
-                Directory.CreateDirectory(tempFolder);
+                _fileSystem.CreateDirectory(tempFolder);
 
                 _zipClient.ExtractFirstFileFromGz(stream, tempFolder, "data.xml");
 
@@ -135,10 +141,10 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
 
         private string ExtractGz(string file)
         {
-            using (var stream = File.OpenRead(file))
+            using (var stream = _fileSystem.OpenRead(file))
             {
                 string tempFolder = Path.Combine(_config.ApplicationPaths.TempDirectory, Guid.NewGuid().ToString());
-                Directory.CreateDirectory(tempFolder);
+                _fileSystem.CreateDirectory(tempFolder);
 
                 _zipClient.ExtractAllFromGz(stream, tempFolder, true);
 
@@ -158,7 +164,7 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
         {
             if (string.IsNullOrWhiteSpace(channelId))
             {
-                throw new ArgumentNullException(nameof(channelId));
+                throw new ArgumentNullException("channelId");
             }
 
             /*
@@ -181,7 +187,7 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
                         .Select(p => GetProgramInfo(p, info));
         }
 
-        private static ProgramInfo GetProgramInfo(XmlTvProgram program, ListingsProviderInfo info)
+        private ProgramInfo GetProgramInfo(XmlTvProgram program, ListingsProviderInfo info)
         {
             string episodeTitle = program.Episode?.Title;
 
@@ -204,9 +210,9 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
                 IsMovie = program.Categories.Any(c => info.MovieCategories.Contains(c, StringComparer.OrdinalIgnoreCase)),
                 IsNews = program.Categories.Any(c => info.NewsCategories.Contains(c, StringComparer.OrdinalIgnoreCase)),
                 IsSports = program.Categories.Any(c => info.SportsCategories.Contains(c, StringComparer.OrdinalIgnoreCase)),
-                ImageUrl = program.Icon != null && !string.IsNullOrEmpty(program.Icon.Source) ? program.Icon.Source : null,
-                HasImage = program.Icon != null && !string.IsNullOrEmpty(program.Icon.Source),
-                OfficialRating = program.Rating != null && !string.IsNullOrEmpty(program.Rating.Value) ? program.Rating.Value : null,
+                ImageUrl = program.Icon != null && !String.IsNullOrEmpty(program.Icon.Source) ? program.Icon.Source : null,
+                HasImage = program.Icon != null && !String.IsNullOrEmpty(program.Icon.Source),
+                OfficialRating = program.Rating != null && !String.IsNullOrEmpty(program.Rating.Value) ? program.Rating.Value : null,
                 CommunityRating = program.StarRating,
                 SeriesId = program.Episode == null ? null : program.Title.GetMD5().ToString("N")
             };
@@ -240,7 +246,7 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
             }
 
             // Construct an id from the channel and start date
-            programInfo.Id = string.Format("{0}_{1:O}", program.ChannelId, program.StartDate);
+            programInfo.Id = String.Format("{0}_{1:O}", program.ChannelId, program.StartDate);
 
             if (programInfo.IsMovie)
             {
@@ -255,7 +261,7 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
         public Task Validate(ListingsProviderInfo info, bool validateLogin, bool validateListings)
         {
             // Assume all urls are valid. check files for existence
-            if (!info.Path.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !File.Exists(info.Path))
+            if (!info.Path.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !_fileSystem.FileExists(info.Path))
             {
                 throw new FileNotFoundException("Could not find the XmlTv file specified:", info.Path);
             }
@@ -281,14 +287,14 @@ namespace Jellyfin.Server.Implementations.LiveTv.Listings
             string path = await GetXml(info.Path, cancellationToken).ConfigureAwait(false);
             _logger.LogDebug("Opening XmlTvReader for {path}", path);
             var reader = new XmlTvReader(path, GetLanguage(info));
-            var results = reader.GetChannels();
+            IEnumerable<XmlTvChannel> results = reader.GetChannels();
 
             // Should this method be async?
             return results.Select(c => new ChannelInfo
             {
                 Id = c.Id,
                 Name = c.DisplayName,
-                ImageUrl = c.Icon != null && !string.IsNullOrEmpty(c.Icon.Source) ? c.Icon.Source : null,
+                ImageUrl = c.Icon != null && !String.IsNullOrEmpty(c.Icon.Source) ? c.Icon.Source : null,
                 Number = string.IsNullOrWhiteSpace(c.Number) ? c.Id : c.Number
 
             }).ToList();

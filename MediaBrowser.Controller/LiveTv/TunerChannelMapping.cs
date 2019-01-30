@@ -1,4 +1,4 @@
-namespace MediaBrowser.Controller.LiveTv
+﻿namespace MediaBrowser.Controller.LiveTv
 {
     public class TunerChannelMapping
     {

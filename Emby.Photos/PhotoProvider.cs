@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -7,7 +7,6 @@ using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
@@ -15,6 +14,7 @@ using TagLib;
 using TagLib.IFD;
 using TagLib.IFD.Entries;
 using TagLib.IFD.Tags;
+using MediaBrowser.Model.MediaInfo;
 
 namespace Emby.Photos
 {
@@ -145,7 +145,8 @@ namespace Emby.Photos
                             }
                             else
                             {
-                                if (Enum.TryParse(image.ImageTag.Orientation.ToString(), true, out ImageOrientation orientation))
+                                MediaBrowser.Model.Drawing.ImageOrientation orientation;
+                                if (Enum.TryParse(image.ImageTag.Orientation.ToString(), true, out orientation))
                                 {
                                     item.Orientation = orientation;
                                 }
@@ -181,12 +182,12 @@ namespace Emby.Photos
 
                 try
                 {
-                    var size = _imageProcessor.GetImageSize(item, img, false);
+                    var size = _imageProcessor.GetImageSize(item, img, false, false);
 
                     if (size.Width > 0 && size.Height > 0)
                     {
-                        item.Width = size.Width;
-                        item.Height = size.Height;
+                        item.Width = Convert.ToInt32(size.Width);
+                        item.Height = Convert.ToInt32(size.Height);
                     }
                 }
                 catch (ArgumentException)
@@ -199,6 +200,9 @@ namespace Emby.Photos
             return Task.FromResult(result);
         }
 
-        public string Name => "Embedded Information";
+        public string Name
+        {
+            get { return "Embedded Information"; }
+        }
     }
 }

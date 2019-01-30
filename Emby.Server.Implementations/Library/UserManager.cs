@@ -1,3 +1,22 @@
+﻿using MediaBrowser.Common.Events;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Drawing;
+using MediaBrowser.Controller.Dto;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Net;
+using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Configuration;
+using MediaBrowser.Model.Connect;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Events;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Model.Users;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,32 +25,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Events;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Authentication;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Devices;
-using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Dto;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Net;
-using MediaBrowser.Controller.Persistence;
-using MediaBrowser.Controller.Plugins;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Controller.Security;
-using MediaBrowser.Controller.Session;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Connect;
 using MediaBrowser.Model.Cryptography;
-using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Events;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
-using MediaBrowser.Model.Users;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Controller.Authentication;
+using MediaBrowser.Controller.Security;
+using MediaBrowser.Controller.Devices;
+using MediaBrowser.Controller.Session;
+using MediaBrowser.Controller.Plugins;
 
 namespace Emby.Server.Implementations.Library
 {
@@ -44,7 +44,7 @@ namespace Emby.Server.Implementations.Library
         /// Gets the users.
         /// </summary>
         /// <value>The users.</value>
-        public IEnumerable<User> Users => _users;
+        public IEnumerable<User> Users { get { return _users; } }
 
         private User[] _users;
 
@@ -80,20 +80,9 @@ namespace Emby.Server.Implementations.Library
         private IAuthenticationProvider[] _authenticationProviders;
         private DefaultAuthenticationProvider _defaultAuthenticationProvider;
 
-        public UserManager(
-            ILoggerFactory loggerFactory,
-            IServerConfigurationManager configurationManager,
-            IUserRepository userRepository,
-            IXmlSerializer xmlSerializer,
-            INetworkManager networkManager,
-            Func<IImageProcessor> imageProcessorFactory,
-            Func<IDtoService> dtoServiceFactory,
-            IServerApplicationHost appHost,
-            IJsonSerializer jsonSerializer,
-            IFileSystem fileSystem,
-            ICryptoProvider cryptographyProvider)
+        public UserManager(ILogger logger, IServerConfigurationManager configurationManager, IUserRepository userRepository, IXmlSerializer xmlSerializer, INetworkManager networkManager, Func<IImageProcessor> imageProcessorFactory, Func<IDtoService> dtoServiceFactory, IServerApplicationHost appHost, IJsonSerializer jsonSerializer, IFileSystem fileSystem, ICryptoProvider cryptographyProvider)
         {
-            _logger = loggerFactory.CreateLogger(nameof(UserManager));
+            _logger = logger;
             UserRepository = userRepository;
             _xmlSerializer = xmlSerializer;
             _networkManager = networkManager;
@@ -169,12 +158,12 @@ namespace Emby.Server.Implementations.Library
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>User.</returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="System.ArgumentNullException"></exception>
         public User GetUserById(Guid id)
         {
             if (id.Equals(Guid.Empty))
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException("id");
             }
 
             return Users.FirstOrDefault(u => u.Id == id);
@@ -194,7 +183,7 @@ namespace Emby.Server.Implementations.Library
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentNullException(nameof(name));
+                throw new ArgumentNullException("name");
             }
 
             return Users.FirstOrDefault(u => string.Equals(u.Name, name, StringComparison.OrdinalIgnoreCase));
@@ -233,7 +222,7 @@ namespace Emby.Server.Implementations.Library
             return true;
         }
 
-        private static bool IsValidUsernameCharacter(char i)
+        private bool IsValidUsernameCharacter(char i)
         {
             return !char.Equals(i, '<') && !char.Equals(i, '>');
         }
@@ -262,7 +251,7 @@ namespace Emby.Server.Implementations.Library
         {
             if (string.IsNullOrWhiteSpace(username))
             {
-                throw new ArgumentNullException(nameof(username));
+                throw new ArgumentNullException("username");
             }
 
             var user = Users
@@ -322,14 +311,17 @@ namespace Emby.Server.Implementations.Library
                 throw new SecurityException(string.Format("The {0} account is currently disabled. Please consult with your administrator.", user.Name));
             }
 
-            if (!user.Policy.EnableRemoteAccess && !_networkManager.IsInLocalNetwork(remoteEndPoint))
+            if (user != null)
             {
-                throw new SecurityException("Forbidden.");
-            }
+                if (!user.Policy.EnableRemoteAccess && !_networkManager.IsInLocalNetwork(remoteEndPoint))
+                {
+                    throw new SecurityException("Forbidden.");
+                }
 
-            if (!user.IsParentalScheduleAllowed())
-            {
-                throw new SecurityException("User is not allowed access at this time.");
+                if (!user.IsParentalScheduleAllowed())
+                {
+                    throw new SecurityException("User is not allowed access at this time.");
+                }
             }
 
             // Update LastActivityDate and LastLoginDate, then save
@@ -352,7 +344,7 @@ namespace Emby.Server.Implementations.Library
             return success ? user : null;
         }
 
-        private static string GetAuthenticationProviderId(IAuthenticationProvider provider)
+        private string GetAuthenticationProviderId(IAuthenticationProvider provider)
         {
             return provider.GetType().FullName;
         }
@@ -460,26 +452,26 @@ namespace Emby.Server.Implementations.Library
             {
                 user.Policy.InvalidLoginAttemptCount = newValue;
 
-                var maxCount = user.Policy.IsAdministrator ? 3 : 5;
+                var maxCount = user.Policy.IsAdministrator ?
+                    3 :
+                    5;
 
-                // TODO: Fix
-                /*
                 var fireLockout = false;
 
                 if (newValue >= maxCount)
                 {
-                    _logger.LogDebug("Disabling user {0} due to {1} unsuccessful login attempts.", user.Name, newValue.ToString(CultureInfo.InvariantCulture));
-                    user.Policy.IsDisabled = true;
+                    //_logger.LogDebug("Disabling user {0} due to {1} unsuccessful login attempts.", user.Name, newValue.ToString(CultureInfo.InvariantCulture));
+                    //user.Policy.IsDisabled = true;
 
-                    fireLockout = true;
-                }*/
+                    //fireLockout = true;
+                }
 
                 UpdateUserPolicy(user, user.Policy, false);
 
-                /* if (fireLockout)
+                if (fireLockout)
                 {
                     UserLockedOut?.Invoke(this, new GenericEventArgs<User>(user));
-                }*/
+                }
             }
         }
 
@@ -534,7 +526,7 @@ namespace Emby.Server.Implementations.Library
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             var hasConfiguredPassword = GetAuthenticationProvider(user).HasPassword(user).Result;
@@ -627,18 +619,18 @@ namespace Emby.Server.Implementations.Library
         /// <param name="user">The user.</param>
         /// <param name="newName">The new name.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">user</exception>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="System.ArgumentNullException">user</exception>
+        /// <exception cref="System.ArgumentException"></exception>
         public async Task RenameUser(User user, string newName)
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             if (string.IsNullOrEmpty(newName))
             {
-                throw new ArgumentNullException(nameof(newName));
+                throw new ArgumentNullException("newName");
             }
 
             if (Users.Any(u => u.Id != user.Id && u.Name.Equals(newName, StringComparison.OrdinalIgnoreCase)))
@@ -660,13 +652,13 @@ namespace Emby.Server.Implementations.Library
         /// Updates the user.
         /// </summary>
         /// <param name="user">The user.</param>
-        /// <exception cref="ArgumentNullException">user</exception>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="System.ArgumentNullException">user</exception>
+        /// <exception cref="System.ArgumentException"></exception>
         public void UpdateUser(User user)
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             if (user.Id.Equals(Guid.Empty) || !Users.Any(u => u.Id.Equals(user.Id)))
@@ -691,13 +683,13 @@ namespace Emby.Server.Implementations.Library
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>User.</returns>
-        /// <exception cref="ArgumentNullException">name</exception>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="System.ArgumentNullException">name</exception>
+        /// <exception cref="System.ArgumentException"></exception>
         public async Task<User> CreateUser(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentNullException(nameof(name));
+                throw new ArgumentNullException("name");
             }
 
             if (!IsValidUsername(name))
@@ -739,13 +731,13 @@ namespace Emby.Server.Implementations.Library
         /// </summary>
         /// <param name="user">The user.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">user</exception>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="System.ArgumentNullException">user</exception>
+        /// <exception cref="System.ArgumentException"></exception>
         public async Task DeleteUser(User user)
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             var allUsers = Users.ToList();
@@ -812,7 +804,7 @@ namespace Emby.Server.Implementations.Library
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             if (user.ConnectLinkType.HasValue && user.ConnectLinkType.Value == UserLinkType.Guest)
@@ -831,7 +823,7 @@ namespace Emby.Server.Implementations.Library
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             if (newPassword != null)
@@ -841,7 +833,7 @@ namespace Emby.Server.Implementations.Library
 
             if (string.IsNullOrWhiteSpace(newPasswordHash))
             {
-                throw new ArgumentNullException(nameof(newPasswordHash));
+                throw new ArgumentNullException("newPasswordHash");
             }
 
             user.EasyPassword = newPasswordHash;
@@ -856,7 +848,7 @@ namespace Emby.Server.Implementations.Library
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>User.</returns>
-        private static User InstantiateNewUser(string name)
+        private User InstantiateNewUser(string name)
         {
             return new User
             {
@@ -869,7 +861,10 @@ namespace Emby.Server.Implementations.Library
             };
         }
 
-        private string PasswordResetFile => Path.Combine(ConfigurationManager.ApplicationPaths.ProgramDataPath, "passwordreset.txt");
+        private string PasswordResetFile
+        {
+            get { return Path.Combine(ConfigurationManager.ApplicationPaths.ProgramDataPath, "passwordreset.txt"); }
+        }
 
         private string _lastPin;
         private PasswordPinCreationResult _lastPasswordPinCreationResult;
@@ -893,7 +888,7 @@ namespace Emby.Server.Implementations.Library
 
             text.AppendLine("Use your web browser to visit:");
             text.AppendLine(string.Empty);
-            text.AppendLine(localAddress + "/web/index.html#!/forgotpasswordpin.html");
+            text.AppendLine(localAddress + "/web/forgotpasswordpin.html");
             text.AppendLine(string.Empty);
             text.AppendLine("Enter the following pin code:");
             text.AppendLine(string.Empty);
@@ -904,7 +899,7 @@ namespace Emby.Server.Implementations.Library
             // Tuesday, 22 August 2006 06:30 AM
             text.AppendLine("The pin code will expire at " + localExpirationTime.ToString("f1", CultureInfo.CurrentCulture));
 
-            File.WriteAllText(path, text.ToString(), Encoding.UTF8);
+            _fileSystem.WriteAllText(path, text.ToString(), Encoding.UTF8);
 
             var result = new PasswordPinCreationResult
             {
@@ -1029,17 +1024,16 @@ namespace Emby.Server.Implementations.Library
         {
             var path = GetPolicyFilePath(user);
 
-            if (!File.Exists(path))
-            {
-                return GetDefaultPolicy(user);
-            }
-
             try
             {
                 lock (_policySyncLock)
                 {
                     return (UserPolicy)_xmlSerializer.DeserializeFromFile(typeof(UserPolicy), path);
                 }
+            }
+            catch (FileNotFoundException)
+            {
+                return GetDefaultPolicy(user);
             }
             catch (IOException)
             {
@@ -1053,7 +1047,7 @@ namespace Emby.Server.Implementations.Library
             }
         }
 
-        private static UserPolicy GetDefaultPolicy(User user)
+        private UserPolicy GetDefaultPolicy(User user)
         {
             return new UserPolicy
             {
@@ -1080,7 +1074,7 @@ namespace Emby.Server.Implementations.Library
 
             var path = GetPolicyFilePath(user);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
             lock (_policySyncLock)
             {
@@ -1115,12 +1109,12 @@ namespace Emby.Server.Implementations.Library
             }
         }
 
-        private static string GetPolicyFilePath(User user)
+        private string GetPolicyFilePath(User user)
         {
             return Path.Combine(user.ConfigurationDirectoryPath, "policy.xml");
         }
 
-        private static string GetConfigurationFilePath(User user)
+        private string GetConfigurationFilePath(User user)
         {
             return Path.Combine(user.ConfigurationDirectoryPath, "config.xml");
         }
@@ -1129,17 +1123,16 @@ namespace Emby.Server.Implementations.Library
         {
             var path = GetConfigurationFilePath(user);
 
-            if (!File.Exists(path))
-            {
-                return new UserConfiguration();
-            }
-
             try
             {
                 lock (_configSyncLock)
                 {
                     return (UserConfiguration)_xmlSerializer.DeserializeFromFile(typeof(UserConfiguration), path);
                 }
+            }
+            catch (FileNotFoundException)
+            {
+                return new UserConfiguration();
             }
             catch (IOException)
             {
@@ -1176,7 +1169,7 @@ namespace Emby.Server.Implementations.Library
                 config = _jsonSerializer.DeserializeFromString<UserConfiguration>(json);
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
             lock (_configSyncLock)
             {

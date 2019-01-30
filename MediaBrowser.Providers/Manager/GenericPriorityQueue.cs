@@ -1,7 +1,9 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Priority_Queue
 {
@@ -41,13 +43,25 @@ namespace Priority_Queue
         /// Returns the number of nodes in the queue.
         /// O(1)
         /// </summary>
-        public int Count => _numNodes;
+        public int Count
+        {
+            get
+            {
+                return _numNodes;
+            }
+        }
 
         /// <summary>
         /// Returns the maximum number of items that can be enqueued at once in this queue.  Once you hit this number (ie. once Count == MaxSize),
         /// attempting to enqueue another item will cause undefined behavior.  O(1)
         /// </summary>
-        public int MaxSize => _nodes.Length - 1;
+        public int MaxSize
+        {
+            get
+            {
+                return _nodes.Length - 1;
+            }
+        }
 
         /// <summary>
         /// Removes every node from the queue.
@@ -69,7 +83,7 @@ namespace Priority_Queue
 #if DEBUG
             if (node == null)
             {
-                throw new ArgumentNullException(nameof(node));
+                throw new ArgumentNullException("node");
             }
             if (node.QueueIndex < 0 || node.QueueIndex >= _nodes.Length)
             {
@@ -92,7 +106,7 @@ namespace Priority_Queue
 #if DEBUG
             if (node == null)
             {
-                throw new ArgumentNullException(nameof(node));
+                throw new ArgumentNullException("node");
             }
             if (_numNodes >= _nodes.Length - 1)
             {
@@ -132,7 +146,7 @@ namespace Priority_Queue
             int parent = node.QueueIndex / 2;
             while (parent >= 1)
             {
-                var parentNode = _nodes[parent];
+                TItem parentNode = _nodes[parent];
                 if (HasHigherPriority(parentNode, node))
                     break;
 
@@ -163,7 +177,7 @@ namespace Priority_Queue
                     break;
                 }
 
-                var childLeft = _nodes[childLeftIndex];
+                TItem childLeft = _nodes[childLeftIndex];
                 if (HasHigherPriority(childLeft, newParent))
                 {
                     newParent = childLeft;
@@ -173,7 +187,7 @@ namespace Priority_Queue
                 int childRightIndex = childLeftIndex + 1;
                 if (childRightIndex <= _numNodes)
                 {
-                    var childRight = _nodes[childRightIndex];
+                    TItem childRight = _nodes[childRightIndex];
                     if (HasHigherPriority(childRight, newParent))
                     {
                         newParent = childRight;
@@ -234,7 +248,7 @@ namespace Priority_Queue
             }
 #endif
 
-            var returnMe = _nodes[1];
+            TItem returnMe = _nodes[1];
             Remove(returnMe);
             item = returnMe;
             return true;
@@ -289,7 +303,7 @@ namespace Priority_Queue
         }
 
         /// <summary>
-        /// This method must be called on a node every time its priority changes while it is in the queue.
+        /// This method must be called on a node every time its priority changes while it is in the queue.  
         /// <b>Forgetting to call this method will result in a corrupted queue!</b>
         /// Calling this method on a node not in the queue results in undefined behavior
         /// O(log n)
@@ -300,7 +314,7 @@ namespace Priority_Queue
 #if DEBUG
             if (node == null)
             {
-                throw new ArgumentNullException(nameof(node));
+                throw new ArgumentNullException("node");
             }
             if (!Contains(node))
             {
@@ -316,7 +330,7 @@ namespace Priority_Queue
         {
             //Bubble the updated node up or down as appropriate
             int parentIndex = node.QueueIndex / 2;
-            var parentNode = _nodes[parentIndex];
+            TItem parentNode = _nodes[parentIndex];
 
             if (parentIndex > 0 && HasHigherPriority(node, parentNode))
             {
@@ -330,7 +344,7 @@ namespace Priority_Queue
         }
 
         /// <summary>
-        /// Removes a node from the queue.  The node does not need to be the head of the queue.
+        /// Removes a node from the queue.  The node does not need to be the head of the queue.  
         /// If the node is not in the queue, the result is undefined.  If unsure, check Contains() first
         /// O(log n)
         /// </summary>
@@ -339,7 +353,7 @@ namespace Priority_Queue
 #if DEBUG
             if (node == null)
             {
-                throw new ArgumentNullException(nameof(node));
+                throw new ArgumentNullException("node");
             }
             if (!Contains(node))
             {
@@ -356,7 +370,7 @@ namespace Priority_Queue
             }
 
             //Swap the node with the last node
-            var formerLastNode = _nodes[_numNodes];
+            TItem formerLastNode = _nodes[_numNodes];
             Swap(node, formerLastNode);
             _nodes[_numNodes] = null;
             _numNodes--;

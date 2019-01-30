@@ -1,5 +1,6 @@
-using MediaBrowser.Model.Devices;
+﻿using MediaBrowser.Model.Devices;
 using MediaBrowser.Model.Querying;
+using System.Threading;
 
 namespace MediaBrowser.Controller.Security
 {
@@ -9,6 +10,7 @@ namespace MediaBrowser.Controller.Security
         /// Creates the specified information.
         /// </summary>
         /// <param name="info">The information.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
         void Create(AuthenticationInfo info);
 
@@ -16,6 +18,7 @@ namespace MediaBrowser.Controller.Security
         /// Updates the specified information.
         /// </summary>
         /// <param name="info">The information.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
         void Update(AuthenticationInfo info);
 

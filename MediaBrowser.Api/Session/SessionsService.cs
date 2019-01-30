@@ -1,16 +1,17 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Devices;
+﻿using MediaBrowser.Controller.Devices;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Security;
 using MediaBrowser.Controller.Session;
-using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Services;
 using MediaBrowser.Model.Session;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Services;
+using MediaBrowser.Controller;
+using MediaBrowser.Model.Dto;
 
 namespace MediaBrowser.Api.Session
 {
@@ -309,7 +310,8 @@ namespace MediaBrowser.Api.Session
                 DateCreated = DateTime.UtcNow,
                 DeviceId = _appHost.SystemId,
                 DeviceName = _appHost.FriendlyName,
-                AppVersion = _appHost.ApplicationVersion
+                AppVersion = _appHost.ApplicationVersion.ToString()
+
             });
         }
 
@@ -412,9 +414,10 @@ namespace MediaBrowser.Api.Session
         /// <param name="request">The request.</param>
         public Task Post(SendSystemCommand request)
         {
+            GeneralCommandType commandType;
             var name = request.Command;
 
-            if (Enum.TryParse(name, true, out GeneralCommandType commandType))
+            if (Enum.TryParse(name, true, out commandType))
             {
                 name = commandType.ToString();
             }

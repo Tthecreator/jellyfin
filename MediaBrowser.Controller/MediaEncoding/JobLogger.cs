@@ -1,9 +1,9 @@
+﻿using MediaBrowser.Model.Extensions;
 using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using MediaBrowser.Model.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Controller.MediaEncoding
@@ -39,7 +39,6 @@ namespace MediaBrowser.Controller.MediaEncoding
             }
             catch (ObjectDisposedException)
             {
-                //TODO Investigate and properly fix.
                 // Don't spam the log. This doesn't seem to throw in windows, but sometimes under linux
             }
             catch (Exception ex)
@@ -74,8 +73,9 @@ namespace MediaBrowser.Controller.MediaEncoding
                     (i + 1 < parts.Length))
                 {
                     var rate = parts[i + 1];
+                    float val;
 
-                    if (float.TryParse(rate, NumberStyles.Any, _usCulture, out var val))
+                    if (float.TryParse(rate, NumberStyles.Any, _usCulture, out val))
                     {
                         framerate = val;
                     }
@@ -84,8 +84,9 @@ namespace MediaBrowser.Controller.MediaEncoding
                     part.StartsWith("time=", StringComparison.OrdinalIgnoreCase))
                 {
                     var time = part.Split(new[] { '=' }, 2).Last();
+                    TimeSpan val;
 
-                    if (TimeSpan.TryParse(time, _usCulture, out var val))
+                    if (TimeSpan.TryParse(time, _usCulture, out val))
                     {
                         var currentMs = startMs + val.TotalMilliseconds;
 
@@ -108,7 +109,9 @@ namespace MediaBrowser.Controller.MediaEncoding
 
                     if (scale.HasValue)
                     {
-                        if (long.TryParse(size, NumberStyles.Any, _usCulture, out var val))
+                        long val;
+
+                        if (long.TryParse(size, NumberStyles.Any, _usCulture, out val))
                         {
                             bytesTranscoded = val * scale.Value;
                         }
@@ -127,7 +130,9 @@ namespace MediaBrowser.Controller.MediaEncoding
 
                     if (scale.HasValue)
                     {
-                        if (float.TryParse(rate, NumberStyles.Any, _usCulture, out var val))
+                        float val;
+
+                        if (float.TryParse(rate, NumberStyles.Any, _usCulture, out val))
                         {
                             bitRate = (int)Math.Ceiling(val * scale.Value);
                         }

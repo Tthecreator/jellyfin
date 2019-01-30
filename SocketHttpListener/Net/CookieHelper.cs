@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SocketHttpListener.Net
 {
@@ -35,7 +36,7 @@ namespace SocketHttpListener.Net
                 if (pair.StartsWith("version", StringComparison.OrdinalIgnoreCase))
                 {
                     if (cookie != null)
-                        cookie.Version = int.Parse(pair.GetValueInternal("=").Trim('"'));
+                        cookie.Version = Int32.Parse(pair.GetValueInternal("=").Trim('"'));
                 }
                 else if (pair.StartsWith("expires", StringComparison.OrdinalIgnoreCase))
                 {
@@ -43,12 +44,13 @@ namespace SocketHttpListener.Net
                     if (i < pairs.Length - 1)
                         buffer.AppendFormat(", {0}", pairs[++i].Trim());
 
+                    DateTime expires;
                     if (!DateTime.TryParseExact(
                       buffer.ToString(),
                       new[] { "ddd, dd'-'MMM'-'yyyy HH':'mm':'ss 'GMT'", "r" },
                       new CultureInfo("en-US"),
                       DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
-                      out var expires))
+                      out expires))
                         expires = DateTime.Now;
 
                     if (cookie != null && cookie.Expires == DateTime.MinValue)
@@ -56,7 +58,7 @@ namespace SocketHttpListener.Net
                 }
                 else if (pair.StartsWith("max-age", StringComparison.OrdinalIgnoreCase))
                 {
-                    var max = int.Parse(pair.GetValueInternal("=").Trim('"'));
+                    var max = Int32.Parse(pair.GetValueInternal("=").Trim('"'));
                     var expires = DateTime.Now.AddSeconds((double)max);
                     if (cookie != null)
                         cookie.Expires = expires;
@@ -111,7 +113,7 @@ namespace SocketHttpListener.Net
                         cookies.Add(cookie);
 
                     string name;
-                    string val = string.Empty;
+                    string val = String.Empty;
 
                     var pos = pair.IndexOf('=');
                     if (pos == -1)

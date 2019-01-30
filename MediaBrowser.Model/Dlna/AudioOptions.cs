@@ -1,5 +1,6 @@
+﻿using MediaBrowser.Model.Dto;
+using System.Collections.Generic;
 using System;
-using MediaBrowser.Model.Dto;
 
 namespace MediaBrowser.Model.Dlna
 {
@@ -54,7 +55,7 @@ namespace MediaBrowser.Model.Dlna
         /// </summary>
         /// <value>The audio transcoding bitrate.</value>
         public int? AudioTranscodingBitrate { get; set; }
-
+        
         /// <summary>
         /// Gets the maximum bitrate.
         /// </summary>
@@ -66,21 +67,21 @@ namespace MediaBrowser.Model.Dlna
                 return MaxBitrate;
             }
 
-            if (Profile == null)
+            if (Profile != null)
             {
-                return null;
-            }
-
-            if (Context == EncodingContext.Static)
-            {
-                if (isAudio && Profile.MaxStaticMusicBitrate.HasValue)
+                if (Context == EncodingContext.Static)
                 {
-                    return Profile.MaxStaticMusicBitrate;
+                    if (isAudio && Profile.MaxStaticMusicBitrate.HasValue)
+                    {
+                        return Profile.MaxStaticMusicBitrate;
+                    }
+                    return Profile.MaxStaticBitrate;
                 }
-                return Profile.MaxStaticBitrate;
+
+                return Profile.MaxStreamingBitrate;
             }
 
-            return Profile.MaxStreamingBitrate;
+            return null;
         }
     }
 }

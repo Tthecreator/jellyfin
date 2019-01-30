@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -83,7 +83,10 @@ namespace MediaBrowser.MediaEncoding.Subtitles
             return _encryption.DecryptString(password.Substring(2));
         }
 
-        public string Name => "Open Subtitles";
+        public string Name
+        {
+            get { return "Open Subtitles"; }
+        }
 
         private SubtitleOptions GetOptions()
         {
@@ -118,7 +121,7 @@ namespace MediaBrowser.MediaEncoding.Subtitles
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException("id");
             }
 
             var idParts = id.Split(new[] { '-' }, 3);
@@ -269,7 +272,7 @@ namespace MediaBrowser.MediaEncoding.Subtitles
             var subLanguageId = NormalizeLanguage(request.Language);
             string hash;
 
-            using (var fileStream = File.OpenRead(request.MediaPath))
+            using (var fileStream = _fileSystem.OpenRead(request.MediaPath))
             {
                 hash = Utilities.ComputeHash(fileStream);
             }

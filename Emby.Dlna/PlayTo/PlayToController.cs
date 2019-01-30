@@ -1,25 +1,28 @@
+﻿using MediaBrowser.Controller.Dlna;
+using MediaBrowser.Controller.Drawing;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Session;
+using Emby.Dlna.Didl;
+using MediaBrowser.Model.Dlna;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Session;
+using MediaBrowser.Model.System;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Emby.Dlna.Didl;
 using MediaBrowser.Common.Configuration;
-using MediaBrowser.Controller.Dlna;
-using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.MediaEncoding;
-using MediaBrowser.Controller.Session;
-using MediaBrowser.Model.Dlna;
-using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Events;
 using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.Extensions;
+using System.Net.Http;
 using MediaBrowser.Model.Services;
-using MediaBrowser.Model.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Dlna.PlayTo
 {
@@ -44,9 +47,18 @@ namespace Emby.Dlna.PlayTo
         private readonly string _accessToken;
         private readonly DateTime _creationTime;
 
-        public bool IsSessionActive => !_disposed && _device != null;
+        public bool IsSessionActive
+        {
+            get
+            {
+                return !_disposed && _device != null;
+            }
+        }
 
-        public bool SupportsMediaControl => IsSessionActive;
+        public bool SupportsMediaControl
+        {
+            get { return IsSessionActive; }
+        }
 
         public PlayToController(SessionInfo session, ISessionManager sessionManager, ILibraryManager libraryManager, ILogger logger, IDlnaManager dlnaManager, IUserManager userManager, IImageProcessor imageProcessor, string serverAddress, string accessToken, IDeviceDiscovery deviceDiscovery, IUserDataManager userDataManager, ILocalizationManager localization, IMediaSourceManager mediaSourceManager, IConfigurationManager config, IMediaEncoder mediaEncoder)
         {
@@ -98,11 +110,14 @@ namespace Emby.Dlna.PlayTo
         {
             var info = e.Argument;
 
-            info.Headers.TryGetValue("NTS", out string nts);
+            string nts;
+            info.Headers.TryGetValue("NTS", out nts);
 
-            if (!info.Headers.TryGetValue("USN", out string usn)) usn = string.Empty;
+            string usn;
+            if (!info.Headers.TryGetValue("USN", out usn)) usn = String.Empty;
 
-            if (!info.Headers.TryGetValue("NT", out string nt)) nt = string.Empty;
+            string nt;
+            if (!info.Headers.TryGetValue("NT", out nt)) nt = String.Empty;
 
             if (usn.IndexOf(_device.Properties.UUID, StringComparison.OrdinalIgnoreCase) != -1 &&
                 !_disposed)
@@ -424,7 +439,13 @@ namespace Emby.Dlna.PlayTo
 
         private int _currentPlaylistIndex;
         private readonly List<PlaylistItem> _playlist = new List<PlaylistItem>();
-        private List<PlaylistItem> Playlist => _playlist;
+        private List<PlaylistItem> Playlist
+        {
+            get
+            {
+                return _playlist;
+            }
+        }
 
         private void AddItemFromId(Guid id, List<BaseItem> list)
         {
@@ -620,7 +641,9 @@ namespace Emby.Dlna.PlayTo
 
         private Task SendGeneralCommand(GeneralCommand command, CancellationToken cancellationToken)
         {
-            if (Enum.TryParse(command.Name, true, out GeneralCommandType commandType))
+            GeneralCommandType commandType;
+
+            if (Enum.TryParse(command.Name, true, out commandType))
             {
                 switch (commandType)
                 {
@@ -636,9 +659,13 @@ namespace Emby.Dlna.PlayTo
                         return _device.ToggleMute(cancellationToken);
                     case GeneralCommandType.SetAudioStreamIndex:
                         {
-                            if (command.Arguments.TryGetValue("Index", out string arg))
+                            string arg;
+
+                            if (command.Arguments.TryGetValue("Index", out arg))
                             {
-                                if (int.TryParse(arg, NumberStyles.Integer, _usCulture, out var val))
+                                int val;
+
+                                if (int.TryParse(arg, NumberStyles.Integer, _usCulture, out val))
                                 {
                                     return SetAudioStreamIndex(val);
                                 }
@@ -650,9 +677,13 @@ namespace Emby.Dlna.PlayTo
                         }
                     case GeneralCommandType.SetSubtitleStreamIndex:
                         {
-                            if (command.Arguments.TryGetValue("Index", out string arg))
+                            string arg;
+
+                            if (command.Arguments.TryGetValue("Index", out arg))
                             {
-                                if (int.TryParse(arg, NumberStyles.Integer, _usCulture, out var val))
+                                int val;
+
+                                if (int.TryParse(arg, NumberStyles.Integer, _usCulture, out val))
                                 {
                                     return SetSubtitleStreamIndex(val);
                                 }
@@ -664,9 +695,13 @@ namespace Emby.Dlna.PlayTo
                         }
                     case GeneralCommandType.SetVolume:
                         {
-                            if (command.Arguments.TryGetValue("Volume", out string arg))
+                            string arg;
+
+                            if (command.Arguments.TryGetValue("Volume", out arg))
                             {
-                                if (int.TryParse(arg, NumberStyles.Integer, _usCulture, out var volume))
+                                int volume;
+
+                                if (int.TryParse(arg, NumberStyles.Integer, _usCulture, out volume))
                                 {
                                     return _device.SetVolume(volume, cancellationToken);
                                 }
@@ -794,7 +829,7 @@ namespace Emby.Dlna.PlayTo
             {
                 if (string.IsNullOrEmpty(url))
                 {
-                    throw new ArgumentNullException(nameof(url));
+                    throw new ArgumentNullException("url");
                 }
 
                 var parts = url.Split('/');
@@ -820,7 +855,7 @@ namespace Emby.Dlna.PlayTo
             {
                 if (string.IsNullOrEmpty(url))
                 {
-                    throw new ArgumentNullException(nameof(url));
+                    throw new ArgumentNullException("url");
                 }
 
                 var request = new StreamParams
@@ -861,7 +896,8 @@ namespace Emby.Dlna.PlayTo
         {
             var value = values.Get(name);
 
-            if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
+            int result;
+            if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out result))
             {
                 return result;
             }
@@ -873,7 +909,8 @@ namespace Emby.Dlna.PlayTo
         {
             var value = values.Get(name);
 
-            if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
+            long result;
+            if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out result))
             {
                 return result;
             }

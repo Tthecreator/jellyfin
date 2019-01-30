@@ -1,15 +1,18 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Emby.Server.Implementations.Data;
-using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller;
 using MediaBrowser.Controller.Security;
-using MediaBrowser.Model.Devices;
-using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Querying;
 using SQLitePCL.pretty;
+using MediaBrowser.Model.Extensions;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Model.Devices;
 
 namespace Emby.Server.Implementations.Security
 {
@@ -18,8 +21,8 @@ namespace Emby.Server.Implementations.Security
         private readonly IServerConfigurationManager _config;
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
-        public AuthenticationRepository(ILoggerFactory loggerFactory, IServerConfigurationManager config)
-            : base(loggerFactory.CreateLogger(nameof(AuthenticationRepository)))
+        public AuthenticationRepository(ILogger logger, IServerConfigurationManager config)
+            : base(logger)
         {
             _config = config;
             DbFilePath = Path.Combine(config.ApplicationPaths.DataPath, "authentication.db");
@@ -88,7 +91,7 @@ namespace Emby.Server.Implementations.Security
         {
             if (info == null)
             {
-                throw new ArgumentNullException(nameof(info));
+                throw new ArgumentNullException("info");
             }
 
             using (WriteLock.Write())
@@ -123,7 +126,7 @@ namespace Emby.Server.Implementations.Security
         {
             if (info == null)
             {
-                throw new ArgumentNullException(nameof(info));
+                throw new ArgumentNullException("entry");
             }
 
             using (WriteLock.Write())
@@ -158,7 +161,7 @@ namespace Emby.Server.Implementations.Security
         {
             if (info == null)
             {
-                throw new ArgumentNullException(nameof(info));
+                throw new ArgumentNullException("entry");
             }
 
             using (WriteLock.Write())
@@ -180,7 +183,7 @@ namespace Emby.Server.Implementations.Security
 
         private const string BaseSelectText = "select Tokens.Id, AccessToken, DeviceId, AppName, AppVersion, DeviceName, UserId, UserName, DateCreated, DateLastActivity, Devices.CustomName from Tokens left join Devices on Tokens.DeviceId=Devices.Id";
 
-        private static void BindAuthenticationQueryParams(AuthenticationInfoQuery query, IStatement statement)
+        private void BindAuthenticationQueryParams(AuthenticationInfoQuery query, IStatement statement)
         {
             if (!string.IsNullOrEmpty(query.AccessToken))
             {
@@ -202,7 +205,7 @@ namespace Emby.Server.Implementations.Security
         {
             if (query == null)
             {
-                throw new ArgumentNullException(nameof(query));
+                throw new ArgumentNullException("query");
             }
 
             var commandText = BaseSelectText;
@@ -303,7 +306,7 @@ namespace Emby.Server.Implementations.Security
             }
         }
 
-        private static AuthenticationInfo Get(IReadOnlyList<IResultSetValue> reader)
+        private AuthenticationInfo Get(IReadOnlyList<IResultSetValue> reader)
         {
             var info = new AuthenticationInfo
             {
@@ -394,7 +397,7 @@ namespace Emby.Server.Implementations.Security
         {
             if (options == null)
             {
-                throw new ArgumentNullException(nameof(options));
+                throw new ArgumentNullException("options");
             }
 
             using (WriteLock.Write())

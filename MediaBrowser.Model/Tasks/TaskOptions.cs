@@ -1,3 +1,4 @@
+﻿
 namespace MediaBrowser.Model.Tasks
 {
     public class TaskOptions

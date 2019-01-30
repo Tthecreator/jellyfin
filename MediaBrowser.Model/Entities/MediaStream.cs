@@ -1,9 +1,10 @@
-using System;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
-using System.Globalization;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Extensions;
 using MediaBrowser.Model.MediaInfo;
+using System.Globalization;
 
 namespace MediaBrowser.Model.Entities
 {
@@ -76,7 +77,7 @@ namespace MediaBrowser.Model.Entities
                     //    return AddLanguageIfNeeded(Title);
                     //}
 
-                    var attributes = new List<string>();
+                    List<string> attributes = new List<string>();
 
                     if (!string.IsNullOrEmpty(Language))
                     {
@@ -109,7 +110,7 @@ namespace MediaBrowser.Model.Entities
 
                 if (Type == MediaStreamType.Video)
                 {
-                    var attributes = new List<string>();
+                    List<string> attributes = new List<string>();
 
                     var resolutionText = GetResolutionText();
 
@@ -133,7 +134,7 @@ namespace MediaBrowser.Model.Entities
                     //    return AddLanguageIfNeeded(Title);
                     //}
 
-                    var attributes = new List<string>();
+                    List<string> attributes = new List<string>();
 
                     if (!string.IsNullOrEmpty(Language))
                     {
@@ -419,7 +420,7 @@ namespace MediaBrowser.Model.Entities
 
             var fromCodec = Codec;
 
-            // Can't convert from this
+            // Can't convert from this 
             if (StringHelper.EqualsIgnoreCase(fromCodec, "ass"))
             {
                 return false;
@@ -429,7 +430,7 @@ namespace MediaBrowser.Model.Entities
                 return false;
             }
 
-            // Can't convert to this
+            // Can't convert to this 
             if (StringHelper.EqualsIgnoreCase(toCodec, "ass"))
             {
                 return false;

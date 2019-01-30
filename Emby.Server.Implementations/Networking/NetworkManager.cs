@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Extensions;
 using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.System;
-using Microsoft.Extensions.Logging;
+using System.Numerics;
 
 namespace Emby.Server.Implementations.Networking
 {
@@ -22,11 +23,9 @@ namespace Emby.Server.Implementations.Networking
         public event EventHandler NetworkChanged;
         public Func<string[]> LocalSubnetsFn { get; set; }
 
-        public NetworkManager(
-            ILoggerFactory loggerFactory,
-            IEnvironmentInfo environment)
+        public NetworkManager(ILogger logger, IEnvironmentInfo environment)
         {
-            Logger = loggerFactory.CreateLogger(nameof(NetworkManager));
+            Logger = logger;
 
             // In FreeBSD these events cause a crash
             if (environment.OperatingSystem != MediaBrowser.Model.System.OperatingSystem.BSD)
@@ -115,7 +114,7 @@ namespace Emby.Server.Implementations.Networking
                 .ToList();
         }
 
-        private static bool FilterIpAddress(IPAddress address)
+        private bool FilterIpAddress(IPAddress address)
         {
             var addressString = address.ToString();
 
@@ -205,18 +204,20 @@ namespace Emby.Server.Implementations.Networking
         private Dictionary<string, List<string>> _subnetLookup = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         private List<string> GetSubnets(string endpointFirstPart)
         {
+            List<string> subnets;
+
             lock (_subnetLookup)
             {
-                if (_subnetLookup.TryGetValue(endpointFirstPart, out var subnets))
+                if (_subnetLookup.TryGetValue(endpointFirstPart, out subnets))
                 {
                     return subnets;
                 }
 
                 subnets = new List<string>();
 
-                foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
+                foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
                 {
-                    foreach (var unicastIPAddressInformation in adapter.GetIPProperties().UnicastAddresses)
+                    foreach (UnicastIPAddressInformation unicastIPAddressInformation in adapter.GetIPProperties().UnicastAddresses)
                     {
                         if (unicastIPAddressInformation.Address.AddressFamily == AddressFamily.InterNetwork && endpointFirstPart == unicastIPAddressInformation.Address.ToString().Split('.')[0])
                         {
@@ -227,7 +228,7 @@ namespace Emby.Server.Implementations.Networking
                                 subnet_Test++;
                             }
 
-                            var subnet_Match = string.Join(".", unicastIPAddressInformation.Address.ToString().Split('.').Take(subnet_Test).ToArray());
+                            var subnet_Match = String.Join(".", unicastIPAddressInformation.Address.ToString().Split('.').Take(subnet_Test).ToArray());
 
                             // TODO: Is this check necessary?
                             if (adapter.OperationalStatus == OperationalStatus.Up)
@@ -244,7 +245,7 @@ namespace Emby.Server.Implementations.Networking
             }
         }
 
-        private static bool Is172AddressPrivate(string endpoint)
+        private bool Is172AddressPrivate(string endpoint)
         {
             for (var i = 16; i <= 31; i++)
             {
@@ -267,7 +268,7 @@ namespace Emby.Server.Implementations.Networking
             return IsAddressInSubnets(IPAddress.Parse(addressString), addressString, subnets);
         }
 
-        private static bool IsAddressInSubnets(IPAddress address, string addressString, string[] subnets)
+        private bool IsAddressInSubnets(IPAddress address, string addressString, string[] subnets)
         {
             foreach (var subnet in subnets)
             {
@@ -295,10 +296,11 @@ namespace Emby.Server.Implementations.Networking
         {
             if (string.IsNullOrEmpty(endpoint))
             {
-                throw new ArgumentNullException(nameof(endpoint));
+                throw new ArgumentNullException("endpoint");
             }
 
-            if (IPAddress.TryParse(endpoint, out var address))
+            IPAddress address;
+            if (IPAddress.TryParse(endpoint, out address))
             {
                 var addressString = address.ToString();
 
@@ -347,7 +349,8 @@ namespace Emby.Server.Implementations.Networking
             }
             else if (resolveHost)
             {
-                if (Uri.TryCreate(endpoint, UriKind.RelativeOrAbsolute, out var uri))
+                Uri uri;
+                if (Uri.TryCreate(endpoint, UriKind.RelativeOrAbsolute, out uri))
                 {
                     try
                     {
@@ -377,7 +380,7 @@ namespace Emby.Server.Implementations.Networking
             return false;
         }
 
-        private static Task<IPAddress[]> GetIpAddresses(string hostName)
+        private Task<IPAddress[]> GetIpAddresses(string hostName)
         {
             return Dns.GetHostAddressesAsync(hostName);
         }
@@ -433,7 +436,7 @@ namespace Emby.Server.Implementations.Networking
                 .ToList();
         }
 
-        private static async Task<IEnumerable<IPAddress>> GetLocalIpAddressesFallback()
+        private async Task<IEnumerable<IPAddress>> GetLocalIpAddressesFallback()
         {
             var host = await Dns.GetHostEntryAsync(Dns.GetHostName()).ConfigureAwait(false);
 
@@ -459,7 +462,7 @@ namespace Emby.Server.Implementations.Networking
 
         public int GetRandomUnusedUdpPort()
         {
-            var localEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, 0);
             using (var udpClient = new UdpClient(localEndPoint))
             {
                 var port = ((IPEndPoint)(udpClient.Client.LocalEndPoint)).Port;
@@ -477,7 +480,7 @@ namespace Emby.Server.Implementations.Networking
             return _macAddresses;
         }
 
-        private static List<string> GetMacAddressesInternal()
+        private List<string> GetMacAddressesInternal()
         {
             return NetworkInterface.GetAllNetworkInterfaces()
                 .Where(i => i.NetworkInterfaceType != NetworkInterfaceType.Loopback)
@@ -494,9 +497,8 @@ namespace Emby.Server.Implementations.Networking
 
                         return physicalAddress.ToString();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        //TODO Log exception.
                         return null;
                     }
                 })
@@ -520,11 +522,11 @@ namespace Emby.Server.Implementations.Networking
         /// <param name="endpointstring">The endpointstring.</param>
         /// <param name="defaultport">The defaultport.</param>
         /// <returns>IPEndPoint.</returns>
-        /// <exception cref="ArgumentException">Endpoint descriptor may not be empty.</exception>
-        /// <exception cref="FormatException"></exception>
+        /// <exception cref="System.ArgumentException">Endpoint descriptor may not be empty.</exception>
+        /// <exception cref="System.FormatException"></exception>
         private static async Task<IPEndPoint> Parse(string endpointstring, int defaultport)
         {
-            if (string.IsNullOrEmpty(endpointstring)
+            if (String.IsNullOrEmpty(endpointstring)
                 || endpointstring.Trim().Length == 0)
             {
                 throw new ArgumentException("Endpoint descriptor may not be empty.");
@@ -534,7 +536,7 @@ namespace Emby.Server.Implementations.Networking
                 (defaultport < IPEndPoint.MinPort
                 || defaultport > IPEndPoint.MaxPort))
             {
-                throw new ArgumentException(string.Format("Invalid default port '{0}'", defaultport));
+                throw new ArgumentException(String.Format("Invalid default port '{0}'", defaultport));
             }
 
             string[] values = endpointstring.Split(new char[] { ':' });
@@ -555,7 +557,7 @@ namespace Emby.Server.Implementations.Networking
                 //could [a:b:c]:d
                 if (values[0].StartsWith("[") && values[values.Length - 2].EndsWith("]"))
                 {
-                    string ipaddressstring = string.Join(":", values.Take(values.Length - 1).ToArray());
+                    string ipaddressstring = String.Join(":", values.Take(values.Length - 1).ToArray());
                     ipaddy = IPAddress.Parse(ipaddressstring);
                     port = GetPort(values[values.Length - 1]);
                 }
@@ -567,11 +569,11 @@ namespace Emby.Server.Implementations.Networking
             }
             else
             {
-                throw new FormatException(string.Format("Invalid endpoint ipaddress '{0}'", endpointstring));
+                throw new FormatException(String.Format("Invalid endpoint ipaddress '{0}'", endpointstring));
             }
 
             if (port == -1)
-                throw new ArgumentException(string.Format("No port specified: '{0}'", endpointstring));
+                throw new ArgumentException(String.Format("No port specified: '{0}'", endpointstring));
 
             return new IPEndPoint(ipaddy, port);
         }
@@ -583,14 +585,16 @@ namespace Emby.Server.Implementations.Networking
         /// </summary>
         /// <param name="p">The p.</param>
         /// <returns>System.Int32.</returns>
-        /// <exception cref="FormatException"></exception>
+        /// <exception cref="System.FormatException"></exception>
         private static int GetPort(string p)
         {
-            if (!int.TryParse(p, out var port)
+            int port;
+
+            if (!Int32.TryParse(p, out port)
              || port < IPEndPoint.MinPort
              || port > IPEndPoint.MaxPort)
             {
-                throw new FormatException(string.Format("Invalid end point port '{0}'", p));
+                throw new FormatException(String.Format("Invalid end point port '{0}'", p));
             }
 
             return port;
@@ -601,20 +605,21 @@ namespace Emby.Server.Implementations.Networking
         /// </summary>
         /// <param name="p">The p.</param>
         /// <returns>IPAddress.</returns>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="System.ArgumentException"></exception>
         private static async Task<IPAddress> GetIPfromHost(string p)
         {
             var hosts = await Dns.GetHostAddressesAsync(p).ConfigureAwait(false);
 
             if (hosts == null || hosts.Length == 0)
-                throw new ArgumentException(string.Format("Host not found: {0}", p));
+                throw new ArgumentException(String.Format("Host not found: {0}", p));
 
             return hosts[0];
         }
 
         public IpAddressInfo ParseIpAddress(string ipAddress)
         {
-            if (TryParseIpAddress(ipAddress, out var info))
+            IpAddressInfo info;
+            if (TryParseIpAddress(ipAddress, out info))
             {
                 return info;
             }
@@ -624,7 +629,8 @@ namespace Emby.Server.Implementations.Networking
 
         public bool TryParseIpAddress(string ipAddress, out IpAddressInfo ipAddressInfo)
         {
-            if (IPAddress.TryParse(ipAddress, out var address))
+            IPAddress address;
+            if (IPAddress.TryParse(ipAddress, out address))
             {
                 ipAddressInfo = ToIpAddressInfo(address);
                 return true;

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using Emby.Server.Implementations.HttpServer;
+using System.Threading.Tasks;
 
 namespace Emby.Server.Implementations.Services
 {

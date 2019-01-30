@@ -21,10 +21,10 @@ namespace MediaBrowser.Model.System
         public string ServerName { get; set; }
 
         /// <summary>
-        /// Gets or sets the server version.
+        /// Gets or sets the version.
         /// </summary>
         /// <value>The version.</value>
-        public string Version { get; set; }        
+        public string Version { get; set; }
 
         /// <summary>
         /// Gets or sets the operating sytem.

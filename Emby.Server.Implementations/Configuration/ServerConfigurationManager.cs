@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Emby.Server.Implementations.AppBase;
@@ -8,8 +8,8 @@ using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Events;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 
 namespace Emby.Server.Implementations.Configuration
 {
@@ -38,19 +38,28 @@ namespace Emby.Server.Implementations.Configuration
         /// Gets the type of the configuration.
         /// </summary>
         /// <value>The type of the configuration.</value>
-        protected override Type ConfigurationType => typeof(ServerConfiguration);
+        protected override Type ConfigurationType
+        {
+            get { return typeof(ServerConfiguration); }
+        }
 
         /// <summary>
         /// Gets the application paths.
         /// </summary>
         /// <value>The application paths.</value>
-        public IServerApplicationPaths ApplicationPaths => (IServerApplicationPaths)CommonApplicationPaths;
+        public IServerApplicationPaths ApplicationPaths
+        {
+            get { return (IServerApplicationPaths)CommonApplicationPaths; }
+        }
 
         /// <summary>
         /// Gets the configuration.
         /// </summary>
         /// <value>The configuration.</value>
-        public ServerConfiguration Configuration => (ServerConfiguration)CommonConfiguration;
+        public ServerConfiguration Configuration
+        {
+            get { return (ServerConfiguration)CommonConfiguration; }
+        }
 
         /// <summary>
         /// Called when [configuration updated].
@@ -119,7 +128,7 @@ namespace Emby.Server.Implementations.Configuration
         /// Replaces the configuration.
         /// </summary>
         /// <param name="newConfiguration">The new configuration.</param>
-        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         public override void ReplaceConfiguration(BaseApplicationConfiguration newConfiguration)
         {
             var newConfig = (ServerConfiguration)newConfiguration;
@@ -137,7 +146,7 @@ namespace Emby.Server.Implementations.Configuration
         /// Validates the SSL certificate.
         /// </summary>
         /// <param name="newConfig">The new configuration.</param>
-        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         private void ValidateSslCertificate(BaseApplicationConfiguration newConfig)
         {
             var serverConfig = (ServerConfiguration)newConfig;
@@ -148,7 +157,7 @@ namespace Emby.Server.Implementations.Configuration
                 && !string.Equals(Configuration.CertificatePath ?? string.Empty, newPath))
             {
                 // Validate
-                if (!File.Exists(newPath))
+                if (!FileSystem.FileExists(newPath))
                 {
                     throw new FileNotFoundException(string.Format("Certificate file '{0}' does not exist.", newPath));
                 }
@@ -159,7 +168,7 @@ namespace Emby.Server.Implementations.Configuration
         /// Validates the metadata path.
         /// </summary>
         /// <param name="newConfig">The new configuration.</param>
-        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         private void ValidateMetadataPath(ServerConfiguration newConfig)
         {
             var newPath = newConfig.MetadataPath;
@@ -168,7 +177,7 @@ namespace Emby.Server.Implementations.Configuration
                 && !string.Equals(Configuration.MetadataPath ?? string.Empty, newPath))
             {
                 // Validate
-                if (!Directory.Exists(newPath))
+                if (!FileSystem.DirectoryExists(newPath))
                 {
                     throw new FileNotFoundException(string.Format("{0} does not exist.", newPath));
                 }

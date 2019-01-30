@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
@@ -14,12 +7,24 @@ using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Providers.Music;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Providers.TV;
+using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Providers.Movies
 {
@@ -45,9 +50,15 @@ namespace MediaBrowser.Providers.Movies
             Current = this;
         }
 
-        public string Name => ProviderName;
+        public string Name
+        {
+            get { return ProviderName; }
+        }
 
-        public static string ProviderName => "FanArt";
+        public static string ProviderName
+        {
+            get { return "FanArt"; }
+        }
 
         public bool Supports(BaseItem item)
         {
@@ -58,7 +69,7 @@ namespace MediaBrowser.Providers.Movies
         {
             return new List<ImageType>
             {
-                ImageType.Primary,
+                ImageType.Primary, 
                 ImageType.Thumb,
                 ImageType.Art,
                 ImageType.Logo,
@@ -168,6 +179,7 @@ namespace MediaBrowser.Providers.Movies
                 if (!string.IsNullOrEmpty(url))
                 {
                     var likesString = i.likes;
+                    int likes;
 
                     var info = new RemoteImageInfo
                     {
@@ -180,7 +192,7 @@ namespace MediaBrowser.Providers.Movies
                         Language = i.lang
                     };
 
-                    if (!string.IsNullOrEmpty(likesString) && int.TryParse(likesString, NumberStyles.Integer, _usCulture, out var likes))
+                    if (!string.IsNullOrEmpty(likesString) && int.TryParse(likesString, NumberStyles.Integer, _usCulture, out likes))
                     {
                         info.CommunityRating = likes;
                     }
@@ -192,7 +204,10 @@ namespace MediaBrowser.Providers.Movies
             }).Where(i => i != null));
         }
 
-        public int Order => 1;
+        public int Order
+        {
+            get { return 1; }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {
@@ -254,7 +269,7 @@ namespace MediaBrowser.Providers.Movies
 
             var path = GetFanartJsonPath(id);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+			_fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
             try
             {

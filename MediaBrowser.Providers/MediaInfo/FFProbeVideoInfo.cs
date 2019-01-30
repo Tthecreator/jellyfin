@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using DvdLib.Ifo;
+﻿using DvdLib.Ifo;
 using MediaBrowser.Common.Configuration;
+using MediaBrowser.Model.Dlna;
 using MediaBrowser.Controller.Chapters;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
@@ -18,15 +12,21 @@ using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Controller.Subtitles;
 using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Dlna;
-using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
-using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.Dto;
 
 namespace MediaBrowser.Providers.MediaInfo
 {
@@ -175,7 +175,6 @@ namespace MediaBrowser.Providers.MediaInfo
                 {
                     video.RunTimeTicks = mediaInfo.RunTimeTicks;
                 }
-                video.Size = mediaInfo.Size;
 
                 if (video.VideoType == VideoType.VideoFile)
                 {
@@ -252,10 +251,12 @@ namespace MediaBrowser.Providers.MediaInfo
 
             foreach (var chapter in chapters)
             {
+                TimeSpan time;
+
                 // Check if the name is empty and/or if the name is a time
                 // Some ripping programs do that.
                 if (string.IsNullOrWhiteSpace(chapter.Name) ||
-                    TimeSpan.TryParse(chapter.Name, out var time))
+                    TimeSpan.TryParse(chapter.Name, out time))
                 {
                     chapter.Name = string.Format(_localization.GetLocalizedString("ChapterNameValue"), index.ToString(CultureInfo.InvariantCulture));
                 }
@@ -332,7 +333,7 @@ namespace MediaBrowser.Providers.MediaInfo
         {
             if (string.IsNullOrWhiteSpace(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             try

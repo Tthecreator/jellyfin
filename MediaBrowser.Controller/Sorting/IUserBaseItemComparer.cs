@@ -1,4 +1,4 @@
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 
 namespace MediaBrowser.Controller.Sorting

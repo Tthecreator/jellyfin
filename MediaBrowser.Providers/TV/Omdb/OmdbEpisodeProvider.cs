@@ -1,18 +1,18 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common;
+﻿using MediaBrowser.Model.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Providers.Omdb;
-using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Common;
 
 namespace MediaBrowser.Providers.TV
 {
@@ -56,7 +56,8 @@ namespace MediaBrowser.Providers.TV
                 return result;
             }
 
-            if (info.SeriesProviderIds.TryGetValue(MetadataProviders.Imdb.ToString(), out string seriesImdbId) && !string.IsNullOrEmpty(seriesImdbId))
+            string seriesImdbId;
+            if (info.SeriesProviderIds.TryGetValue(MetadataProviders.Imdb.ToString(), out seriesImdbId) && !string.IsNullOrEmpty(seriesImdbId))
             {
                 if (info.IndexNumber.HasValue && info.ParentIndexNumber.HasValue)
                 {
@@ -67,10 +68,20 @@ namespace MediaBrowser.Providers.TV
 
             return result;
         }
-        // After TheTvDb
-        public int Order => 1;
 
-        public string Name => "The Open Movie Database";
+        public int Order
+        {
+            get
+            {
+                // After TheTvDb
+                return 1;
+            }
+        }
+
+        public string Name
+        {
+            get { return "The Open Movie Database"; }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {

@@ -1,17 +1,17 @@
-using System;
+﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Common.Progress;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Providers;
+using System;
+using MediaBrowser.Common.Progress;
 
 namespace MediaBrowser.Providers.Studios
 {
@@ -28,7 +28,10 @@ namespace MediaBrowser.Providers.Studios
             _fileSystem = fileSystem;
         }
 
-        public string Name => "Emby Designs";
+        public string Name
+        {
+            get { return "Emby Designs"; }
+        }
 
         public bool Supports(BaseItem item)
         {
@@ -39,7 +42,7 @@ namespace MediaBrowser.Providers.Studios
         {
             return new List<ImageType>
             {
-                ImageType.Primary,
+                ImageType.Primary, 
                 ImageType.Thumb
             };
         }
@@ -116,7 +119,10 @@ namespace MediaBrowser.Providers.Studios
             return EnsureList(url, file, _httpClient, _fileSystem, cancellationToken);
         }
 
-        public int Order => 0;
+        public int Order
+        {
+            get { return 0; }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {
@@ -151,11 +157,11 @@ namespace MediaBrowser.Providers.Studios
 
                 }).ConfigureAwait(false);
 
-                Directory.CreateDirectory(Path.GetDirectoryName(file));
+                fileSystem.CreateDirectory(fileSystem.GetDirectoryName(file));
 
                 try
                 {
-                    File.Copy(temp, file, true);
+                    fileSystem.CopyFile(temp, file, true);
                 }
                 catch
                 {

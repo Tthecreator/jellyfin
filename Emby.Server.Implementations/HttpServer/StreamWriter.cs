@@ -1,11 +1,12 @@
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
 using MediaBrowser.Model.Services;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Server.Implementations.HttpServer
 {
@@ -34,7 +35,10 @@ namespace Emby.Server.Implementations.HttpServer
         /// Gets the options.
         /// </summary>
         /// <value>The options.</value>
-        public IDictionary<string, string> Headers => _options;
+        public IDictionary<string, string> Headers
+        {
+            get { return _options; }
+        }
 
         public Action OnComplete { get; set; }
         public Action OnError { get; set; }
@@ -49,7 +53,7 @@ namespace Emby.Server.Implementations.HttpServer
         {
             if (string.IsNullOrEmpty(contentType))
             {
-                throw new ArgumentNullException(nameof(contentType));
+                throw new ArgumentNullException("contentType");
             }
 
             SourceStream = source;
@@ -73,7 +77,7 @@ namespace Emby.Server.Implementations.HttpServer
         {
             if (string.IsNullOrEmpty(contentType))
             {
-                throw new ArgumentNullException(nameof(contentType));
+                throw new ArgumentNullException("contentType");
             }
 
             SourceBytes = source;

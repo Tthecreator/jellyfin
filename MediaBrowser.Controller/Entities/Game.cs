@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Configuration;
@@ -27,17 +27,26 @@ namespace MediaBrowser.Controller.Entities
         }
 
         [IgnoreDataMember]
-        public override bool SupportsThemeMedia => true;
+        public override bool SupportsThemeMedia
+        {
+            get { return true; }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsPeople => false;
+        public override bool SupportsPeople
+        {
+            get { return false; }
+        }
 
         /// <summary>
         /// Gets the type of the media.
         /// </summary>
         /// <value>The type of the media.</value>
         [IgnoreDataMember]
-        public override string MediaType => Model.Entities.MediaType.Game;
+        public override string MediaType
+        {
+            get { return Model.Entities.MediaType.Game; }
+        }
 
         /// <summary>
         /// Gets or sets the players supported.
@@ -87,7 +96,7 @@ namespace MediaBrowser.Controller.Entities
                 return new[] {
                     new FileSystemMetadata
                     {
-                        FullName = System.IO.Path.GetDirectoryName(Path),
+                        FullName = FileSystem.GetDirectoryName(Path),
                         IsDirectory = true
                     }
                 };

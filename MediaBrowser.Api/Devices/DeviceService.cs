@@ -1,13 +1,14 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+﻿using System;
 using MediaBrowser.Controller.Devices;
 using MediaBrowser.Controller.Net;
-using MediaBrowser.Controller.Security;
-using MediaBrowser.Controller.Session;
 using MediaBrowser.Model.Devices;
 using MediaBrowser.Model.Querying;
+using MediaBrowser.Model.Session;
+using System.IO;
+using System.Threading.Tasks;
 using MediaBrowser.Model.Services;
+using MediaBrowser.Controller.Security;
+using MediaBrowser.Controller.Session;
 
 namespace MediaBrowser.Api.Devices
 {

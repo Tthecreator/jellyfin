@@ -1,15 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using MediaBrowser.Controller.Dto;
+﻿using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Session;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Services;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Services;
+using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Api
 {
@@ -22,13 +24,25 @@ namespace MediaBrowser.Api
         /// Gets or sets the logger.
         /// </summary>
         /// <value>The logger.</value>
-        public ILogger Logger => ApiEntryPoint.Instance.Logger;
+        public ILogger Logger
+        {
+            get
+            {
+                return ApiEntryPoint.Instance.Logger;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the HTTP result factory.
         /// </summary>
         /// <value>The HTTP result factory.</value>
-        public IHttpResultFactory ResultFactory => ApiEntryPoint.Instance.ResultFactory;
+        public IHttpResultFactory ResultFactory
+        {
+            get
+            {
+                return ApiEntryPoint.Instance.ResultFactory;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the request context.

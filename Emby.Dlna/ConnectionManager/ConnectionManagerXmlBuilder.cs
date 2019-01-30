@@ -1,6 +1,6 @@
-using System.Collections.Generic;
-using Emby.Dlna.Common;
+﻿using Emby.Dlna.Common;
 using Emby.Dlna.Service;
+using System.Collections.Generic;
 
 namespace Emby.Dlna.ConnectionManager
 {
@@ -11,7 +11,7 @@ namespace Emby.Dlna.ConnectionManager
             return new ServiceXmlBuilder().GetXml(new ServiceActionListBuilder().GetActions(), GetStateVariables());
         }
 
-        private static IEnumerable<StateVariable> GetStateVariables()
+        private IEnumerable<StateVariable> GetStateVariables()
         {
             var list = new List<StateVariable>();
 

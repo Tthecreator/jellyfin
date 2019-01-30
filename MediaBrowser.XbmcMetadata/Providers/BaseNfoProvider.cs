@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Entities;
@@ -68,6 +68,12 @@ namespace MediaBrowser.XbmcMetadata.Providers
             return file.Exists && FileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
         }
 
-        public string Name => BaseNfoSaver.SaverName;
+        public string Name
+        {
+            get
+            {
+                return BaseNfoSaver.SaverName;
+            }
+        }
     }
 }

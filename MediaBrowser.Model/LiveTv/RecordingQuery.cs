@@ -1,6 +1,6 @@
-using System;
-using MediaBrowser.Model.Entities;
+﻿using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Querying;
+using System;
 
 namespace MediaBrowser.Model.LiveTv
 {

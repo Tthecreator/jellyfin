@@ -1,3 +1,5 @@
+﻿using System;
+
 namespace Emby.XmlTv.Entities
 {
     public class XmlTvCredit
@@ -7,7 +9,7 @@ namespace Emby.XmlTv.Entities
 
         public override string ToString()
         {
-            return string.Format("{0} - ({1})", Name, Type);
+            return String.Format("{0} - ({1})", Name, Type);
         }
     }
 }

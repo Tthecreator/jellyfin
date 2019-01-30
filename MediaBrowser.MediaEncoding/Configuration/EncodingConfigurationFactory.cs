@@ -1,7 +1,9 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Model.Configuration;
 using System.Collections.Generic;
 using System.IO;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Model.Configuration;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
 
 namespace MediaBrowser.MediaEncoding.Configuration
@@ -46,7 +48,7 @@ namespace MediaBrowser.MediaEncoding.Configuration
                 && !string.Equals(oldEncodingConfig.TranscodingTempPath ?? string.Empty, newPath))
             {
                 // Validate
-                if (!Directory.Exists(newPath))
+                if (!_fileSystem.DirectoryExists(newPath))
                 {
                     throw new FileNotFoundException(string.Format("{0} does not exist.", newPath));
                 }

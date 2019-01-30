@@ -1,8 +1,8 @@
-using System;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
+using System;
 
 namespace Emby.Server.Implementations.Sorting
 {
@@ -42,7 +42,7 @@ namespace Emby.Server.Implementations.Sorting
         /// </summary>
         /// <param name="x">The x.</param>
         /// <returns>DateTime.</returns>
-        private static DateTime GetDate(BaseItem x)
+        private DateTime GetDate(BaseItem x)
         {
             var folder = x as Folder;
 
@@ -61,6 +61,9 @@ namespace Emby.Server.Implementations.Sorting
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name => ItemSortBy.DateLastContentAdded;
+        public string Name
+        {
+            get { return ItemSortBy.DateLastContentAdded; }
+        }
     }
 }

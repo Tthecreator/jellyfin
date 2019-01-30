@@ -1,8 +1,8 @@
+﻿using MediaBrowser.Model.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Model.Net
 {
@@ -48,7 +48,7 @@ namespace MediaBrowser.Model.Net
 
         private static Dictionary<string, string> GetVideoFileExtensionsDictionary()
         {
-            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (string ext in VideoFileExtensions)
             {
@@ -65,7 +65,7 @@ namespace MediaBrowser.Model.Net
 
         private static Dictionary<string, string> GetMimeTypeLookup()
         {
-            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             dict.Add(".jpg", "image/jpeg");
             dict.Add(".jpeg", "image/jpeg");
@@ -127,12 +127,13 @@ namespace MediaBrowser.Model.Net
         {
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             var ext = Path.GetExtension(path) ?? string.Empty;
 
-            if (MimeTypeLookup.TryGetValue(ext, out string result))
+            string result;
+            if (MimeTypeLookup.TryGetValue(ext, out result))
             {
                 return result;
             }
@@ -332,13 +333,14 @@ namespace MediaBrowser.Model.Net
         {
             if (string.IsNullOrEmpty(mimeType))
             {
-                throw new ArgumentNullException(nameof(mimeType));
+                throw new ArgumentNullException("mimeType");
             }
 
             // handle text/html; charset=UTF-8
             mimeType = mimeType.Split(';')[0];
 
-            if (ExtensionLookup.TryGetValue(mimeType, out string result))
+            string result;
+            if (ExtensionLookup.TryGetValue(mimeType, out result))
             {
                 return result;
             }

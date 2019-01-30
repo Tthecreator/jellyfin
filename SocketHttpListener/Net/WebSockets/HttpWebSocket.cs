@@ -1,7 +1,8 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 
 namespace SocketHttpListener.Net.WebSockets
@@ -19,7 +20,7 @@ namespace SocketHttpListener.Net.WebSockets
             string retVal;
 
             // SHA1 used only for hashing purposes, not for crypto. Check here for FIPS compat.
-            using (var sha1 = SHA1.Create())
+            using (SHA1 sha1 = SHA1.Create())
             {
                 string acceptString = string.Concat(secWebSocketKey, HttpWebSocket.SecWebSocketKeyGuid);
                 byte[] toHash = Encoding.UTF8.GetBytes(acceptString);
@@ -29,7 +30,7 @@ namespace SocketHttpListener.Net.WebSockets
             return retVal;
         }
 
-        // return value here signifies if a Sec-WebSocket-Protocol header should be returned by the server.
+        // return value here signifies if a Sec-WebSocket-Protocol header should be returned by the server. 
         internal static bool ProcessWebSocketProtocolHeader(string clientSecWebSocketProtocol,
             string subProtocol,
             out string acceptProtocol)
@@ -43,7 +44,7 @@ namespace SocketHttpListener.Net.WebSockets
                     // If the server specified _anything_ this isn't valid.
                     throw new WebSocketException("UnsupportedProtocol");
                 }
-                // Treat empty and null from the server as the same thing here, server should not send headers.
+                // Treat empty and null from the server as the same thing here, server should not send headers. 
                 return false;
             }
 
@@ -51,7 +52,7 @@ namespace SocketHttpListener.Net.WebSockets
 
             if (subProtocol == null)
             {
-                // client specified some protocols, server specified 'null'. So server should send headers.
+                // client specified some protocols, server specified 'null'. So server should send headers.                 
                 return true;
             }
 
@@ -62,8 +63,8 @@ namespace SocketHttpListener.Net.WebSockets
                 StringSplitOptions.RemoveEmptyEntries);
             acceptProtocol = subProtocol;
 
-            // client specified protocols, serverOptions has exactly 1 non-empty entry. Check that
-            // this exists in the list the client specified.
+            // client specified protocols, serverOptions has exactly 1 non-empty entry. Check that 
+            // this exists in the list the client specified. 
             for (int i = 0; i < requestProtocols.Length; i++)
             {
                 string currentRequestProtocol = requestProtocols[i].Trim();
@@ -85,27 +86,27 @@ namespace SocketHttpListener.Net.WebSockets
 
             if (receiveBufferSize < MinReceiveBufferSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(receiveBufferSize), "The receiveBufferSize was too small.");
+                throw new ArgumentOutOfRangeException("net_WebSockets_ArgumentOutOfRange_TooSmall");
             }
 
             if (sendBufferSize < MinSendBufferSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(sendBufferSize), "The sendBufferSize was too small.");
+                throw new ArgumentOutOfRangeException("net_WebSockets_ArgumentOutOfRange_TooSmall");
             }
 
             if (receiveBufferSize > MaxBufferSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(receiveBufferSize), "The receiveBufferSize was too large.");
+                throw new ArgumentOutOfRangeException("net_WebSockets_ArgumentOutOfRange_TooBig");
             }
 
             if (sendBufferSize > MaxBufferSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(sendBufferSize), "The sendBufferSize was too large.");
+                throw new ArgumentOutOfRangeException("net_WebSockets_ArgumentOutOfRange_TooBig");
             }
 
             if (keepAliveInterval < Timeout.InfiniteTimeSpan) // -1 millisecond
             {
-                throw new ArgumentOutOfRangeException(nameof(keepAliveInterval), "The keepAliveInterval was too small.");
+                throw new ArgumentOutOfRangeException("net_WebSockets_ArgumentOutOfRange_TooSmall");
             }
         }
 

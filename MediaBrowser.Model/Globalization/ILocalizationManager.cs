@@ -1,5 +1,6 @@
-using System.Globalization;
+﻿using System.Collections.Generic;
 using MediaBrowser.Model.Entities;
+using System.Globalization;
 
 namespace MediaBrowser.Model.Globalization
 {
@@ -49,7 +50,7 @@ namespace MediaBrowser.Model.Globalization
         /// Gets the localization options.
         /// </summary>
         /// <returns>IEnumerable{LocalizatonOption}.</returns>
-        LocalizationOption[] GetLocalizationOptions();
+        LocalizatonOption[] GetLocalizationOptions();
 
         string RemoveDiacritics(string text);
 

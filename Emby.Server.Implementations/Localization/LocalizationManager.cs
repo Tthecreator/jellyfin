@@ -1,17 +1,17 @@
+﻿using MediaBrowser.Model.Extensions;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Extensions;
-using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Reflection;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Reflection;
 
 namespace Emby.Server.Implementations.Localization
 {
@@ -45,18 +45,12 @@ namespace Emby.Server.Implementations.Localization
         /// <param name="configurationManager">The configuration manager.</param>
         /// <param name="fileSystem">The file system.</param>
         /// <param name="jsonSerializer">The json serializer.</param>
-        public LocalizationManager(
-            IServerConfigurationManager configurationManager,
-            IFileSystem fileSystem,
-            IJsonSerializer jsonSerializer,
-            ILoggerFactory loggerFactory,
-            IAssemblyInfo assemblyInfo,
-            ITextLocalizer textLocalizer)
+        public LocalizationManager(IServerConfigurationManager configurationManager, IFileSystem fileSystem, IJsonSerializer jsonSerializer, ILogger logger, IAssemblyInfo assemblyInfo, ITextLocalizer textLocalizer)
         {
             _configurationManager = configurationManager;
             _fileSystem = fileSystem;
             _jsonSerializer = jsonSerializer;
-            _logger = loggerFactory.CreateLogger(nameof(LocalizationManager));
+            _logger = logger;
             _assemblyInfo = assemblyInfo;
             _textLocalizer = textLocalizer;
 
@@ -70,7 +64,7 @@ namespace Emby.Server.Implementations.Localization
 
             var localizationPath = LocalizationPath;
 
-            Directory.CreateDirectory(localizationPath);
+            _fileSystem.CreateDirectory(localizationPath);
 
             var existingFiles = GetRatingsFiles(localizationPath)
                 .Select(Path.GetFileName)
@@ -144,7 +138,7 @@ namespace Emby.Server.Implementations.Localization
                 new ParentalRating("FSK-18", 9)
             });
 
-            LoadRatings("ru", new[] {
+            LoadRatings("ru", new [] {
 
                 new ParentalRating("RU-0+", 1),
                 new ParentalRating("RU-6+", 3),
@@ -171,7 +165,13 @@ namespace Emby.Server.Implementations.Localization
         /// Gets the localization path.
         /// </summary>
         /// <value>The localization path.</value>
-        public string LocalizationPath => Path.Combine(_configurationManager.ApplicationPaths.ProgramDataPath, "localization");
+        public string LocalizationPath
+        {
+            get
+            {
+                return Path.Combine(_configurationManager.ApplicationPaths.ProgramDataPath, "localization");
+            }
+        }
 
         public string RemoveDiacritics(string text)
         {
@@ -304,7 +304,9 @@ namespace Emby.Server.Implementations.Localization
         /// <param name="countryCode">The country code.</param>
         private Dictionary<string, ParentalRating> GetRatings(string countryCode)
         {
-            _allParentalRatings.TryGetValue(countryCode, out var value);
+            Dictionary<string, ParentalRating> value;
+
+            _allParentalRatings.TryGetValue(countryCode, out value);
 
             return value;
         }
@@ -316,7 +318,7 @@ namespace Emby.Server.Implementations.Localization
         /// <returns>Dictionary{System.StringParentalRating}.</returns>
         private void LoadRatings(string file)
         {
-            var dict = File.ReadAllLines(file).Select(i =>
+            var dict = _fileSystem.ReadAllLines(file).Select(i =>
             {
                 if (!string.IsNullOrWhiteSpace(i))
                 {
@@ -324,7 +326,9 @@ namespace Emby.Server.Implementations.Localization
 
                     if (parts.Length == 2)
                     {
-                        if (int.TryParse(parts[1], NumberStyles.Integer, UsCulture, out var value))
+                        int value;
+
+                        if (int.TryParse(parts[1], NumberStyles.Integer, UsCulture, out value))
                         {
                             return new ParentalRating { Name = parts[0], Value = value };
                         }
@@ -337,7 +341,7 @@ namespace Emby.Server.Implementations.Localization
             .Where(i => i != null)
             .ToDictionary(i => i.Name, StringComparer.OrdinalIgnoreCase);
 
-            var countryCode = Path.GetFileNameWithoutExtension(file)
+            var countryCode = _fileSystem.GetFileNameWithoutExtension(file)
                 .Split('-')
                 .Last();
 
@@ -353,7 +357,7 @@ namespace Emby.Server.Implementations.Localization
         {
             if (string.IsNullOrEmpty(rating))
             {
-                throw new ArgumentNullException(nameof(rating));
+                throw new ArgumentNullException("rating");
             }
 
             if (_unratedValues.Contains(rating, StringComparer.OrdinalIgnoreCase))
@@ -366,7 +370,9 @@ namespace Emby.Server.Implementations.Localization
 
             var ratingsDictionary = GetParentalRatingsDictionary();
 
-            if (ratingsDictionary.TryGetValue(rating, out ParentalRating value))
+            ParentalRating value;
+
+            if (ratingsDictionary.TryGetValue(rating, out value))
             {
                 return value.Value;
             }
@@ -427,7 +433,9 @@ namespace Emby.Server.Implementations.Localization
 
             var dictionary = GetLocalizationDictionary(culture);
 
-            if (dictionary.TryGetValue(phrase, out var value))
+            string value;
+
+            if (dictionary.TryGetValue(phrase, out value))
             {
                 return value;
             }
@@ -444,7 +452,7 @@ namespace Emby.Server.Implementations.Localization
         {
             if (string.IsNullOrEmpty(culture))
             {
-                throw new ArgumentNullException(nameof(culture));
+                throw new ArgumentNullException("culture");
             }
 
             const string prefix = "Core";
@@ -457,7 +465,7 @@ namespace Emby.Server.Implementations.Localization
         {
             if (string.IsNullOrEmpty(culture))
             {
-                throw new ArgumentNullException(nameof(culture));
+                throw new ArgumentNullException("culture");
             }
 
             var dictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -486,7 +494,7 @@ namespace Emby.Server.Implementations.Localization
             }
         }
 
-        private static string GetResourceFilename(string culture)
+        private string GetResourceFilename(string culture)
         {
             var parts = culture.Split('-');
 
@@ -502,55 +510,58 @@ namespace Emby.Server.Implementations.Localization
             return culture + ".json";
         }
 
-        public LocalizationOption[] GetLocalizationOptions()
-            => new LocalizationOption[]
+        public LocalizatonOption[] GetLocalizationOptions()
+        {
+            return new LocalizatonOption[]
             {
-                new LocalizationOption("Arabic", "ar"),
-                new LocalizationOption("Belarusian (Belarus)", "be-BY"),
-                new LocalizationOption("Bulgarian (Bulgaria)", "bg-BG"),
-                new LocalizationOption("Catalan", "ca"),
-                new LocalizationOption("Chinese Simplified", "zh-CN"),
-                new LocalizationOption("Chinese Traditional", "zh-TW"),
-                new LocalizationOption("Chinese Traditional (Hong Kong)", "zh-HK"),
-                new LocalizationOption("Croatian", "hr"),
-                new LocalizationOption("Czech", "cs"),
-                new LocalizationOption("Danish", "da"),
-                new LocalizationOption("Dutch", "nl"),
-                new LocalizationOption("English (United Kingdom)", "en-GB"),
-                new LocalizationOption("English (United States)", "en-US"),
-                new LocalizationOption("Finnish", "fi"),
-                new LocalizationOption("French", "fr"),
-                new LocalizationOption("French (Canada)", "fr-CA"),
-                new LocalizationOption("German", "de"),
-                new LocalizationOption("Greek", "el"),
-                new LocalizationOption("Hebrew", "he"),
-                new LocalizationOption("Hindi (India)", "hi-IN"),
-                new LocalizationOption("Hungarian", "hu"),
-                new LocalizationOption("Indonesian", "id"),
-                new LocalizationOption("Italian", "it"),
-                new LocalizationOption("Japanese", "ja"),
-                new LocalizationOption("Kazakh", "kk"),
-                new LocalizationOption("Korean", "ko"),
-                new LocalizationOption("Lithuanian", "lt-LT"),
-                new LocalizationOption("Malay", "ms"),
-                new LocalizationOption("Norwegian Bokmål", "nb"),
-                new LocalizationOption("Persian", "fa"),
-                new LocalizationOption("Polish", "pl"),
-                new LocalizationOption("Portuguese (Brazil)", "pt-BR"),
-                new LocalizationOption("Portuguese (Portugal)", "pt-PT"),
-                new LocalizationOption("Romanian", "ro"),
-                new LocalizationOption("Russian", "ru"),
-                new LocalizationOption("Slovak", "sk"),
-                new LocalizationOption("Slovenian (Slovenia)", "sl-SI"),
-                new LocalizationOption("Spanish", "es"),
-                new LocalizationOption("Spanish (Latin America)", "es-419"),
-                new LocalizationOption("Spanish (Mexico)", "es-MX"),
-                new LocalizationOption("Swedish", "sv"),
-                new LocalizationOption("Swiss German", "gsw"),
-                new LocalizationOption("Turkish", "tr"),
-                new LocalizationOption("Ukrainian", "uk"),
-                new LocalizationOption("Vietnamese", "vi")
+                new LocalizatonOption{ Name="Arabic", Value="ar"},
+                new LocalizatonOption{ Name="Belarusian (Belarus)", Value="be-BY"},
+                new LocalizatonOption{ Name="Bulgarian (Bulgaria)", Value="bg-BG"},
+                new LocalizatonOption{ Name="Catalan", Value="ca"},
+                new LocalizatonOption{ Name="Chinese Simplified", Value="zh-CN"},
+                new LocalizatonOption{ Name="Chinese Traditional", Value="zh-TW"},
+                new LocalizatonOption{ Name="Chinese Traditional (Hong Kong)", Value="zh-HK"},
+                new LocalizatonOption{ Name="Croatian", Value="hr"},
+                new LocalizatonOption{ Name="Czech", Value="cs"},
+                new LocalizatonOption{ Name="Danish", Value="da"},
+                new LocalizatonOption{ Name="Dutch", Value="nl"},
+                new LocalizatonOption{ Name="English (United Kingdom)", Value="en-GB"},
+                new LocalizatonOption{ Name="English (United States)", Value="en-US"},
+                new LocalizatonOption{ Name="Finnish", Value="fi"},
+                new LocalizatonOption{ Name="French", Value="fr"},
+                new LocalizatonOption{ Name="French (Canada)", Value="fr-CA"},
+                new LocalizatonOption{ Name="German", Value="de"},
+                new LocalizatonOption{ Name="Greek", Value="el"},
+                new LocalizatonOption{ Name="Hebrew", Value="he"},
+                new LocalizatonOption{ Name="Hindi (India)", Value="hi-IN"},
+                new LocalizatonOption{ Name="Hungarian", Value="hu"},
+                new LocalizatonOption{ Name="Indonesian", Value="id"},
+                new LocalizatonOption{ Name="Italian", Value="it"},
+                new LocalizatonOption{ Name="Japanese", Value="ja"},
+                new LocalizatonOption{ Name="Kazakh", Value="kk"},
+                new LocalizatonOption{ Name="Korean", Value="ko"},
+                new LocalizatonOption{ Name="Lithuanian", Value="lt-LT"},
+                new LocalizatonOption{ Name="Malay", Value="ms"},
+                new LocalizatonOption{ Name="Norwegian Bokmål", Value="nb"},
+                new LocalizatonOption{ Name="Persian", Value="fa"},
+                new LocalizatonOption{ Name="Polish", Value="pl"},
+                new LocalizatonOption{ Name="Portuguese (Brazil)", Value="pt-BR"},
+                new LocalizatonOption{ Name="Portuguese (Portugal)", Value="pt-PT"},
+                new LocalizatonOption{ Name="Romanian", Value="ro"},
+                new LocalizatonOption{ Name="Russian", Value="ru"},
+                new LocalizatonOption{ Name="Slovak", Value="sk"},
+                new LocalizatonOption{ Name="Slovenian (Slovenia)", Value="sl-SI"},
+                new LocalizatonOption{ Name="Spanish", Value="es"},
+                new LocalizatonOption{ Name="Spanish (Latin America)", Value="es-419"},
+                new LocalizatonOption{ Name="Spanish (Mexico)", Value="es-MX"},
+                new LocalizatonOption{ Name="Swedish", Value="sv"},
+                new LocalizatonOption{ Name="Swiss German", Value="gsw"},
+                new LocalizatonOption{ Name="Turkish", Value="tr"},
+                new LocalizatonOption{ Name="Ukrainian", Value="uk"},
+                new LocalizatonOption{ Name="Vietnamese", Value="vi"}
+
             };
+        }
     }
 
     public interface ITextLocalizer

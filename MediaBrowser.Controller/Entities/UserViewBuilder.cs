@@ -1,15 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using MediaBrowser.Controller.Configuration;
+﻿using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Playlists;
 using MediaBrowser.Controller.TV;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Querying;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Collections;
+using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Controller.Entities
 {
@@ -407,7 +412,7 @@ namespace MediaBrowser.Controller.Entities
         {
             return new QueryResult<BaseItem>
             {
-                Items = result.Items, //TODO Fix The co-variant conversion between T[] and BaseItem[], this can generate runtime issues if T is not BaseItem.
+                Items = result.Items,
                 TotalRecordCount = result.TotalRecordCount
             };
         }
@@ -508,7 +513,7 @@ namespace MediaBrowser.Controller.Entities
 
             if (query.IsLiked.HasValue)
             {
-                userData = userDataManager.GetUserData(user, item);
+                userData = userData ?? userDataManager.GetUserData(user, item);
 
                 if (!userData.Likes.HasValue || userData.Likes != query.IsLiked.Value)
                 {

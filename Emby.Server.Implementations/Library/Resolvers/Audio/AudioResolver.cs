@@ -1,14 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Emby.Naming.AudioBook;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
+﻿using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Resolvers;
 using MediaBrowser.Model.Entities;
+using System;
+using MediaBrowser.Controller.Entities;
+using System.IO;
+using System.Linq;
+using MediaBrowser.Controller.Providers;
+using System.Collections.Generic;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Extensions;
+using Emby.Naming.Video;
+using Emby.Naming.AudioBook;
 
 namespace Emby.Server.Implementations.Library.Resolvers.Audio
 {
@@ -28,7 +30,10 @@ namespace Emby.Server.Implementations.Library.Resolvers.Audio
         /// Gets the priority.
         /// </summary>
         /// <value>The priority.</value>
-        public override ResolverPriority Priority => ResolverPriority.Fourth;
+        public override ResolverPriority Priority
+        {
+            get { return ResolverPriority.Fourth; }
+        }
 
         public MultiItemResolverResult ResolveMultiple(Folder parent,
             List<FileSystemMetadata> files,
@@ -86,7 +91,12 @@ namespace Emby.Server.Implementations.Library.Resolvers.Audio
                     .Where(i => !LibraryManager.IgnoreFile(i, args.Parent))
                     .ToList();
 
-                return FindAudio<AudioBook>(args, args.Path, args.Parent, files, args.DirectoryService, collectionType, false);
+                if (isBooksCollectionType)
+                {
+                    return FindAudio<AudioBook>(args, args.Path, args.Parent, files, args.DirectoryService, collectionType, false);
+                }
+
+                return null;
             }
 
             if (LibraryManager.IsAudioFile(args.Path, libraryOptions))
@@ -140,19 +150,36 @@ namespace Emby.Server.Implementations.Library.Resolvers.Audio
         private T FindAudio<T>(ItemResolveArgs args, string path, Folder parent, List<FileSystemMetadata> fileSystemEntries, IDirectoryService directoryService, string collectionType, bool parseName)
             where T : MediaBrowser.Controller.Entities.Audio.Audio, new()
         {
+            var multiDiscFolders = new List<FileSystemMetadata>();
+
+            var libraryOptions = args.GetLibraryOptions();
+            var filesFromOtherItems = new List<FileSystemMetadata>();
+
             // TODO: Allow GetMultiDiscMovie in here
-            const bool supportsMultiVersion = false;
+            var supportsMultiVersion = false;
 
             var result = ResolveMultipleAudio<T>(parent, fileSystemEntries, directoryService, supportsMultiVersion, collectionType, parseName) ??
                 new MultiItemResolverResult();
 
             if (result.Items.Count == 1)
             {
+                var videoPath = result.Items[0].Path;
+
                 // If we were supporting this we'd be checking filesFromOtherItems
-                var item = (T)result.Items[0];
-                item.IsInMixedFolder = false;
-                item.Name = Path.GetFileName(item.ContainingFolderPath);
-                return item;
+                var hasOtherItems = false;
+
+                if (!hasOtherItems)
+                {
+                    var item = (T)result.Items[0];
+                    item.IsInMixedFolder = false;
+                    item.Name = Path.GetFileName(item.ContainingFolderPath);
+                    return item;
+                }
+            }
+
+            if (result.Items.Count == 0 && multiDiscFolders.Count > 0)
+            {
+                //return GetMultiDiscAudio<T>(multiDiscFolders, directoryService);
             }
 
             return null;
@@ -172,7 +199,11 @@ namespace Emby.Server.Implementations.Library.Resolvers.Audio
                 {
                     leftOver.Add(child);
                 }
-                else if (!IsIgnored(child.Name))
+                else if (IsIgnored(child.Name))
+                {
+
+                }
+                else
                 {
                     files.Add(child);
                 }
@@ -200,7 +231,7 @@ namespace Emby.Server.Implementations.Library.Resolvers.Audio
                 }
 
                 var firstMedia = resolvedItem.Files.First();
-
+                
                 var libraryItem = new T
                 {
                     Path = firstMedia.Path,
@@ -233,12 +264,12 @@ namespace Emby.Server.Implementations.Library.Resolvers.Audio
                 result.Extras.Any(i => ContainsFile(i, file));
         }
 
-        private static bool ContainsFile(AudioBookFileInfo result, FileSystemMetadata file)
+        private bool ContainsFile(AudioBookFileInfo result, FileSystemMetadata file)
         {
             return string.Equals(result.Path, file.FullName, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool IsIgnored(string filename)
+        private bool IsIgnored(string filename)
         {
             return false;
         }

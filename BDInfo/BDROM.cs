@@ -1,4 +1,4 @@
-//============================================================================
+﻿//============================================================================
 // BDInfo - Blu-ray Video and Audio Analysis Tool
 // Copyright © 2010 Cinema Squid
 //
@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Text;
 
 namespace BDInfo
 {
@@ -71,11 +72,12 @@ namespace BDInfo
 
         public event OnPlaylistFileScanError PlaylistFileScanError;
 
-        public BDROM(string path, IFileSystem fileSystem)
+        public BDROM(
+            string path, IFileSystem fileSystem, ITextEncoding textEncoding)
         {
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             _fileSystem = fileSystem;
@@ -92,7 +94,7 @@ namespace BDInfo
             }
 
             DirectoryRoot =
-                _fileSystem.GetDirectoryInfo(Path.GetDirectoryName(DirectoryBDMV.FullName));
+                _fileSystem.GetDirectoryInfo(_fileSystem.GetDirectoryName(DirectoryBDMV.FullName));
             DirectoryBDJO =
                 GetDirectory("BDJO", DirectoryBDMV, 0);
             DirectoryCLIPINF =
@@ -150,7 +152,7 @@ namespace BDInfo
                 Is3D = true;
             }
 
-            if (File.Exists(Path.Combine(DirectoryRoot.FullName, "FilmIndex.xml")))
+            if (_fileSystem.FileExists(Path.Combine(DirectoryRoot.FullName, "FilmIndex.xml")))
             {
                 IsDBOX = true;
             }
@@ -162,17 +164,17 @@ namespace BDInfo
             if (DirectoryPLAYLIST != null)
             {
                 FileSystemMetadata[] files = GetFiles(DirectoryPLAYLIST.FullName, ".mpls").ToArray();
-                foreach (var file in files)
+                foreach (FileSystemMetadata file in files)
                 {
                     PlaylistFiles.Add(
-                        file.Name.ToUpper(), new TSPlaylistFile(this, file, _fileSystem));
+                        file.Name.ToUpper(), new TSPlaylistFile(this, file, _fileSystem, textEncoding));
                 }
             }
 
             if (DirectorySTREAM != null)
             {
                 FileSystemMetadata[] files = GetFiles(DirectorySTREAM.FullName, ".m2ts").ToArray();
-                foreach (var file in files)
+                foreach (FileSystemMetadata file in files)
                 {
                     StreamFiles.Add(
                         file.Name.ToUpper(), new TSStreamFile(file, _fileSystem));
@@ -182,17 +184,17 @@ namespace BDInfo
             if (DirectoryCLIPINF != null)
             {
                 FileSystemMetadata[] files = GetFiles(DirectoryCLIPINF.FullName, ".clpi").ToArray();
-                foreach (var file in files)
+                foreach (FileSystemMetadata file in files)
                 {
                     StreamClipFiles.Add(
-                        file.Name.ToUpper(), new TSStreamClipFile(file, _fileSystem));
+                        file.Name.ToUpper(), new TSStreamClipFile(file, _fileSystem, textEncoding));
                 }
             }
 
             if (DirectorySSIF != null)
             {
                 FileSystemMetadata[] files = GetFiles(DirectorySSIF.FullName, ".ssif").ToArray();
-                foreach (var file in files)
+                foreach (FileSystemMetadata file in files)
                 {
                     InterleavedFiles.Add(
                         file.Name.ToUpper(), new TSInterleavedFile(file));
@@ -212,8 +214,8 @@ namespace BDInfo
 
         public void Scan()
         {
-            var errorStreamClipFiles = new List<TSStreamClipFile>();
-            foreach (var streamClipFile in StreamClipFiles.Values)
+            List<TSStreamClipFile> errorStreamClipFiles = new List<TSStreamClipFile>();
+            foreach (TSStreamClipFile streamClipFile in StreamClipFiles.Values)
             {
                 try
                 {
@@ -233,11 +235,11 @@ namespace BDInfo
                             break;
                         }
                     }
-                    else throw;
+                    else throw ex;
                 }
             }
 
-            foreach (var streamFile in StreamFiles.Values)
+            foreach (TSStreamFile streamFile in StreamFiles.Values)
             {
                 string ssifName = Path.GetFileNameWithoutExtension(streamFile.Name) + ".SSIF";
                 if (InterleavedFiles.ContainsKey(ssifName))
@@ -250,8 +252,8 @@ namespace BDInfo
             StreamFiles.Values.CopyTo(streamFiles, 0);
             Array.Sort(streamFiles, CompareStreamFiles);
 
-            var errorPlaylistFiles = new List<TSPlaylistFile>();
-            foreach (var playlistFile in PlaylistFiles.Values)
+            List<TSPlaylistFile> errorPlaylistFiles = new List<TSPlaylistFile>();
+            foreach (TSPlaylistFile playlistFile in PlaylistFiles.Values)
             {
                 try
                 {
@@ -271,19 +273,19 @@ namespace BDInfo
                             break;
                         }
                     }
-                    else throw;
+                    else throw ex;
                 }
             }
 
-            var errorStreamFiles = new List<TSStreamFile>();
-            foreach (var streamFile in streamFiles)
+            List<TSStreamFile> errorStreamFiles = new List<TSStreamFile>();
+            foreach (TSStreamFile streamFile in streamFiles)
             {
                 try
                 {
-                    var playlists = new List<TSPlaylistFile>();
-                    foreach (var playlist in PlaylistFiles.Values)
+                    List<TSPlaylistFile> playlists = new List<TSPlaylistFile>();
+                    foreach (TSPlaylistFile playlist in PlaylistFiles.Values)
                     {
-                        foreach (var streamClip in playlist.StreamClips)
+                        foreach (TSStreamClip streamClip in playlist.StreamClips)
                         {
                             if (streamClip.Name == streamFile.Name)
                             {
@@ -308,16 +310,16 @@ namespace BDInfo
                             break;
                         }
                     }
-                    else throw;
+                    else throw ex;
                 }
             }
 
-            foreach (var playlistFile in PlaylistFiles.Values)
+            foreach (TSPlaylistFile playlistFile in PlaylistFiles.Values)
             {
                 playlistFile.Initialize();
                 if (!Is50Hz)
                 {
-                    foreach (var videoStream in playlistFile.VideoStreams)
+                    foreach (TSVideoStream videoStream in playlistFile.VideoStreams)
                     {
                         if (videoStream.FrameRate == TSFrameRate.FRAMERATE_25 ||
                             videoStream.FrameRate == TSFrameRate.FRAMERATE_50)
@@ -334,7 +336,7 @@ namespace BDInfo
         {
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             FileSystemMetadata dir = _fileSystem.GetDirectoryInfo(path);
@@ -345,7 +347,7 @@ namespace BDInfo
                 {
                     return dir;
                 }
-                var parentFolder = Path.GetDirectoryName(dir.FullName);
+                var parentFolder = _fileSystem.GetDirectoryName(dir.FullName);
                 if (string.IsNullOrEmpty(parentFolder))
                 {
                     dir = null;
@@ -367,7 +369,7 @@ namespace BDInfo
             if (dir != null)
             {
                 FileSystemMetadata[] children = _fileSystem.GetDirectories(dir.FullName).ToArray();
-                foreach (var child in children)
+                foreach (FileSystemMetadata child in children)
                 {
                     if (string.Equals(child.Name, name, StringComparison.OrdinalIgnoreCase))
                     {
@@ -376,7 +378,7 @@ namespace BDInfo
                 }
                 if (searchDepth > 0)
                 {
-                    foreach (var child in children)
+                    foreach (FileSystemMetadata child in children)
                     {
                         GetDirectory(
                             name, child, searchDepth - 1);
@@ -393,7 +395,7 @@ namespace BDInfo
             //if (!ExcludeDirs.Contains(directoryInfo.Name.ToUpper()))  // TODO: Keep?
             {
                 FileSystemMetadata[] pathFiles = _fileSystem.GetFiles(directoryInfo.FullName).ToArray();
-                foreach (var pathFile in pathFiles)
+                foreach (FileSystemMetadata pathFile in pathFiles)
                 {
                     if (pathFile.Extension.ToUpper() == ".SSIF")
                     {
@@ -403,7 +405,7 @@ namespace BDInfo
                 }
 
                 FileSystemMetadata[] pathChildren = _fileSystem.GetDirectories(directoryInfo.FullName).ToArray();
-                foreach (var pathChild in pathChildren)
+                foreach (FileSystemMetadata pathChild in pathChildren)
                 {
                     size += GetDirectorySize(pathChild);
                 }

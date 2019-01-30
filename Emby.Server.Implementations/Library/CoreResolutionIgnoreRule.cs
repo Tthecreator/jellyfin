@@ -1,11 +1,13 @@
+﻿using MediaBrowser.Model.Extensions;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Resolvers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Resolvers;
-using MediaBrowser.Model.Extensions;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
 
@@ -147,7 +149,7 @@ namespace Emby.Server.Implementations.Library
                 if (parent != null)
                 {
                     // Don't resolve these into audio files
-                    if (string.Equals(Path.GetFileNameWithoutExtension(filename), BaseItem.ThemeSongFilename) && _libraryManager.IsAudioFile(filename))
+                    if (string.Equals(_fileSystem.GetFileNameWithoutExtension(filename), BaseItem.ThemeSongFilename) && _libraryManager.IsAudioFile(filename))
                     {
                         return true;
                     }

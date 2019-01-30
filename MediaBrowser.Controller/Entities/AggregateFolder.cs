@@ -1,11 +1,11 @@
+﻿using MediaBrowser.Controller.IO;
+using MediaBrowser.Controller.Library;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.IO;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Serialization;
@@ -24,7 +24,10 @@ namespace MediaBrowser.Controller.Entities
         }
 
         [IgnoreDataMember]
-        public override bool IsPhysicalRoot => true;
+        public override bool IsPhysicalRoot
+        {
+            get { return true; }
+        }
 
         public override bool CanDelete()
         {
@@ -32,7 +35,13 @@ namespace MediaBrowser.Controller.Entities
         }
 
         [IgnoreDataMember]
-        public override bool SupportsPlayedStatus => false;
+        public override bool SupportsPlayedStatus
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// The _virtual children
@@ -43,10 +52,19 @@ namespace MediaBrowser.Controller.Entities
         /// Gets the virtual children.
         /// </summary>
         /// <value>The virtual children.</value>
-        public ConcurrentBag<BaseItem> VirtualChildren => _virtualChildren;
+        public ConcurrentBag<BaseItem> VirtualChildren
+        {
+            get { return _virtualChildren; }
+        }
 
         [IgnoreDataMember]
-        public override string[] PhysicalLocations => PhysicalLocationsList;
+        public override string[] PhysicalLocations
+        {
+            get
+            {
+                return PhysicalLocationsList;
+            }
+        }
 
         public string[] PhysicalLocationsList { get; set; }
 
@@ -164,12 +182,12 @@ namespace MediaBrowser.Controller.Entities
         /// Adds the virtual child.
         /// </summary>
         /// <param name="child">The child.</param>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="System.ArgumentNullException"></exception>
         public void AddVirtualChild(BaseItem child)
         {
             if (child == null)
             {
-                throw new ArgumentNullException(nameof(child));
+                throw new ArgumentNullException();
             }
 
             _virtualChildren.Add(child);
@@ -180,12 +198,12 @@ namespace MediaBrowser.Controller.Entities
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>BaseItem.</returns>
-        /// <exception cref="ArgumentNullException">id</exception>
+        /// <exception cref="System.ArgumentNullException">id</exception>
         public BaseItem FindVirtualChild(Guid id)
         {
             if (id.Equals(Guid.Empty))
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException("id");
             }
 
             foreach (var child in _virtualChildren)

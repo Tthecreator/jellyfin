@@ -1,19 +1,21 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Emby.Server.Implementations.Images;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Extensions;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Emby.Server.Implementations.Images;
+using MediaBrowser.Controller.Dto;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Extensions;
 
 namespace Emby.Server.Implementations.UserViews
 {
@@ -110,7 +112,7 @@ namespace Emby.Server.Implementations.UserViews
             return false;
         }
 
-        private static bool IsUsingCollectionStrip(UserView view)
+        private bool IsUsingCollectionStrip(UserView view)
         {
             string[] collectionStripViewTypes =
             {

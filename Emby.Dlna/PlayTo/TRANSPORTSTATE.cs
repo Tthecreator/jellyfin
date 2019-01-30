@@ -1,4 +1,4 @@
-namespace Emby.Dlna.PlayTo
+﻿namespace Emby.Dlna.PlayTo
 {
     public enum TRANSPORTSTATE
     {

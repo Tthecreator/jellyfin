@@ -1,23 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Devices;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaInfo;
+using MediaBrowser.Model.Session;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Services;
-using MediaBrowser.Model.Session;
 using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Api.Playback
@@ -74,19 +74,8 @@ namespace MediaBrowser.Api.Playback
         private readonly IUserManager _userManager;
         private readonly IJsonSerializer _json;
         private readonly IAuthorizationContext _authContext;
-        private readonly ILogger _logger;
 
-        public MediaInfoService(
-            IMediaSourceManager mediaSourceManager,
-            IDeviceManager deviceManager,
-            ILibraryManager libraryManager,
-            IServerConfigurationManager config,
-            INetworkManager networkManager,
-            IMediaEncoder mediaEncoder,
-            IUserManager userManager,
-            IJsonSerializer json,
-            IAuthorizationContext authContext,
-            ILoggerFactory loggerFactory)
+        public MediaInfoService(IMediaSourceManager mediaSourceManager, IDeviceManager deviceManager, ILibraryManager libraryManager, IServerConfigurationManager config, INetworkManager networkManager, IMediaEncoder mediaEncoder, IUserManager userManager, IJsonSerializer json, IAuthorizationContext authContext)
         {
             _mediaSourceManager = mediaSourceManager;
             _deviceManager = deviceManager;
@@ -97,7 +86,6 @@ namespace MediaBrowser.Api.Playback
             _userManager = userManager;
             _json = json;
             _authContext = authContext;
-            _logger = loggerFactory.CreateLogger(nameof(MediaInfoService));
         }
 
         public object Get(GetBitrateTestBytes request)
@@ -130,7 +118,7 @@ namespace MediaBrowser.Api.Playback
             var authInfo = _authContext.GetAuthorizationInfo(Request);
 
             var result = await _mediaSourceManager.OpenLiveStream(request, CancellationToken.None).ConfigureAwait(false);
-
+           
             var profile = request.DeviceProfile;
             if (profile == null)
             {
@@ -177,7 +165,7 @@ namespace MediaBrowser.Api.Playback
 
             var profile = request.DeviceProfile;
 
-            //Logger.LogInformation("GetPostedPlaybackInfo profile: {profile}", _json.SerializeToString(profile));
+            //Logger.Info("GetPostedPlaybackInfo profile: {0}", _json.SerializeToString(profile));
 
             if (profile == null)
             {
@@ -274,7 +262,6 @@ namespace MediaBrowser.Api.Playback
                 catch (Exception ex)
                 {
                     mediaSources = new List<MediaSourceInfo>();
-                    _logger.LogError(ex, "Could not find media sources for item id {id}", id);
                     // TODO PlaybackException ??
                     //result.ErrorCode = ex.ErrorCode;
                 }
@@ -399,10 +386,10 @@ namespace MediaBrowser.Api.Playback
             }
             else
             {
-                Logger.LogInformation("User policy for {0}. EnablePlaybackRemuxing: {1} EnableVideoPlaybackTranscoding: {2} EnableAudioPlaybackTranscoding: {3}",
+                Logger.LogInformation("User policy for {0}. EnablePlaybackRemuxing: {1} EnableVideoPlaybackTranscoding: {2} EnableAudioPlaybackTranscoding: {3}", 
                     user.Name,
                     user.Policy.EnablePlaybackRemuxing,
-                    user.Policy.EnableVideoPlaybackTranscoding,
+                    user.Policy.EnableVideoPlaybackTranscoding, 
                     user.Policy.EnableAudioPlaybackTranscoding);
             }
 

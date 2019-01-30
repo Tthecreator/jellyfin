@@ -1,7 +1,7 @@
 using System;
-using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.WebSockets;
 using Emby.Server.Implementations.Net;
 using Microsoft.Extensions.Logging;
 
@@ -29,12 +29,12 @@ namespace Jellyfin.SocketSharp
         {
             if (socket == null)
             {
-                throw new ArgumentNullException(nameof(socket));
+                throw new ArgumentNullException("socket");
             }
 
             if (logger == null)
             {
-                throw new ArgumentNullException(nameof(logger));
+                throw new ArgumentNullException("logger");
             }
 
             _logger = logger;
@@ -85,7 +85,13 @@ namespace Jellyfin.SocketSharp
         /// Gets or sets the state.
         /// </summary>
         /// <value>The state.</value>
-        public WebSocketState State => WebSocket.ReadyState;
+        public WebSocketState State
+        {
+            get
+            {
+                return WebSocket.ReadyState;
+            }
+        }
 
         /// <summary>
         /// Sends the async.

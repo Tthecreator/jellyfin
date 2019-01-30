@@ -1,11 +1,4 @@
-using System;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using Emby.Dlna.Configuration;
-using Emby.Dlna.ContentDirectory;
+﻿using MediaBrowser.Model.Extensions;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
@@ -13,15 +6,23 @@ using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Playlists;
+using Emby.Dlna.ContentDirectory;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Extensions;
-using MediaBrowser.Model.Globalization;
-using MediaBrowser.Model.Net;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
+using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+using MediaBrowser.Controller.MediaEncoding;
+using Emby.Dlna.Configuration;
+using MediaBrowser.Model.Globalization;
 
 namespace Emby.Dlna.Didl
 {
@@ -78,7 +79,7 @@ namespace Emby.Dlna.Didl
 
             using (StringWriter builder = new StringWriterWithEncoding(Encoding.UTF8))
             {
-                using (var writer = XmlWriter.Create(builder, settings))
+                using (XmlWriter writer = XmlWriter.Create(builder, settings))
                 {
                     //writer.WriteStartDocument();
 
@@ -374,7 +375,7 @@ namespace Emby.Dlna.Didl
                ? GetMimeType(filename)
                : mediaProfile.MimeType;
 
-            writer.WriteAttributeString("protocolInfo", string.Format(
+            writer.WriteAttributeString("protocolInfo", String.Format(
                 "http-get:*:{0}:{1}",
                 mimeType,
                 contentFeatures
@@ -572,7 +573,7 @@ namespace Emby.Dlna.Didl
                 streamInfo.RunTimeTicks ?? 0,
                 streamInfo.TranscodeSeekInfo);
 
-            writer.WriteAttributeString("protocolInfo", string.Format(
+            writer.WriteAttributeString("protocolInfo", String.Format(
                 "http-get:*:{0}:{1}",
                 mimeType,
                 contentFeatures
@@ -932,7 +933,13 @@ namespace Emby.Dlna.Didl
 
         private void AddCover(BaseItem item, BaseItem context, StubType? stubType, XmlWriter writer)
         {
-            ImageDownloadInfo imageInfo = GetImageInfo(item);
+            ImageDownloadInfo imageInfo = null;
+
+            // Finally, just use the image from the item
+            if (imageInfo == null)
+            {
+                imageInfo = GetImageInfo(item);
+            }
 
             if (imageInfo == null)
             {
@@ -1010,7 +1017,7 @@ namespace Emby.Dlna.Didl
             var contentFeatures = new ContentFeatureBuilder(_profile)
                 .BuildImageHeader(format, width, height, imageInfo.IsDirectStream, org_Pn);
 
-            writer.WriteAttributeString("protocolInfo", string.Format(
+            writer.WriteAttributeString("protocolInfo", String.Format(
                 "http-get:*:{0}:{1}",
                 GetMimeType("file." + format),
                 contentFeatures
@@ -1088,8 +1095,8 @@ namespace Emby.Dlna.Didl
             //{
             //    var size = _imageProcessor.GetImageSize(imageInfo);
 
-            //    width = size.Width;
-            //    height = size.Height;
+            //    width = Convert.ToInt32(size.Width);
+            //    height = Convert.ToInt32(size.Height);
             //}
             //catch
             //{
@@ -1162,7 +1169,8 @@ namespace Emby.Dlna.Didl
                 info.ImageTag,
                 format,
                 maxWidth.ToString(CultureInfo.InvariantCulture),
-                maxHeight.ToString(CultureInfo.InvariantCulture));
+                maxHeight.ToString(CultureInfo.InvariantCulture)
+                );
 
             var width = info.Width;
             var height = info.Height;
@@ -1171,11 +1179,15 @@ namespace Emby.Dlna.Didl
 
             if (width.HasValue && height.HasValue)
             {
-                var newSize = DrawingUtils.Resize(
-                        new ImageDimensions(width.Value, height.Value), 0, 0, maxWidth, maxHeight);
+                var newSize = DrawingUtils.Resize(new ImageSize
+                {
+                    Height = height.Value,
+                    Width = width.Value
 
-                width = newSize.Width;
-                height = newSize.Height;
+                }, 0, 0, maxWidth, maxHeight);
+
+                width = Convert.ToInt32(newSize.Width);
+                height = Convert.ToInt32(newSize.Height);
 
                 var normalizedFormat = format
                     .Replace("jpeg", "jpg", StringComparison.OrdinalIgnoreCase);

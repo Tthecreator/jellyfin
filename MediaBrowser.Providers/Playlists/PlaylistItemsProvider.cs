@@ -1,16 +1,32 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Controller.Chapters;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Controller.MediaEncoding;
+using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Controller.Subtitles;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.MediaInfo;
+using MediaBrowser.Model.Serialization;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Playlists;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.IO;
-using Microsoft.Extensions.Logging;
+using System.IO;
+using PlaylistsNET;
 using PlaylistsNET.Content;
+using System.Collections.Generic;
 
 namespace MediaBrowser.Providers.Playlists
 {
@@ -29,7 +45,10 @@ namespace MediaBrowser.Providers.Playlists
             _logger = logger;
         }
 
-        public string Name => "Playlist Reader";
+        public string Name
+        {
+            get { return "Playlist Reader"; }
+        }
 
         public Task<ItemUpdateType> FetchAsync(Playlist item, MetadataRefreshOptions options, CancellationToken cancellationToken)
         {
@@ -45,7 +64,7 @@ namespace MediaBrowser.Providers.Playlists
                 return Task.FromResult(ItemUpdateType.None);
             }
 
-            using (var stream = File.OpenRead(path))
+            using (var stream = _fileSystem.OpenRead(path))
             {
                 var items = GetItems(stream, extension).ToArray();
 
@@ -131,7 +150,7 @@ namespace MediaBrowser.Providers.Playlists
 
         private IEnumerable<LinkedChild> GetWplItems(Stream stream)
         {
-            var content = new WplContent();
+            WplContent content = new WplContent();
             var playlist = content.GetFromStream(stream);
 
             return playlist.PlaylistEntries.Select(i => new LinkedChild
@@ -157,7 +176,14 @@ namespace MediaBrowser.Providers.Playlists
 
             return false;
         }
-        // Run last
-        public int Order => 100;
+
+        public int Order
+        {
+            get
+            {
+                // Run last
+                return 100;
+            }
+        }
     }
 }

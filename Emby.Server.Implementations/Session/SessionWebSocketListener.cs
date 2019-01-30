@@ -1,11 +1,15 @@
-using System;
-using System.Threading.Tasks;
-using MediaBrowser.Controller.Net;
+﻿using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Session;
 using MediaBrowser.Model.Events;
-using MediaBrowser.Model.Serialization;
-using MediaBrowser.Model.Services;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Model.Session;
+using System;
+using System.Collections.Specialized;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Services;
 
 namespace Emby.Server.Implementations.Session
 {
@@ -39,6 +43,7 @@ namespace Emby.Server.Implementations.Session
         /// <param name="loggerFactory">The logger factory.</param>
         /// <param name="json">The json.</param>
         /// <param name="httpServer">The HTTP server.</param>
+        /// <param name="serverManager">The server manager.</param>
         public SessionWebSocketListener(ISessionManager sessionManager, ILoggerFactory loggerFactory, IJsonSerializer json, IHttpServer httpServer)
         {
             _sessionManager = sessionManager;
@@ -66,7 +71,7 @@ namespace Emby.Server.Implementations.Session
         {
             if (queryString == null)
             {
-                throw new ArgumentNullException(nameof(queryString));
+                throw new ArgumentNullException("queryString");
             }
 
             var token = queryString["api_key"];

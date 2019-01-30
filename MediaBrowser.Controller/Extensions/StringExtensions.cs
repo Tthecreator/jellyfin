@@ -1,4 +1,4 @@
-using MediaBrowser.Model.Globalization;
+﻿using MediaBrowser.Model.Globalization;
 
 namespace MediaBrowser.Controller.Extensions
 {

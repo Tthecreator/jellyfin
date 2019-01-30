@@ -1,6 +1,6 @@
+﻿using MediaBrowser.Controller.Security;
 using System;
 using System.Text;
-using MediaBrowser.Controller.Security;
 
 namespace Emby.Server.Implementations.Security
 {
@@ -11,13 +11,10 @@ namespace Emby.Server.Implementations.Security
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>System.String.</returns>
-        /// <exception cref="ArgumentNullException">value</exception>
+        /// <exception cref="System.ArgumentNullException">value</exception>
         public string EncryptString(string value)
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            if (value == null) throw new ArgumentNullException("value");
 
             return EncryptStringUniversal(value);
         }
@@ -27,18 +24,15 @@ namespace Emby.Server.Implementations.Security
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>System.String.</returns>
-        /// <exception cref="ArgumentNullException">value</exception>
+        /// <exception cref="System.ArgumentNullException">value</exception>
         public string DecryptString(string value)
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            if (value == null) throw new ArgumentNullException("value");
 
             return DecryptStringUniversal(value);
         }
 
-        private static string EncryptStringUniversal(string value)
+        private string EncryptStringUniversal(string value)
         {
             // Yes, this isn't good, but ProtectedData in mono is throwing exceptions, so use this for now
 
@@ -46,7 +40,7 @@ namespace Emby.Server.Implementations.Security
             return Convert.ToBase64String(bytes);
         }
 
-        private static string DecryptStringUniversal(string value)
+        private string DecryptStringUniversal(string value)
         {
             // Yes, this isn't good, but ProtectedData in mono is throwing exceptions, so use this for now
 

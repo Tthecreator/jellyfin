@@ -1,3 +1,4 @@
+﻿
 namespace MediaBrowser.Common.Configuration
 {
     /// <summary>

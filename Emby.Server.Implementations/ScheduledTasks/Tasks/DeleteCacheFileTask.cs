@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Tasks;
 
 namespace Emby.Server.Implementations.ScheduledTasks.Tasks
 {
@@ -42,8 +42,8 @@ namespace Emby.Server.Implementations.ScheduledTasks.Tasks
         /// <returns>IEnumerable{BaseTaskTrigger}.</returns>
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {
-            return new[] {
-
+            return new[] { 
+            
                 // Every so often
                 new TaskTriggerInfo { Type = TaskTriggerInfo.TriggerInterval, IntervalTicks = TimeSpan.FromHours(24).Ticks}
             };
@@ -128,7 +128,7 @@ namespace Emby.Server.Implementations.ScheduledTasks.Tasks
                 {
                     try
                     {
-                        Directory.Delete(directory, false);
+                        _fileSystem.DeleteDirectory(directory, false);
                     }
                     catch (UnauthorizedAccessException ex)
                     {
@@ -162,30 +162,54 @@ namespace Emby.Server.Implementations.ScheduledTasks.Tasks
         /// Gets the name of the task
         /// </summary>
         /// <value>The name.</value>
-        public string Name => "Cache file cleanup";
+        public string Name
+        {
+            get { return "Cache file cleanup"; }
+        }
 
-        public string Key => "DeleteCacheFiles";
+        public string Key
+        {
+            get { return "DeleteCacheFiles"; }
+        }
 
         /// <summary>
         /// Gets the description.
         /// </summary>
         /// <value>The description.</value>
-        public string Description => "Deletes cache files no longer needed by the system";
+        public string Description
+        {
+            get { return "Deletes cache files no longer needed by the system"; }
+        }
 
         /// <summary>
         /// Gets the category.
         /// </summary>
         /// <value>The category.</value>
-        public string Category => "Maintenance";
+        public string Category
+        {
+            get
+            {
+                return "Maintenance";
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether this instance is hidden.
         /// </summary>
         /// <value><c>true</c> if this instance is hidden; otherwise, <c>false</c>.</value>
-        public bool IsHidden => true;
+        public bool IsHidden
+        {
+            get { return true; }
+        }
 
-        public bool IsEnabled => true;
+        public bool IsEnabled
+        {
+            get { return true; }
+        }
 
-        public bool IsLogged => true;
+        public bool IsLogged
+        {
+            get { return true; }
+        }
     }
 }

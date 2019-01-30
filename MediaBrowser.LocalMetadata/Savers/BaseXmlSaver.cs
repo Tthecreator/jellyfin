@@ -1,21 +1,27 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Controller.Playlists;
+using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Extensions;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Xml;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Xml;
 
 namespace MediaBrowser.LocalMetadata.Savers
 {
@@ -42,9 +48,21 @@ namespace MediaBrowser.LocalMetadata.Savers
         protected ILogger Logger { get; private set; }
         protected IXmlReaderSettingsFactory XmlReaderSettingsFactory { get; private set; }
 
-        protected ItemUpdateType MinimumUpdateType => ItemUpdateType.MetadataDownload;
+        protected ItemUpdateType MinimumUpdateType
+        {
+            get
+            {
+                return ItemUpdateType.MetadataDownload;
+            }
+        }
 
-        public string Name => XmlProviderUtils.Name;
+        public string Name
+        {
+            get
+            {
+                return XmlProviderUtils.Name;
+            }
+        }
 
         public string GetSavePath(BaseItem item)
         {
@@ -94,7 +112,7 @@ namespace MediaBrowser.LocalMetadata.Savers
 
         private void SaveToFile(Stream stream, string path)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(path));
             // On Windows, savint the file will fail if the file is hidden or readonly
             FileSystem.SetAttributes(path, false, false);
 
@@ -130,7 +148,7 @@ namespace MediaBrowser.LocalMetadata.Savers
                 CloseOutput = false
             };
 
-            using (var writer = XmlWriter.Create(stream, settings))
+            using (XmlWriter writer = XmlWriter.Create(stream, settings))
             {
                 var root = GetRootElementName(item);
 

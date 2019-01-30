@@ -1,4 +1,4 @@
-namespace MediaBrowser.Model.Querying
+﻿namespace MediaBrowser.Model.Querying
 {
     public class SimilarItemsQuery
     {

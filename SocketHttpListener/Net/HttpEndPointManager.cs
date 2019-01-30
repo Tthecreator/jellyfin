@@ -3,7 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
+using System.Threading.Tasks;
+using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
+using SocketHttpListener.Primitives;
 
 namespace SocketHttpListener.Net
 {
@@ -17,7 +22,7 @@ namespace SocketHttpListener.Net
 
         public static void AddListener(ILogger logger, HttpListener listener)
         {
-            var added = new List<string>();
+            List<string> added = new List<string>();
             try
             {
                 lock ((s_ipEndPoints as ICollection).SyncRoot)
@@ -57,13 +62,14 @@ namespace SocketHttpListener.Net
                 int root = p.IndexOf('/', colon, p.Length - colon);
                 string portString = p.Substring(colon + 1, root - colon - 1);
 
-                if (!int.TryParse(portString, out var port) || port <= 0 || port >= 65536)
+                int port;
+                if (!int.TryParse(portString, out port) || port <= 0 || port >= 65536)
                 {
                     throw new HttpListenerException((int)HttpStatusCode.BadRequest, "net_invalid_port");
                 }
             }
 
-            var lp = new ListenerPrefix(p);
+            ListenerPrefix lp = new ListenerPrefix(p);
             if (lp.Host != "*" && lp.Host != "+" && Uri.CheckHostName(lp.Host) == UriHostNameType.Unknown)
                 throw new HttpListenerException((int)HttpStatusCode.BadRequest, "net_listener_host");
 
@@ -130,7 +136,7 @@ namespace SocketHttpListener.Net
             {
                 try
                 {
-                    epl = new HttpEndPointListener(listener, addr, port, secure, listener.Certificate, logger, listener.CryptoProvider, listener.SocketFactory, listener.StreamHelper, listener.FileSystem, listener.EnvironmentInfo);
+                    epl = new HttpEndPointListener(listener, addr, port, secure, listener.Certificate, logger, listener.CryptoProvider, listener.SocketFactory, listener.StreamHelper, listener.TextEncoding, listener.FileSystem, listener.EnvironmentInfo);
                 }
                 catch (SocketException ex)
                 {
@@ -178,7 +184,7 @@ namespace SocketHttpListener.Net
 
         private static void RemovePrefixInternal(ILogger logger, string prefix, HttpListener listener)
         {
-            var lp = new ListenerPrefix(prefix);
+            ListenerPrefix lp = new ListenerPrefix(prefix);
             if (lp.Path.IndexOf('%') != -1)
                 return;
 

@@ -1,5 +1,7 @@
-using System;
+﻿using System;
 using System.IO;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
 
 namespace Emby.Server.Implementations.IO
@@ -13,18 +15,21 @@ namespace Emby.Server.Implementations.IO
             _fileSystem = fileSystem;
         }
 
-        public string Extension => ".mblink";
+        public string Extension
+        {
+            get { return ".mblink"; }
+        }
 
         public string Resolve(string shortcutPath)
         {
             if (string.IsNullOrEmpty(shortcutPath))
             {
-                throw new ArgumentException("Shortcut path is empty or null.", nameof(shortcutPath));
+                throw new ArgumentNullException("filenshortcutPathame");
             }
 
             if (string.Equals(Path.GetExtension(shortcutPath), ".mblink", StringComparison.OrdinalIgnoreCase))
             {
-                var path = File.ReadAllText(shortcutPath);
+                var path = _fileSystem.ReadAllText(shortcutPath);
 
                 return _fileSystem.NormalizePath(path);
             }
@@ -36,15 +41,15 @@ namespace Emby.Server.Implementations.IO
         {
             if (string.IsNullOrEmpty(shortcutPath))
             {
-                throw new ArgumentNullException(nameof(shortcutPath));
+                throw new ArgumentNullException("shortcutPath");
             }
 
             if (string.IsNullOrEmpty(targetPath))
             {
-                throw new ArgumentNullException(nameof(targetPath));
+                throw new ArgumentNullException("targetPath");
             }
 
-            File.WriteAllText(shortcutPath, targetPath);
+            _fileSystem.WriteAllText(shortcutPath, targetPath);
         }
     }
 }

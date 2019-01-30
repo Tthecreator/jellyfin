@@ -1,16 +1,17 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Controller.Configuration;
+﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Globalization;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Xml;
-using MediaBrowser.Providers.Manager;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Providers.Manager;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.Xml;
 
 namespace MediaBrowser.Providers.TV
 {

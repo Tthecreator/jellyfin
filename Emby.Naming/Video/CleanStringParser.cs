@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Emby.Naming.Video
@@ -30,7 +30,7 @@ namespace Emby.Naming.Video
             };
         }
 
-        private static CleanStringResult Clean(string name, Regex expression)
+        private CleanStringResult Clean(string name, Regex expression)
         {
             var result = new CleanStringResult();
 

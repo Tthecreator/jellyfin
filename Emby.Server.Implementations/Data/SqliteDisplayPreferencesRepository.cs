@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -7,8 +7,8 @@ using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 using SQLitePCL.pretty;
 
 namespace Emby.Server.Implementations.Data
@@ -20,8 +20,8 @@ namespace Emby.Server.Implementations.Data
     {
         protected IFileSystem FileSystem { get; private set; }
 
-        public SqliteDisplayPreferencesRepository(ILoggerFactory loggerFactory, IJsonSerializer jsonSerializer, IApplicationPaths appPaths, IFileSystem fileSystem)
-            : base(loggerFactory.CreateLogger(nameof(SqliteDisplayPreferencesRepository)))
+        public SqliteDisplayPreferencesRepository(ILogger logger, IJsonSerializer jsonSerializer, IApplicationPaths appPaths, IFileSystem fileSystem)
+            : base(logger)
         {
             _jsonSerializer = jsonSerializer;
             FileSystem = fileSystem;
@@ -32,7 +32,13 @@ namespace Emby.Server.Implementations.Data
         /// Gets the name of the repository
         /// </summary>
         /// <value>The name.</value>
-        public string Name => "SQLite";
+        public string Name
+        {
+            get
+            {
+                return "SQLite";
+            }
+        }
 
         /// <summary>
         /// The _json serializer
@@ -83,16 +89,16 @@ namespace Emby.Server.Implementations.Data
         /// <param name="client">The client.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">item</exception>
+        /// <exception cref="System.ArgumentNullException">item</exception>
         public void SaveDisplayPreferences(DisplayPreferences displayPreferences, Guid userId, string client, CancellationToken cancellationToken)
         {
             if (displayPreferences == null)
             {
-                throw new ArgumentNullException(nameof(displayPreferences));
+                throw new ArgumentNullException("displayPreferences");
             }
             if (string.IsNullOrEmpty(displayPreferences.Id))
             {
-                throw new ArgumentNullException(nameof(displayPreferences.Id));
+                throw new ArgumentNullException("displayPreferences.Id");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -131,12 +137,12 @@ namespace Emby.Server.Implementations.Data
         /// <param name="userId">The user id.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">item</exception>
+        /// <exception cref="System.ArgumentNullException">item</exception>
         public void SaveAllDisplayPreferences(IEnumerable<DisplayPreferences> displayPreferences, Guid userId, CancellationToken cancellationToken)
         {
             if (displayPreferences == null)
             {
-                throw new ArgumentNullException(nameof(displayPreferences));
+                throw new ArgumentNullException("displayPreferences");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -163,12 +169,12 @@ namespace Emby.Server.Implementations.Data
         /// <param name="userId">The user id.</param>
         /// <param name="client">The client.</param>
         /// <returns>Task{DisplayPreferences}.</returns>
-        /// <exception cref="ArgumentNullException">item</exception>
+        /// <exception cref="System.ArgumentNullException">item</exception>
         public DisplayPreferences GetDisplayPreferences(string displayPreferencesId, Guid userId, string client)
         {
             if (string.IsNullOrEmpty(displayPreferencesId))
             {
-                throw new ArgumentNullException(nameof(displayPreferencesId));
+                throw new ArgumentNullException("displayPreferencesId");
             }
 
             var guidId = displayPreferencesId.GetMD5();
@@ -202,7 +208,7 @@ namespace Emby.Server.Implementations.Data
         /// </summary>
         /// <param name="userId">The user id.</param>
         /// <returns>Task{DisplayPreferences}.</returns>
-        /// <exception cref="ArgumentNullException">item</exception>
+        /// <exception cref="System.ArgumentNullException">item</exception>
         public IEnumerable<DisplayPreferences> GetAllDisplayPreferences(Guid userId)
         {
             var list = new List<DisplayPreferences>();

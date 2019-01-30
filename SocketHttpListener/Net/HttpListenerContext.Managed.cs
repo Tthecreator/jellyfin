@@ -1,20 +1,21 @@
-using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using System;
+using MediaBrowser.Model.Text;
 using SocketHttpListener.Net.WebSockets;
 
 namespace SocketHttpListener.Net
 {
-    public sealed partial class HttpListenerContext
+    public sealed unsafe partial class HttpListenerContext
     {
         private HttpConnection _connection;
 
-        internal HttpListenerContext(HttpConnection connection)
+        internal HttpListenerContext(HttpConnection connection, ITextEncoding textEncoding)
         {
             _connection = connection;
-            _response = new HttpListenerResponse(this);
+            _response = new HttpListenerResponse(this, textEncoding);
             Request = new HttpListenerRequest(this);
             ErrorStatus = 400;
         }

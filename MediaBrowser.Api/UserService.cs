@@ -1,9 +1,6 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using MediaBrowser.Controller.Authentication;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Authentication;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Devices;
 using MediaBrowser.Controller.Library;
@@ -12,8 +9,11 @@ using MediaBrowser.Controller.Session;
 using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Connect;
 using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Services;
 using MediaBrowser.Model.Users;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Api
 {

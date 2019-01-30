@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Dto;
+using MediaBrowser.Controller.Library;
 
 namespace Emby.Server.Implementations.Library
 {

@@ -1,3 +1,15 @@
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Model.Configuration;
+using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.XbmcMetadata.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,20 +19,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Entities;
+using MediaBrowser.Controller.Extensions;
 using MediaBrowser.Model.Extensions;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Xml;
-using MediaBrowser.XbmcMetadata.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.XbmcMetadata.Savers
 {
@@ -130,9 +132,21 @@ namespace MediaBrowser.XbmcMetadata.Savers
             }
         }
 
-        public string Name => SaverName;
+        public string Name
+        {
+            get
+            {
+                return SaverName;
+            }
+        }
 
-        public static string SaverName => "Nfo";
+        public static string SaverName
+        {
+            get
+            {
+                return "Nfo";
+            }
+        }
 
         public string GetSavePath(BaseItem item)
         {
@@ -193,7 +207,7 @@ namespace MediaBrowser.XbmcMetadata.Savers
 
         private void SaveToFile(Stream stream, string path)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(path));
             // On Windows, savint the file will fail if the file is hidden or readonly
             FileSystem.SetAttributes(path, false, false);
 
@@ -229,7 +243,7 @@ namespace MediaBrowser.XbmcMetadata.Savers
                 CloseOutput = false
             };
 
-            using (var writer = XmlWriter.Create(stream, settings))
+            using (XmlWriter writer = XmlWriter.Create(stream, settings))
             {
                 var root = GetRootElementName(item);
 
@@ -974,7 +988,7 @@ namespace MediaBrowser.XbmcMetadata.Savers
             settings.IgnoreProcessingInstructions = true;
             settings.IgnoreComments = true;
 
-            using (var fileStream = File.OpenRead(path))
+            using (var fileStream = fileSystem.OpenRead(path))
             {
                 using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
                 {

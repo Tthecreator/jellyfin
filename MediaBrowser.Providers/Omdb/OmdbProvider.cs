@@ -1,19 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common;
+﻿using MediaBrowser.Model.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Common;
 
 namespace MediaBrowser.Providers.Omdb
 {
@@ -40,10 +41,10 @@ namespace MediaBrowser.Providers.Omdb
         {
             if (string.IsNullOrWhiteSpace(imdbId))
             {
-                throw new ArgumentNullException(nameof(imdbId));
+                throw new ArgumentNullException("imdbId");
             }
 
-            var item = itemResult.Item;
+            T item = itemResult.Item;
 
             var result = await GetRootObject(imdbId, cancellationToken).ConfigureAwait(false);
 
@@ -58,8 +59,10 @@ namespace MediaBrowser.Providers.Omdb
                 }
             }
 
+            int year;
+
             if (!string.IsNullOrEmpty(result.Year) && result.Year.Length >= 4
-                && int.TryParse(result.Year.Substring(0, 4), NumberStyles.Number, _usCulture, out var year)
+                && int.TryParse(result.Year.Substring(0, 4), NumberStyles.Number, _usCulture, out year)
                 && year >= 0)
             {
                 item.ProductionYear = year;
@@ -72,15 +75,19 @@ namespace MediaBrowser.Providers.Omdb
                 item.CriticRating = tomatoScore;
             }
 
+            int voteCount;
+
             if (!string.IsNullOrEmpty(result.imdbVotes)
-                && int.TryParse(result.imdbVotes, NumberStyles.Number, _usCulture, out var voteCount)
+                && int.TryParse(result.imdbVotes, NumberStyles.Number, _usCulture, out voteCount)
                 && voteCount >= 0)
             {
                 //item.VoteCount = voteCount;
             }
 
+            float imdbRating;
+
             if (!string.IsNullOrEmpty(result.imdbRating)
-                && float.TryParse(result.imdbRating, NumberStyles.Any, _usCulture, out var imdbRating)
+                && float.TryParse(result.imdbRating, NumberStyles.Any, _usCulture, out imdbRating)
                 && imdbRating >= 0)
             {
                 item.CommunityRating = imdbRating;
@@ -104,10 +111,10 @@ namespace MediaBrowser.Providers.Omdb
         {
             if (string.IsNullOrWhiteSpace(seriesImdbId))
             {
-                throw new ArgumentNullException(nameof(seriesImdbId));
+                throw new ArgumentNullException("seriesImdbId");
             }
 
-            var item = itemResult.Item;
+            T item = itemResult.Item;
 
             var seasonResult = await GetSeasonRootObject(seriesImdbId, seasonNumber, cancellationToken).ConfigureAwait(false);
 
@@ -159,8 +166,10 @@ namespace MediaBrowser.Providers.Omdb
                 }
             }
 
+            int year;
+
             if (!string.IsNullOrEmpty(result.Year) && result.Year.Length >= 4
-                && int.TryParse(result.Year.Substring(0, 4), NumberStyles.Number, _usCulture, out var year)
+                && int.TryParse(result.Year.Substring(0, 4), NumberStyles.Number, _usCulture, out year)
                 && year >= 0)
             {
                 item.ProductionYear = year;
@@ -173,15 +182,19 @@ namespace MediaBrowser.Providers.Omdb
                 item.CriticRating = tomatoScore;
             }
 
+            int voteCount;
+
             if (!string.IsNullOrEmpty(result.imdbVotes)
-                && int.TryParse(result.imdbVotes, NumberStyles.Number, _usCulture, out var voteCount)
+                && int.TryParse(result.imdbVotes, NumberStyles.Number, _usCulture, out voteCount)
                 && voteCount >= 0)
             {
                 //item.VoteCount = voteCount;
             }
 
+            float imdbRating;
+
             if (!string.IsNullOrEmpty(result.imdbRating)
-                && float.TryParse(result.imdbRating, NumberStyles.Any, _usCulture, out var imdbRating)
+                && float.TryParse(result.imdbRating, NumberStyles.Any, _usCulture, out imdbRating)
                 && imdbRating >= 0)
             {
                 item.CommunityRating = imdbRating;
@@ -208,7 +221,7 @@ namespace MediaBrowser.Providers.Omdb
 
             string resultString;
 
-            using (var stream = _fileSystem.GetFileStream(path, FileOpenMode.Open, FileAccessMode.Read, FileShareMode.Read))
+            using (Stream stream = _fileSystem.GetFileStream(path, FileOpenMode.Open, FileAccessMode.Read, FileShareMode.Read))
             {
                 using (var reader = new StreamReader(stream, new UTF8Encoding(false)))
                 {
@@ -227,7 +240,7 @@ namespace MediaBrowser.Providers.Omdb
 
             string resultString;
 
-            using (var stream = _fileSystem.GetFileStream(path, FileOpenMode.Open, FileAccessMode.Read, FileShareMode.Read))
+            using (Stream stream = _fileSystem.GetFileStream(path, FileOpenMode.Open, FileAccessMode.Read, FileShareMode.Read))
             {
                 using (var reader = new StreamReader(stream, new UTF8Encoding(false)))
                 {
@@ -242,7 +255,8 @@ namespace MediaBrowser.Providers.Omdb
 
         internal static bool IsValidSeries(Dictionary<string, string> seriesProviderIds)
         {
-            if (seriesProviderIds.TryGetValue(MetadataProviders.Imdb.ToString(), out string id) && !string.IsNullOrEmpty(id))
+            string id;
+            if (seriesProviderIds.TryGetValue(MetadataProviders.Imdb.ToString(), out id) && !string.IsNullOrEmpty(id))
             {
                 // This check should ideally never be necessary but we're seeing some cases of this and haven't tracked them down yet.
                 if (!string.IsNullOrWhiteSpace(id))
@@ -269,7 +283,7 @@ namespace MediaBrowser.Providers.Omdb
         {
             if (string.IsNullOrWhiteSpace(imdbId))
             {
-                throw new ArgumentNullException(nameof(imdbId));
+                throw new ArgumentNullException("imdbId");
             }
 
             var imdbParam = imdbId.StartsWith("tt", StringComparison.OrdinalIgnoreCase) ? imdbId : "tt" + imdbId;
@@ -294,7 +308,7 @@ namespace MediaBrowser.Providers.Omdb
                 using (var stream = response.Content)
                 {
                     var rootObject = await _jsonSerializer.DeserializeFromStreamAsync<RootObject>(stream).ConfigureAwait(false);
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
                     _jsonSerializer.SerializeToFile(rootObject, path);
                 }
             }
@@ -306,7 +320,7 @@ namespace MediaBrowser.Providers.Omdb
         {
             if (string.IsNullOrWhiteSpace(seriesImdbId))
             {
-                throw new ArgumentException("The series IMDb ID was null or whitespace.", nameof(seriesImdbId));
+                throw new ArgumentNullException("imdbId");
             }
 
             var imdbParam = seriesImdbId.StartsWith("tt", StringComparison.OrdinalIgnoreCase) ? seriesImdbId : "tt" + seriesImdbId;
@@ -331,7 +345,7 @@ namespace MediaBrowser.Providers.Omdb
                 using (var stream = response.Content)
                 {
                     var rootObject = await _jsonSerializer.DeserializeFromStreamAsync<SeasonRootObject>(stream).ConfigureAwait(false);
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
                     _jsonSerializer.SerializeToFile(rootObject, path);
                 }
             }
@@ -354,7 +368,7 @@ namespace MediaBrowser.Providers.Omdb
         {
             if (string.IsNullOrEmpty(imdbId))
             {
-                throw new ArgumentNullException(nameof(imdbId));
+                throw new ArgumentNullException("imdbId");
             }
 
             var dataPath = Path.Combine(_configurationManager.ApplicationPaths.CachePath, "omdb");
@@ -368,7 +382,7 @@ namespace MediaBrowser.Providers.Omdb
         {
             if (string.IsNullOrEmpty(imdbId))
             {
-                throw new ArgumentNullException(nameof(imdbId));
+                throw new ArgumentNullException("imdbId");
             }
 
             var dataPath = Path.Combine(_configurationManager.ApplicationPaths.CachePath, "omdb");
@@ -381,7 +395,7 @@ namespace MediaBrowser.Providers.Omdb
         private void ParseAdditionalMetadata<T>(MetadataResult<T> itemResult, RootObject result)
             where T : BaseItem
         {
-            var item = itemResult.Item;
+            T item = itemResult.Item;
 
             var isConfiguredForEnglish = IsConfiguredForEnglish(item) || _configurationManager.Configuration.EnableNewOmdbSupport;
 
@@ -502,7 +516,8 @@ namespace MediaBrowser.Providers.Omdb
                     if (rating != null && rating.Value != null)
                     {
                         var value = rating.Value.TrimEnd('%');
-                        if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var score))
+                        float score;
+                        if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out score))
                         {
                             return score;
                         }

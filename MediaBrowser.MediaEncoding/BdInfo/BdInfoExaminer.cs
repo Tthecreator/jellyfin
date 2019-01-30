@@ -1,10 +1,11 @@
-﻿using System;
+﻿using BDInfo;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.MediaInfo;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using BDInfo;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.MediaInfo;
+using MediaBrowser.Model.Text;
 
 namespace MediaBrowser.MediaEncoding.BdInfo
 {
@@ -14,10 +15,12 @@ namespace MediaBrowser.MediaEncoding.BdInfo
     public class BdInfoExaminer : IBlurayExaminer
     {
         private readonly IFileSystem _fileSystem;
+        private readonly ITextEncoding _textEncoding;
 
-        public BdInfoExaminer(IFileSystem fileSystem)
+        public BdInfoExaminer(IFileSystem fileSystem, ITextEncoding textEncoding)
         {
             _fileSystem = fileSystem;
+            _textEncoding = textEncoding;
         }
 
         /// <summary>
@@ -29,10 +32,10 @@ namespace MediaBrowser.MediaEncoding.BdInfo
         {
             if (string.IsNullOrWhiteSpace(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
-            var bdrom = new BDROM(path, _fileSystem);
+            var bdrom = new BDROM(path, _fileSystem, _textEncoding);
 
             bdrom.Scan();
 
@@ -41,7 +44,7 @@ namespace MediaBrowser.MediaEncoding.BdInfo
 
             var outputStream = new BlurayDiscInfo
             {
-                MediaStreams = new MediaStream[] { }
+                MediaStreams = new MediaStream[] {}
             };
 
             if (playlist == null)
@@ -187,12 +190,12 @@ namespace MediaBrowser.MediaEncoding.BdInfo
         private void AddSubtitleStream(List<MediaStream> streams, TSGraphicsStream textStream)
         {
             streams.Add(new MediaStream
-            {
-                Language = textStream.LanguageCode,
-                Codec = textStream.CodecShortName,
-                Type = MediaStreamType.Subtitle,
-                Index = streams.Count
-            });
+                {
+                    Language = textStream.LanguageCode,
+                    Codec = textStream.CodecShortName,
+                    Type = MediaStreamType.Subtitle,
+                    Index = streams.Count
+                });
         }
     }
 }

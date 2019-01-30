@@ -1,5 +1,11 @@
+﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -7,12 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Extensions;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Xml;
 
 namespace MediaBrowser.Providers.Music
@@ -47,7 +48,7 @@ namespace MediaBrowser.Providers.Music
                 // They seem to throw bad request failures on any term with a slash
                 var nameToSearch = searchInfo.Name.Replace('/', ' ');
 
-                var url = string.Format("/ws/2/artist/?query=\"{0}\"&dismax=true", UrlEncode(nameToSearch));
+                var url = String.Format("/ws/2/artist/?query=\"{0}\"&dismax=true", UrlEncode(nameToSearch));
 
                 using (var response = await MusicBrainzAlbumProvider.Current.GetMusicBrainzResponse(url, true, cancellationToken).ConfigureAwait(false))
                 {
@@ -65,7 +66,7 @@ namespace MediaBrowser.Providers.Music
                 if (HasDiacritics(searchInfo.Name))
                 {
                     // Try again using the search with accent characters url
-                    url = string.Format("/ws/2/artist/?query=artistaccent:\"{0}\"", UrlEncode(nameToSearch));
+                    url = String.Format("/ws/2/artist/?query=artistaccent:\"{0}\"", UrlEncode(nameToSearch));
 
                     using (var response = await MusicBrainzAlbumProvider.Current.GetMusicBrainzResponse(url, true, cancellationToken).ConfigureAwait(false))
                     {
@@ -270,7 +271,7 @@ namespace MediaBrowser.Providers.Music
         /// <returns><c>true</c> if the specified text has diacritics; otherwise, <c>false</c>.</returns>
         private bool HasDiacritics(string text)
         {
-            return !string.Equals(text, text.RemoveDiacritics(), StringComparison.Ordinal);
+            return !String.Equals(text, text.RemoveDiacritics(), StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -283,7 +284,10 @@ namespace MediaBrowser.Providers.Music
             return WebUtility.UrlEncode(name);
         }
 
-        public string Name => "MusicBrainz";
+        public string Name
+        {
+            get { return "MusicBrainz"; }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {

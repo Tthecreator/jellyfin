@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
@@ -11,7 +6,13 @@ using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Providers.MediaInfo
 {
@@ -58,9 +59,9 @@ namespace MediaBrowser.Providers.MediaInfo
         {
             var path = GetAudioImagePath(item);
 
-            if (!File.Exists(path))
+            if (!_fileSystem.FileExists(path))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
                 var imageStream = imageStreams.FirstOrDefault(i => (i.Comment ?? string.Empty).IndexOf("front", StringComparison.OrdinalIgnoreCase) != -1) ??
                     imageStreams.FirstOrDefault(i => (i.Comment ?? string.Empty).IndexOf("cover", StringComparison.OrdinalIgnoreCase) != -1) ??
@@ -70,7 +71,7 @@ namespace MediaBrowser.Providers.MediaInfo
 
                 var tempFile = await _mediaEncoder.ExtractAudioImage(item.Path, imageStreamIndex, cancellationToken).ConfigureAwait(false);
 
-                File.Copy(tempFile, path, true);
+                _fileSystem.CopyFile(tempFile, path, true);
 
                 try
                 {
@@ -119,9 +120,18 @@ namespace MediaBrowser.Providers.MediaInfo
             return Path.Combine(AudioImagesPath, prefix, filename);
         }
 
-        public string AudioImagesPath => Path.Combine(_config.ApplicationPaths.CachePath, "extracted-audio-images");
+        public string AudioImagesPath
+        {
+            get
+            {
+                return Path.Combine(_config.ApplicationPaths.CachePath, "extracted-audio-images");
+            }
+        }
 
-        public string Name => "Image Extractor";
+        public string Name
+        {
+            get { return "Image Extractor"; }
+        }
 
         public bool Supports(BaseItem item)
         {

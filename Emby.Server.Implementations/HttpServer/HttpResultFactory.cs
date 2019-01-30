@@ -1,3 +1,7 @@
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller.Net;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -5,17 +9,12 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Runtime.Serialization;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Emby.Server.Implementations.Services;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Services;
-using Microsoft.Extensions.Logging;
 using IRequest = MediaBrowser.Model.Services.IRequest;
 using MimeTypes = MediaBrowser.Model.Net.MimeTypes;
 
@@ -97,7 +96,8 @@ namespace Emby.Server.Implementations.HttpServer
                 responseHeaders = new Dictionary<string, string>();
             }
 
-            if (addCachePrevention && !responseHeaders.TryGetValue("Expires", out string expires))
+            string expires;
+            if (addCachePrevention && !responseHeaders.TryGetValue("Expires", out expires))
             {
                 responseHeaders["Expires"] = "-1";
             }
@@ -115,8 +115,7 @@ namespace Emby.Server.Implementations.HttpServer
             string compressionType = null;
             bool isHeadRequest = false;
 
-            if (requestContext != null)
-            {
+            if (requestContext != null) {
                 compressionType = GetCompressionType(requestContext, content, contentType);
                 isHeadRequest = string.Equals(requestContext.Verb, "head", StringComparison.OrdinalIgnoreCase);
             }
@@ -143,7 +142,8 @@ namespace Emby.Server.Implementations.HttpServer
                 responseHeaders = new Dictionary<string, string>();
             }
 
-            if (addCachePrevention && !responseHeaders.TryGetValue("Expires", out string expires))
+            string expires;
+            if (addCachePrevention && !responseHeaders.TryGetValue("Expires", out expires))
             {
                 responseHeaders["Expires"] = "-1";
             }
@@ -187,7 +187,8 @@ namespace Emby.Server.Implementations.HttpServer
                 responseHeaders = new Dictionary<string, string>();
             }
 
-            if (addCachePrevention && !responseHeaders.TryGetValue("Expires", out string expires))
+            string expires;
+            if (addCachePrevention && !responseHeaders.TryGetValue("Expires", out expires))
             {
                 responseHeaders["Expires"] = "-1";
             }
@@ -206,7 +207,7 @@ namespace Emby.Server.Implementations.HttpServer
         {
             if (result == null)
             {
-                throw new ArgumentNullException(nameof(result));
+                throw new ArgumentNullException("result");
             }
 
             if (responseHeaders == null)
@@ -244,7 +245,7 @@ namespace Emby.Server.Implementations.HttpServer
             return GetCompressionType(request);
         }
 
-        private static string GetCompressionType(IRequest request)
+        private string GetCompressionType(IRequest request)
         {
             var acceptEncoding = request.Headers["Accept-Encoding"];
 
@@ -264,7 +265,7 @@ namespace Emby.Server.Implementations.HttpServer
         }
 
         /// <summary>
-        /// Returns the optimized result for the IRequestContext.
+        /// Returns the optimized result for the IRequestContext. 
         /// Does not use or store results in any cache.
         /// </summary>
         /// <param name="request"></param>
@@ -364,7 +365,7 @@ namespace Emby.Server.Implementations.HttpServer
             return _brotliCompressor.Compress(bytes);
         }
 
-        private static byte[] Deflate(byte[] bytes)
+        private byte[] Deflate(byte[] bytes)
         {
             // In .NET FX incompat-ville, you can't access compressed bytes without closing DeflateStream
             // Which means we must use MemoryStream since you have to use ToArray() on a closed Stream
@@ -378,7 +379,7 @@ namespace Emby.Server.Implementations.HttpServer
             }
         }
 
-        private static byte[] GZip(byte[] buffer)
+        private byte[] GZip(byte[] buffer)
         {
             using (var ms = new MemoryStream())
             using (var zipStream = new GZipStream(ms, CompressionMode.Compress))
@@ -397,7 +398,7 @@ namespace Emby.Server.Implementations.HttpServer
                        : contentType.Split(';')[0].ToLower().Trim();
         }
 
-        private static string SerializeToXmlString(object from)
+        private string SerializeToXmlString(object from)
         {
             using (var ms = new MemoryStream())
             {
@@ -411,10 +412,8 @@ namespace Emby.Server.Implementations.HttpServer
                     serializer.WriteObject(xw, from);
                     xw.Flush();
                     ms.Seek(0, SeekOrigin.Begin);
-                    using (var reader = new StreamReader(ms))
-                    {
-                        return reader.ReadToEnd();
-                    }
+                    var reader = new StreamReader(ms);
+                    return reader.ReadToEnd();
                 }
             }
         }
@@ -424,11 +423,13 @@ namespace Emby.Server.Implementations.HttpServer
         /// </summary>
         private object GetCachedResult(IRequest requestContext, IDictionary<string, string> responseHeaders, Guid cacheKey, string cacheKeyString, DateTime? lastDateModified, TimeSpan? cacheDuration, string contentType)
         {
-            bool noCache = (requestContext.Headers.Get("Cache-Control") ?? string.Empty).IndexOf("no-cache", StringComparison.OrdinalIgnoreCase) != -1;
+            responseHeaders["ETag"] = string.Format("\"{0}\"", cacheKeyString);
+
+            var noCache = (requestContext.Headers.Get("Cache-Control") ?? string.Empty).IndexOf("no-cache", StringComparison.OrdinalIgnoreCase) != -1;
 
             if (!noCache)
             {
-                if (IsNotModified(requestContext, cacheKey))
+                if (IsNotModified(requestContext, cacheKey, lastDateModified, cacheDuration))
                 {
                     AddAgeHeader(responseHeaders, lastDateModified);
                     AddExpiresHeader(responseHeaders, cacheKeyString, cacheDuration);
@@ -441,7 +442,7 @@ namespace Emby.Server.Implementations.HttpServer
                 }
             }
 
-            AddCachingHeaders(responseHeaders, cacheKeyString, cacheDuration);
+            AddCachingHeaders(responseHeaders, cacheKeyString, lastDateModified, cacheDuration);
 
             return null;
         }
@@ -452,7 +453,7 @@ namespace Emby.Server.Implementations.HttpServer
         {
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             return GetStaticFileResult(requestContext, new StaticFileResultOptions
@@ -462,14 +463,15 @@ namespace Emby.Server.Implementations.HttpServer
             });
         }
 
-        public Task<object> GetStaticFileResult(IRequest requestContext, StaticFileResultOptions options)
+        public Task<object> GetStaticFileResult(IRequest requestContext,
+            StaticFileResultOptions options)
         {
             var path = options.Path;
             var fileShare = options.FileShare;
 
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
             if (fileShare != FileShareMode.Read && fileShare != FileShareMode.ReadWrite)
@@ -531,11 +533,10 @@ namespace Emby.Server.Implementations.HttpServer
 
         public async Task<object> GetStaticResult(IRequest requestContext, StaticResultOptions options)
         {
+            var cacheKey = options.CacheKey;
             options.ResponseHeaders = options.ResponseHeaders ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
             var contentType = options.ContentType;
-            var etag = requestContext.Headers.Get("If-None-Match");
-            var cacheKey = etag != null ? new Guid(etag.Trim('\"')) : Guid.Empty;
+
             if (!cacheKey.Equals(Guid.Empty))
             {
                 var key = cacheKey.ToString("N");
@@ -554,6 +555,8 @@ namespace Emby.Server.Implementations.HttpServer
             var factoryFn = options.ContentFactory;
             var responseHeaders = options.ResponseHeaders;
 
+            //var requestedCompressionType = GetCompressionType(requestContext);
+
             var rangeHeader = requestContext.Headers.Get("Range");
 
             if (!isHeadRequest && !string.IsNullOrEmpty(options.Path))
@@ -566,21 +569,10 @@ namespace Emby.Server.Implementations.HttpServer
                 };
 
                 AddResponseHeaders(hasHeaders, options.ResponseHeaders);
-                // Generate an ETag based on identifying information - TODO read contents from filesystem instead?
-                var responseId = $"{hasHeaders.ContentType}{options.Path}{hasHeaders.TotalContentLength}";
-                var hashedId = MD5.Create().ComputeHash(Encoding.Default.GetBytes(responseId));
-                hasHeaders.Headers["ETag"] = new Guid(hashedId).ToString("N");
-
                 return hasHeaders;
             }
 
             var stream = await factoryFn().ConfigureAwait(false);
-            // Generate an etag based on stream content
-            var streamHash = MD5.Create().ComputeHash(stream);
-            var newEtag = new Guid(streamHash).ToString("N");
-
-            // reset position so the response can re-use it -- TODO is this ok?
-            stream.Position = 0;
 
             var totalContentLength = options.ContentLength;
             if (!totalContentLength.HasValue)
@@ -603,7 +595,6 @@ namespace Emby.Server.Implementations.HttpServer
                 };
 
                 AddResponseHeaders(hasHeaders, options.ResponseHeaders);
-                hasHeaders.Headers["ETag"] = newEtag;
                 return hasHeaders;
             }
             else
@@ -628,7 +619,6 @@ namespace Emby.Server.Implementations.HttpServer
                 };
 
                 AddResponseHeaders(hasHeaders, options.ResponseHeaders);
-                hasHeaders.Headers["ETag"] = newEtag;
                 return hasHeaders;
             }
         }
@@ -641,8 +631,16 @@ namespace Emby.Server.Implementations.HttpServer
         /// <summary>
         /// Adds the caching responseHeaders.
         /// </summary>
-        private void AddCachingHeaders(IDictionary<string, string> responseHeaders, string cacheKey, TimeSpan? cacheDuration)
+        private void AddCachingHeaders(IDictionary<string, string> responseHeaders, string cacheKey, DateTime? lastDateModified, TimeSpan? cacheDuration)
         {
+            // Don't specify both last modified and Etag, unless caching unconditionally. They are redundant
+            // https://developers.google.com/speed/docs/best-practices/caching#LeverageBrowserCaching
+            if (lastDateModified.HasValue && (string.IsNullOrEmpty(cacheKey) || cacheDuration.HasValue))
+            {
+                AddAgeHeader(responseHeaders, lastDateModified);
+                responseHeaders["Last-Modified"] = lastDateModified.Value.ToString("r");
+            }
+
             if (cacheDuration.HasValue)
             {
                 responseHeaders["Cache-Control"] = "public, max-age=" + Convert.ToInt32(cacheDuration.Value.TotalSeconds);
@@ -663,7 +661,7 @@ namespace Emby.Server.Implementations.HttpServer
         /// <summary>
         /// Adds the expires header.
         /// </summary>
-        private static void AddExpiresHeader(IDictionary<string, string> responseHeaders, string cacheKey, TimeSpan? cacheDuration)
+        private void AddExpiresHeader(IDictionary<string, string> responseHeaders, string cacheKey, TimeSpan? cacheDuration)
         {
             if (cacheDuration.HasValue)
             {
@@ -680,7 +678,7 @@ namespace Emby.Server.Implementations.HttpServer
         /// </summary>
         /// <param name="responseHeaders">The responseHeaders.</param>
         /// <param name="lastDateModified">The last date modified.</param>
-        private static void AddAgeHeader(IDictionary<string, string> responseHeaders, DateTime? lastDateModified)
+        private void AddAgeHeader(IDictionary<string, string> responseHeaders, DateTime? lastDateModified)
         {
             if (lastDateModified.HasValue)
             {
@@ -695,19 +693,42 @@ namespace Emby.Server.Implementations.HttpServer
         /// <param name="lastDateModified">The last date modified.</param>
         /// <param name="cacheDuration">Duration of the cache.</param>
         /// <returns><c>true</c> if [is not modified] [the specified cache key]; otherwise, <c>false</c>.</returns>
-        private bool IsNotModified(IRequest requestContext, Guid cacheKey)
+        private bool IsNotModified(IRequest requestContext, Guid cacheKey, DateTime? lastDateModified, TimeSpan? cacheDuration)
         {
+            //var isNotModified = true;
+
+            var ifModifiedSinceHeader = requestContext.Headers.Get("If-Modified-Since");
+
+            if (!string.IsNullOrEmpty(ifModifiedSinceHeader))
+            {
+                DateTime ifModifiedSince;
+
+                if (DateTime.TryParse(ifModifiedSinceHeader, out ifModifiedSince))
+                {
+                    if (IsNotModified(ifModifiedSince.ToUniversalTime(), cacheDuration, lastDateModified))
+                    {
+                        return true;
+                    }
+                }
+            }
+
             var ifNoneMatchHeader = requestContext.Headers.Get("If-None-Match");
 
-            bool hasCacheKey = !cacheKey.Equals(Guid.Empty);
+            var hasCacheKey = !cacheKey.Equals(Guid.Empty);
 
             // Validate If-None-Match
-            if (hasCacheKey && !string.IsNullOrEmpty(ifNoneMatchHeader))
+            if ((hasCacheKey || !string.IsNullOrEmpty(ifNoneMatchHeader)))
             {
-                if (Guid.TryParse(ifNoneMatchHeader, out var ifNoneMatch)
-                    && cacheKey.Equals(ifNoneMatch))
+                Guid ifNoneMatch;
+
+                ifNoneMatchHeader = (ifNoneMatchHeader ?? string.Empty).Trim('\"');
+
+                if (Guid.TryParse(ifNoneMatchHeader, out ifNoneMatch))
                 {
-                    return true;
+                    if (hasCacheKey && cacheKey.Equals(ifNoneMatch))
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -750,7 +771,7 @@ namespace Emby.Server.Implementations.HttpServer
         /// </summary>
         /// <param name="date">The date.</param>
         /// <returns>DateTime.</returns>
-        private static DateTime NormalizeDateForComparison(DateTime date)
+        private DateTime NormalizeDateForComparison(DateTime date)
         {
             return new DateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Kind);
         }
@@ -760,7 +781,7 @@ namespace Emby.Server.Implementations.HttpServer
         /// </summary>
         /// <param name="hasHeaders">The has options.</param>
         /// <param name="responseHeaders">The response headers.</param>
-        private static void AddResponseHeaders(IHasHeaders hasHeaders, IEnumerable<KeyValuePair<string, string>> responseHeaders)
+        private void AddResponseHeaders(IHasHeaders hasHeaders, IEnumerable<KeyValuePair<string, string>> responseHeaders)
         {
             foreach (var item in responseHeaders)
             {

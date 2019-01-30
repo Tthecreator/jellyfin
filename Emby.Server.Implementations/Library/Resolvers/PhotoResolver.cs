@@ -1,11 +1,11 @@
+﻿using MediaBrowser.Controller.Drawing;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Entities;
 using System;
 using System.IO;
 using System.Linq;
-using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
 
 namespace Emby.Server.Implementations.Library.Resolvers
@@ -43,7 +43,7 @@ namespace Emby.Server.Implementations.Library.Resolvers
                         var filename = Path.GetFileNameWithoutExtension(args.Path);
 
                         // Make sure the image doesn't belong to a video file
-                        var files = args.DirectoryService.GetFiles(Path.GetDirectoryName(args.Path));
+                        var files = args.DirectoryService.GetFiles(_fileSystem.GetDirectoryName(args.Path));
                         var libraryOptions = args.GetLibraryOptions();
 
                         foreach (var file in files)

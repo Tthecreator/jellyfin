@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Emby.Naming.Video;
 
 namespace Emby.Naming.AudioBook
 {
@@ -28,7 +29,7 @@ namespace Emby.Naming.AudioBook
         /// </summary>
         /// <value>The alternate versions.</value>
         public List<AudioBookFileInfo> AlternateVersions { get; set; }
-
+        
         public AudioBookInfo()
         {
             Files = new List<AudioBookFileInfo>();

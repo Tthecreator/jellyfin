@@ -1,9 +1,10 @@
+﻿using Emby.Naming.Common;
+using Emby.Naming.Video;
 using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Emby.Naming.Common;
 
 namespace Emby.Naming.Audio
 {
@@ -49,7 +50,8 @@ namespace Emby.Naming.Audio
 
                     tmp = tmp.Trim().Split(' ').FirstOrDefault() ?? string.Empty;
 
-                    if (int.TryParse(tmp, NumberStyles.Integer, CultureInfo.InvariantCulture, out var val))
+                    int val;
+                    if (int.TryParse(tmp, NumberStyles.Integer, CultureInfo.InvariantCulture, out val))
                     {
                         result.IsMultiPart = true;
                         break;

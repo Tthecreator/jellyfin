@@ -1,14 +1,15 @@
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.Entities.Movies;
 
 namespace MediaBrowser.LocalMetadata.Images
 {
@@ -21,9 +22,15 @@ namespace MediaBrowser.LocalMetadata.Images
             _fileSystem = fileSystem;
         }
 
-        public string Name => "Local Images";
+        public string Name
+        {
+            get { return "Local Images"; }
+        }
 
-        public int Order => 0;
+        public int Order
+        {
+            get { return 0; }
+        }
 
         public bool Supports(BaseItem item)
         {
@@ -56,7 +63,7 @@ namespace MediaBrowser.LocalMetadata.Images
             return false;
         }
 
-        private static IEnumerable<FileSystemMetadata> GetFiles(BaseItem item, bool includeDirectories, IDirectoryService directoryService)
+        private IEnumerable<FileSystemMetadata> GetFiles(BaseItem item, bool includeDirectories, IDirectoryService directoryService)
         {
             if (!item.IsFileProtocol)
             {

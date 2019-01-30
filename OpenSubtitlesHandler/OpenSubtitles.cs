@@ -1,4 +1,4 @@
-/* This file is part of OpenSubtitles Handler
+﻿/* This file is part of OpenSubtitles Handler
    A library that handle OpenSubtitles.org XML-RPC methods.
 
    Copyright © Ala Ibrahim Hadid 2013
@@ -17,10 +17,10 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Text;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenSubtitlesHandler.Console;
@@ -57,12 +57,12 @@ namespace OpenSubtitlesHandler
         public static IMethodResponse LogIn(string userName, string password, string language)
         {
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(userName));
             parms.Add(new XmlRpcValueBasic(password));
             parms.Add(new XmlRpcValueBasic(language));
             parms.Add(new XmlRpcValueBasic(XML_PRC_USERAGENT));
-            var call = new XmlRpcMethodCall("LogIn", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("LogIn", parms);
             OSHConsole.WriteLine("Sending LogIn request to the server ...", DebugCode.Good);
 
             //File.WriteAllText(".\\request.txt", Encoding.UTF8.GetString(XmlRpcGenerator.Generate(call)));
@@ -77,8 +77,8 @@ namespace OpenSubtitlesHandler
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
-                        var re = new MethodResponseLogIn("Success", "Log in successful.");
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        MethodResponseLogIn re = new MethodResponseLogIn("Success", "Log in successful.");
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
                         {
                             switch (MEMBER.Name)
@@ -103,12 +103,12 @@ namespace OpenSubtitlesHandler
         public static async Task<IMethodResponse> LogInAsync(string userName, string password, string language, CancellationToken cancellationToken)
         {
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(userName));
             parms.Add(new XmlRpcValueBasic(password));
             parms.Add(new XmlRpcValueBasic(language));
             parms.Add(new XmlRpcValueBasic(XML_PRC_USERAGENT));
-            var call = new XmlRpcMethodCall("LogIn", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("LogIn", parms);
             OSHConsole.WriteLine("Sending LogIn request to the server ...", DebugCode.Good);
 
             //File.WriteAllText(".\\request.txt", Encoding.UTF8.GetString(XmlRpcGenerator.Generate(call)));
@@ -126,23 +126,23 @@ namespace OpenSubtitlesHandler
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
-                        var re = new MethodResponseLogIn("Success", "Log in successful.");
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        MethodResponseLogIn re = new MethodResponseLogIn("Success", "Log in successful.");
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
                         {
                             switch (MEMBER.Name)
                             {
-                                case "token":
-                                    re.Token = TOKEN = MEMBER.Data.Data.ToString();
-                                    OSHConsole.WriteLine(MEMBER.Name + "= " + MEMBER.Data.Data.ToString());
+                                case "token": 
+                                    re.Token = TOKEN = MEMBER.Data.Data.ToString(); 
+                                    OSHConsole.WriteLine(MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); 
                                     break;
                                 case "seconds":
                                     re.Seconds = double.Parse(MEMBER.Data.Data.ToString(), CultureInfo.InvariantCulture);
-                                    OSHConsole.WriteLine(MEMBER.Name + "= " + MEMBER.Data.Data.ToString());
+                                    OSHConsole.WriteLine(MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); 
                                     break;
-                                case "status":
-                                    re.Status = MEMBER.Data.Data.ToString();
-                                    OSHConsole.WriteLine(MEMBER.Name + "= " + MEMBER.Data.Data.ToString());
+                                case "status": 
+                                    re.Status = MEMBER.Data.Data.ToString(); 
+                                    OSHConsole.WriteLine(MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); 
                                     break;
                             }
                         }
@@ -157,7 +157,7 @@ namespace OpenSubtitlesHandler
             }
             return new MethodResponseError("Fail", "Log in failed !");
         }
-
+        
         /// <summary>
         /// Log out from the server. Call this to terminate the session.
         /// </summary>
@@ -170,9 +170,9 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
-            var call = new XmlRpcMethodCall("LogOut", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("LogOut", parms);
 
             OSHConsole.WriteLine("Sending LogOut request to the server ...", DebugCode.Good);
             // Send the request to the server
@@ -185,10 +185,10 @@ namespace OpenSubtitlesHandler
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var strct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct strct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         OSHConsole.WriteLine("STATUS=" + ((XmlRpcValueBasic)strct.Members[0].Data).Data.ToString());
                         OSHConsole.WriteLine("SECONDS=" + ((XmlRpcValueBasic)strct.Members[1].Data).Data.ToString());
-                        var re = new MethodResponseLogIn("Success", "Log out successful.");
+                        MethodResponseLogIn re = new MethodResponseLogIn("Success", "Log out successful.");
                         re.Status = ((XmlRpcValueBasic)strct.Members[0].Data).Data.ToString();
                         re.Seconds = (double)((XmlRpcValueBasic)strct.Members[1].Data).Data;
                         return re;
@@ -203,7 +203,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "Log out failed !");
         }
         /// <summary>
-        /// keep-alive user's session, verify token/session validity
+        /// keep-alive user's session, verify token/session validity 
         /// </summary>
         /// <returns>Status of the call operation</returns>
         public static IMethodResponse NoOperation()
@@ -214,10 +214,10 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             parms.Add(new XmlRpcValueBasic(XML_PRC_USERAGENT, XmlRpcBasicValueType.String));
-            var call = new XmlRpcMethodCall("NoOperation", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("NoOperation", parms);
 
             OSHConsole.WriteLine("Sending NoOperation request to the server ...", DebugCode.Good);
             // Send the request to the server
@@ -230,8 +230,8 @@ namespace OpenSubtitlesHandler
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var R = new MethodResponseNoOperation();
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        MethodResponseNoOperation R = new MethodResponseNoOperation();
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
                         {
@@ -240,7 +240,7 @@ namespace OpenSubtitlesHandler
                                 case "status": R.Status = (string)MEMBER.Data.Data; OSHConsole.WriteLine(MEMBER.Name + "= " + MEMBER.Data.Data); break;
                                 case "seconds": R.Seconds = (double)MEMBER.Data.Data; OSHConsole.WriteLine(MEMBER.Name + "= " + MEMBER.Data.Data); break;
                                 case "download_limits":
-                                    var dlStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct dlStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     foreach (XmlRpcStructMember dlmember in dlStruct.Members)
                                     {
                                         OSHConsole.WriteLine(" >" + dlmember.Name + "= " + dlmember.Data.Data.ToString());
@@ -270,7 +270,7 @@ namespace OpenSubtitlesHandler
         }
         /*Search and download*/
         /// <summary>
-        /// Search for subtitle files matching your videos using either video file hashes or IMDb IDs.
+        /// Search for subtitle files matching your videos using either video file hashes or IMDb IDs. 
         /// </summary>
         /// <param name="parameters">List of search subtitle parameters which each one represents 'struct parameter' as descriped at http://trac.opensubtitles.org/projects/opensubtitles/wiki/XmlRpcSearchSubtitles </param>
         /// <returns>Status of the call operation. If the call success the response will be 'MethodResponseSubtitleSearch'</returns>
@@ -284,29 +284,28 @@ namespace OpenSubtitlesHandler
             if (parameters == null)
             {
                 OSHConsole.UpdateLine("No subtitle search parameter passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle search parameter passed");
+                return new MethodResponseError("Fail", "No subtitle search parameter passed"); ;
             }
             if (parameters.Length == 0)
             {
                 OSHConsole.UpdateLine("No subtitle search parameter passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle search parameter passed");
+                return new MethodResponseError("Fail", "No subtitle search parameter passed"); ;
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // Add token param
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             // Add subtitle search parameters. Each one will be like 'array' of structs.
-            var array = new XmlRpcValueArray();
+            XmlRpcValueArray array = new XmlRpcValueArray();
             foreach (SubtitleSearchParameters param in parameters)
             {
-                var strct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+                XmlRpcValueStruct strct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
                 // sublanguageid member
-                var member = new XmlRpcStructMember("sublanguageid",
+                XmlRpcStructMember member = new XmlRpcStructMember("sublanguageid",
                     new XmlRpcValueBasic(param.SubLangaugeID, XmlRpcBasicValueType.String));
                 strct.Members.Add(member);
                 // moviehash member
-                if (param.MovieHash.Length > 0 && param.MovieByteSize > 0)
-                {
+                if (param.MovieHash.Length > 0 && param.MovieByteSize > 0) {
                     member = new XmlRpcStructMember("moviehash",
                         new XmlRpcValueBasic(param.MovieHash, XmlRpcBasicValueType.String));
                     strct.Members.Add(member);
@@ -315,21 +314,19 @@ namespace OpenSubtitlesHandler
                         new XmlRpcValueBasic(param.MovieByteSize, XmlRpcBasicValueType.Int));
                     strct.Members.Add(member);
                 }
-                if (param.Query.Length > 0)
-                {
+                if (param.Query.Length > 0) {
                     member = new XmlRpcStructMember("query",
                         new XmlRpcValueBasic(param.Query, XmlRpcBasicValueType.String));
                     strct.Members.Add(member);
                 }
 
-                if (param.Episode.Length > 0 && param.Season.Length > 0)
-                {
-                    member = new XmlRpcStructMember("season",
-                        new XmlRpcValueBasic(param.Season, XmlRpcBasicValueType.String));
-                    strct.Members.Add(member);
-                    member = new XmlRpcStructMember("episode",
-                      new XmlRpcValueBasic(param.Episode, XmlRpcBasicValueType.String));
-                    strct.Members.Add(member);
+                 if (param.Episode.Length > 0 && param.Season.Length>0) {
+                     member = new XmlRpcStructMember("season",
+                         new XmlRpcValueBasic(param.Season, XmlRpcBasicValueType.String));
+                     strct.Members.Add(member);
+                     member = new XmlRpcStructMember("episode",
+                       new XmlRpcValueBasic(param.Episode, XmlRpcBasicValueType.String));
+                     strct.Members.Add(member);
                 }
 
                 // imdbid member
@@ -345,14 +342,14 @@ namespace OpenSubtitlesHandler
             // Add the array to the parameters
             parms.Add(array);
             // Call !
-            var call = new XmlRpcMethodCall("SearchSubtitles", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("SearchSubtitles", parms);
             OSHConsole.WriteLine("Sending SearchSubtitles request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
 
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
@@ -362,9 +359,9 @@ namespace OpenSubtitlesHandler
                         //* the first is status
                         //* the second is [array of structs, each one includes subtitle file].
                         //* the third is [double basic value] represent seconds token by server.
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseSubtitleSearch();
+                        MethodResponseSubtitleSearch R = new MethodResponseSubtitleSearch();
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
                         {
@@ -384,13 +381,13 @@ namespace OpenSubtitlesHandler
                                 {
                                     OSHConsole.WriteLine("Search results: ");
 
-                                    var rarray = (XmlRpcValueArray)MEMBER.Data;
+                                    XmlRpcValueArray rarray = (XmlRpcValueArray)MEMBER.Data;
                                     foreach (IXmlRpcValue subStruct in rarray.Values)
                                     {
                                         if (subStruct == null) continue;
                                         if (!(subStruct is XmlRpcValueStruct)) continue;
 
-                                        var result = new SubtitleSearchResult();
+                                        SubtitleSearchResult result = new SubtitleSearchResult();
                                         foreach (XmlRpcStructMember submember in ((XmlRpcValueStruct)subStruct).Members)
                                         {
                                             // To avoid errors of arranged info or missing ones, let's do it with switch..
@@ -464,24 +461,24 @@ namespace OpenSubtitlesHandler
             if (parameters == null)
             {
                 OSHConsole.UpdateLine("No subtitle search parameter passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle search parameter passed");
+                return new MethodResponseError("Fail", "No subtitle search parameter passed"); ;
             }
             if (parameters.Length == 0)
             {
                 OSHConsole.UpdateLine("No subtitle search parameter passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle search parameter passed");
+                return new MethodResponseError("Fail", "No subtitle search parameter passed"); ;
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // Add token param
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             // Add subtitle search parameters. Each one will be like 'array' of structs.
-            var array = new XmlRpcValueArray();
+            XmlRpcValueArray array = new XmlRpcValueArray();
             foreach (SubtitleSearchParameters param in parameters)
             {
-                var strct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+                XmlRpcValueStruct strct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
                 // sublanguageid member
-                var member = new XmlRpcStructMember("sublanguageid",
+                XmlRpcStructMember member = new XmlRpcStructMember("sublanguageid",
                     new XmlRpcValueBasic(param.SubLangaugeID, XmlRpcBasicValueType.String));
                 strct.Members.Add(member);
                 // moviehash member
@@ -525,14 +522,14 @@ namespace OpenSubtitlesHandler
             // Add the array to the parameters
             parms.Add(array);
             // Call !
-            var call = new XmlRpcMethodCall("SearchSubtitles", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("SearchSubtitles", parms);
             OSHConsole.WriteLine("Sending SearchSubtitles request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(await Utilities.SendRequestAsync(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT, cancellationToken).ConfigureAwait(false));
 
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
@@ -542,9 +539,9 @@ namespace OpenSubtitlesHandler
                         //* the first is status
                         //* the second is [array of structs, each one includes subtitle file].
                         //* the third is [double basic value] represent seconds token by server.
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseSubtitleSearch();
+                        MethodResponseSubtitleSearch R = new MethodResponseSubtitleSearch();
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
                         {
@@ -564,13 +561,13 @@ namespace OpenSubtitlesHandler
                                 {
                                     OSHConsole.WriteLine("Search results: ");
 
-                                    var rarray = (XmlRpcValueArray)MEMBER.Data;
+                                    XmlRpcValueArray rarray = (XmlRpcValueArray)MEMBER.Data;
                                     foreach (IXmlRpcValue subStruct in rarray.Values)
                                     {
                                         if (subStruct == null) continue;
                                         if (!(subStruct is XmlRpcValueStruct)) continue;
 
-                                        var result = new SubtitleSearchResult();
+                                        SubtitleSearchResult result = new SubtitleSearchResult();
                                         foreach (XmlRpcStructMember submember in ((XmlRpcValueStruct)subStruct).Members)
                                         {
                                             // To avoid errors of arranged info or missing ones, let's do it with switch..
@@ -633,7 +630,7 @@ namespace OpenSubtitlesHandler
             }
             return new MethodResponseError("Fail", "Search Subtitles call failed !");
         }
-
+        
         /// <summary>
         /// Download subtitle file(s)
         /// </summary>
@@ -649,19 +646,19 @@ namespace OpenSubtitlesHandler
             if (subIDS == null)
             {
                 OSHConsole.UpdateLine("No subtitle id passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle id passed");
+                return new MethodResponseError("Fail", "No subtitle id passed"); ;
             }
             if (subIDS.Length == 0)
             {
                 OSHConsole.UpdateLine("No subtitle id passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle id passed");
+                return new MethodResponseError("Fail", "No subtitle id passed"); ;
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // Add token param
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             // Add subtitle search parameters. Each one will be like 'array' of structs.
-            var array = new XmlRpcValueArray();
+            XmlRpcValueArray array = new XmlRpcValueArray();
             foreach (int id in subIDS)
             {
                 array.Values.Add(new XmlRpcValueBasic(id, XmlRpcBasicValueType.Int));
@@ -669,13 +666,13 @@ namespace OpenSubtitlesHandler
             // Add the array to the parameters
             parms.Add(array);
             // Call !
-            var call = new XmlRpcMethodCall("DownloadSubtitles", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("DownloadSubtitles", parms);
             OSHConsole.WriteLine("Sending DownloadSubtitles request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
@@ -685,9 +682,9 @@ namespace OpenSubtitlesHandler
                         //* the first is status
                         //* the second is [array of structs, each one includes subtitle file].
                         //* the third is [double basic value] represent seconds token by server.
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseSubtitleDownload();
+                        MethodResponseSubtitleDownload R = new MethodResponseSubtitleDownload();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -707,13 +704,13 @@ namespace OpenSubtitlesHandler
                                 if (MEMBER.Data is XmlRpcValueArray)
                                 {
                                     OSHConsole.WriteLine("Download results:");
-                                    var rarray = (XmlRpcValueArray)MEMBER.Data;
+                                    XmlRpcValueArray rarray = (XmlRpcValueArray)MEMBER.Data;
                                     foreach (IXmlRpcValue subStruct in rarray.Values)
                                     {
                                         if (subStruct == null) continue;
                                         if (!(subStruct is XmlRpcValueStruct)) continue;
 
-                                        var result = new SubtitleDownloadResult();
+                                        SubtitleDownloadResult result = new SubtitleDownloadResult();
                                         foreach (XmlRpcStructMember submember in ((XmlRpcValueStruct)subStruct).Members)
                                         {
                                             // To avoid errors of arranged info or missing ones, let's do it with switch..
@@ -756,19 +753,19 @@ namespace OpenSubtitlesHandler
             if (subIDS == null)
             {
                 OSHConsole.UpdateLine("No subtitle id passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle id passed");
+                return new MethodResponseError("Fail", "No subtitle id passed"); ;
             }
             if (subIDS.Length == 0)
             {
                 OSHConsole.UpdateLine("No subtitle id passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle id passed");
+                return new MethodResponseError("Fail", "No subtitle id passed"); ;
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // Add token param
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             // Add subtitle search parameters. Each one will be like 'array' of structs.
-            var array = new XmlRpcValueArray();
+            XmlRpcValueArray array = new XmlRpcValueArray();
             foreach (int id in subIDS)
             {
                 array.Values.Add(new XmlRpcValueBasic(id, XmlRpcBasicValueType.Int));
@@ -776,7 +773,7 @@ namespace OpenSubtitlesHandler
             // Add the array to the parameters
             parms.Add(array);
             // Call !
-            var call = new XmlRpcMethodCall("DownloadSubtitles", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("DownloadSubtitles", parms);
             OSHConsole.WriteLine("Sending DownloadSubtitles request to the server ...", DebugCode.Good);
             // Send the request to the server
 
@@ -785,7 +782,7 @@ namespace OpenSubtitlesHandler
             string response = Utilities.GetStreamString(httpResponse);
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
@@ -795,9 +792,9 @@ namespace OpenSubtitlesHandler
                         //* the first is status
                         //* the second is [array of structs, each one includes subtitle file].
                         //* the third is [double basic value] represent seconds token by server.
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseSubtitleDownload();
+                        MethodResponseSubtitleDownload R = new MethodResponseSubtitleDownload();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -817,13 +814,13 @@ namespace OpenSubtitlesHandler
                                 if (MEMBER.Data is XmlRpcValueArray)
                                 {
                                     OSHConsole.WriteLine("Download results:");
-                                    var rarray = (XmlRpcValueArray)MEMBER.Data;
+                                    XmlRpcValueArray rarray = (XmlRpcValueArray)MEMBER.Data;
                                     foreach (IXmlRpcValue subStruct in rarray.Values)
                                     {
                                         if (subStruct == null) continue;
                                         if (!(subStruct is XmlRpcValueStruct)) continue;
 
-                                        var result = new SubtitleDownloadResult();
+                                        SubtitleDownloadResult result = new SubtitleDownloadResult();
                                         foreach (XmlRpcStructMember submember in ((XmlRpcValueStruct)subStruct).Members)
                                         {
                                             // To avoid errors of arranged info or missing ones, let's do it with switch..
@@ -855,7 +852,7 @@ namespace OpenSubtitlesHandler
             }
             return new MethodResponseError("Fail", "DownloadSubtitles call failed !");
         }
-
+        
         /// <summary>
         /// Returns comments for subtitles
         /// </summary>
@@ -871,37 +868,37 @@ namespace OpenSubtitlesHandler
             if (subIDS == null)
             {
                 OSHConsole.UpdateLine("No subtitle id passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle id passed");
+                return new MethodResponseError("Fail", "No subtitle id passed"); ;
             }
             if (subIDS.Length == 0)
             {
                 OSHConsole.UpdateLine("No subtitle id passed !!", DebugCode.Error);
-                return new MethodResponseError("Fail", "No subtitle id passed");
+                return new MethodResponseError("Fail", "No subtitle id passed"); ;
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // Add token param
             parms.Add(new XmlRpcValueBasic(TOKEN));
             // Add subtitle search parameters. Each one will be like 'array' of structs.
-            var array = new XmlRpcValueArray(subIDS);
+            XmlRpcValueArray array = new XmlRpcValueArray(subIDS);
             // Add the array to the parameters
             parms.Add(array);
             // Call !
-            var call = new XmlRpcMethodCall("GetComments", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("GetComments", parms);
             OSHConsole.WriteLine("Sending GetComments request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseGetComments();
+                        MethodResponseGetComments R = new MethodResponseGetComments();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -921,13 +918,13 @@ namespace OpenSubtitlesHandler
                                 if (MEMBER.Data is XmlRpcValueArray)
                                 {
                                     OSHConsole.WriteLine("Comments results:");
-                                    var rarray = (XmlRpcValueArray)MEMBER.Data;
+                                    XmlRpcValueArray rarray = (XmlRpcValueArray)MEMBER.Data;
                                     foreach (IXmlRpcValue commentStruct in rarray.Values)
                                     {
                                         if (commentStruct == null) continue;
                                         if (!(commentStruct is XmlRpcValueStruct)) continue;
 
-                                        var result = new GetCommentsResult();
+                                        GetCommentsResult result = new GetCommentsResult();
                                         foreach (XmlRpcStructMember commentmember in ((XmlRpcValueStruct)commentStruct).Members)
                                         {
                                             // To avoid errors of arranged info or missing ones, let's do it with switch..
@@ -977,37 +974,37 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             // Array of sub langs
-            var a = new XmlRpcValueArray(languageIDS);
+            XmlRpcValueArray a = new XmlRpcValueArray(languageIDS);
             parms.Add(a);
             // Array of video parameters
             a = new XmlRpcValueArray();
             foreach (SearchToMailMovieParameter p in movies)
             {
-                var str = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+                XmlRpcValueStruct str = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
                 str.Members.Add(new XmlRpcStructMember("moviehash", new XmlRpcValueBasic(p.moviehash)));
                 str.Members.Add(new XmlRpcStructMember("moviesize", new XmlRpcValueBasic(p.moviesize)));
                 a.Values.Add(str);
             }
             parms.Add(a);
-            var call = new XmlRpcMethodCall("SearchToMail", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("SearchToMail", parms);
 
             OSHConsole.WriteLine("Sending SearchToMail request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseSearchToMail();
+                        MethodResponseSearchToMail R = new MethodResponseSearchToMail();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1032,7 +1029,7 @@ namespace OpenSubtitlesHandler
         }
         /*Movies*/
         /// <summary>
-        /// Search for a movie (using movie title)
+        /// Search for a movie (using movie title) 
         /// </summary>
         /// <param name="query">Movie title user is searching for, this is cleaned-up a bit (remove dvdrip, etc.) before searching </param>
         /// <returns>Status of the call operation. If the call success the response will be 'MethodResponseSubtitleSearch'</returns>
@@ -1044,27 +1041,27 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // Add token param
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             // Add query param
             parms.Add(new XmlRpcValueBasic(query, XmlRpcBasicValueType.String));
             // Call !
-            var call = new XmlRpcMethodCall("SearchMoviesOnIMDB", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("SearchMoviesOnIMDB", parms);
             OSHConsole.WriteLine("Sending SearchMoviesOnIMDB request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseMovieSearch();
+                        MethodResponseMovieSearch R = new MethodResponseMovieSearch();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1084,13 +1081,13 @@ namespace OpenSubtitlesHandler
                                 if (MEMBER.Data is XmlRpcValueArray)
                                 {
                                     OSHConsole.WriteLine("Search results:");
-                                    var rarray = (XmlRpcValueArray)MEMBER.Data;
+                                    XmlRpcValueArray rarray = (XmlRpcValueArray)MEMBER.Data;
                                     foreach (IXmlRpcValue subStruct in rarray.Values)
                                     {
                                         if (subStruct == null) continue;
                                         if (!(subStruct is XmlRpcValueStruct)) continue;
 
-                                        var result = new MovieSearchResult();
+                                        MovieSearchResult result = new MovieSearchResult();
                                         foreach (XmlRpcStructMember submember in ((XmlRpcValueStruct)subStruct).Members)
                                         {
                                             // To avoid errors of arranged info or missing ones, let's do it with switch..
@@ -1123,7 +1120,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "SearchMoviesOnIMDB call failed !");
         }
         /// <summary>
-        /// Get movie details for given IMDb ID
+        /// Get movie details for given IMDb ID 
         /// </summary>
         /// <param name="imdbid">http://www.imdb.com/</param>
         /// <returns>Status of the call operation. If the call success the response will be 'MethodResponseMovieDetails'</returns>
@@ -1135,27 +1132,27 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // Add token param
             parms.Add(new XmlRpcValueBasic(TOKEN));
             // Add query param
             parms.Add(new XmlRpcValueBasic(imdbid));
             // Call !
-            var call = new XmlRpcMethodCall("GetIMDBMovieDetails", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("GetIMDBMovieDetails", parms);
             OSHConsole.WriteLine("Sending GetIMDBMovieDetails request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseMovieDetails();
+                        MethodResponseMovieDetails R = new MethodResponseMovieDetails();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1176,7 +1173,7 @@ namespace OpenSubtitlesHandler
                                 if (MEMBER.Data is XmlRpcValueStruct)
                                 {
                                     OSHConsole.WriteLine("Details result:");
-                                    var detailsStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct detailsStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     foreach (XmlRpcStructMember dmem in detailsStruct.Members)
                                     {
                                         switch (dmem.Name)
@@ -1193,7 +1190,7 @@ namespace OpenSubtitlesHandler
                                             case "cast":
                                                 // this is another struct with cast members...
                                                 OSHConsole.WriteLine(">" + dmem.Name + "= ");
-                                                var castStruct = (XmlRpcValueStruct)dmem.Data;
+                                                XmlRpcValueStruct castStruct = (XmlRpcValueStruct)dmem.Data;
                                                 foreach (XmlRpcStructMember castMemeber in castStruct.Members)
                                                 {
                                                     R.Cast.Add(castMemeber.Data.Data.ToString());
@@ -1203,7 +1200,7 @@ namespace OpenSubtitlesHandler
                                             case "directors":
                                                 OSHConsole.WriteLine(">" + dmem.Name + "= ");
                                                 // this is another struct with directors members...
-                                                var directorsStruct = (XmlRpcValueStruct)dmem.Data;
+                                                XmlRpcValueStruct directorsStruct = (XmlRpcValueStruct)dmem.Data;
                                                 foreach (XmlRpcStructMember directorsMember in directorsStruct.Members)
                                                 {
                                                     R.Directors.Add(directorsMember.Data.Data.ToString());
@@ -1213,7 +1210,7 @@ namespace OpenSubtitlesHandler
                                             case "writers":
                                                 OSHConsole.WriteLine(">" + dmem.Name + "= ");
                                                 // this is another struct with writers members...
-                                                var writersStruct = (XmlRpcValueStruct)dmem.Data;
+                                                XmlRpcValueStruct writersStruct = (XmlRpcValueStruct)dmem.Data;
                                                 foreach (XmlRpcStructMember writersMember in writersStruct.Members)
                                                 {
                                                     R.Writers.Add(writersMember.Data.Data.ToString());
@@ -1222,7 +1219,7 @@ namespace OpenSubtitlesHandler
                                                 break;
                                             case "awards":
                                                 // this is an array of genres...
-                                                var awardsArray = (XmlRpcValueArray)dmem.Data;
+                                                XmlRpcValueArray awardsArray = (XmlRpcValueArray)dmem.Data;
                                                 foreach (XmlRpcValueBasic award in awardsArray.Values)
                                                 {
                                                     R.Awards.Add(award.Data.ToString());
@@ -1232,7 +1229,7 @@ namespace OpenSubtitlesHandler
                                             case "genres":
                                                 OSHConsole.WriteLine(">" + dmem.Name + "= ");
                                                 // this is an array of genres...
-                                                var genresArray = (XmlRpcValueArray)dmem.Data;
+                                                XmlRpcValueArray genresArray = (XmlRpcValueArray)dmem.Data;
                                                 foreach (XmlRpcValueBasic genre in genresArray.Values)
                                                 {
                                                     R.Genres.Add(genre.Data.ToString());
@@ -1242,7 +1239,7 @@ namespace OpenSubtitlesHandler
                                             case "country":
                                                 OSHConsole.WriteLine(">" + dmem.Name + "= ");
                                                 // this is an array of country...
-                                                var countryArray = (XmlRpcValueArray)dmem.Data;
+                                                XmlRpcValueArray countryArray = (XmlRpcValueArray)dmem.Data;
                                                 foreach (XmlRpcValueBasic country in countryArray.Values)
                                                 {
                                                     R.Country.Add(country.Data.ToString());
@@ -1252,7 +1249,7 @@ namespace OpenSubtitlesHandler
                                             case "language":
                                                 OSHConsole.WriteLine(">" + dmem.Name + "= ");
                                                 // this is an array of language...
-                                                var languageArray = (XmlRpcValueArray)dmem.Data;
+                                                XmlRpcValueArray languageArray = (XmlRpcValueArray)dmem.Data;
                                                 foreach (XmlRpcValueBasic language in languageArray.Values)
                                                 {
                                                     R.Language.Add(language.Data.ToString());
@@ -1262,7 +1259,7 @@ namespace OpenSubtitlesHandler
                                             case "certification":
                                                 OSHConsole.WriteLine(">" + dmem.Name + "= ");
                                                 // this is an array of certification...
-                                                var certificationArray = (XmlRpcValueArray)dmem.Data;
+                                                XmlRpcValueArray certificationArray = (XmlRpcValueArray)dmem.Data;
                                                 foreach (XmlRpcValueBasic certification in certificationArray.Values)
                                                 {
                                                     R.Certification.Add(certification.Data.ToString());
@@ -1291,7 +1288,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "GetIMDBMovieDetails call failed !");
         }
         /// <summary>
-        /// Allows registered users to insert new movies (not stored in IMDb) to the database.
+        /// Allows registered users to insert new movies (not stored in IMDb) to the database. 
         /// </summary>
         /// <param name="movieName">Movie title </param>
         /// <param name="movieyear">Release year </param>
@@ -1304,30 +1301,30 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // Add token param
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             // Add movieinfo struct
-            var movieinfo = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+            XmlRpcValueStruct movieinfo = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
             movieinfo.Members.Add(new XmlRpcStructMember("moviename", new XmlRpcValueBasic(movieName)));
             movieinfo.Members.Add(new XmlRpcStructMember("movieyear", new XmlRpcValueBasic(movieyear)));
             parms.Add(movieinfo);
             // Call !
-            var call = new XmlRpcMethodCall("InsertMovie", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("InsertMovie", parms);
             OSHConsole.WriteLine("Sending InsertMovie request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseInsertMovie();
+                        MethodResponseInsertMovie R = new MethodResponseInsertMovie();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1373,11 +1370,11 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             foreach (InsertMovieHashParameters p in parameters)
             {
-                var pstruct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+                XmlRpcValueStruct pstruct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
                 pstruct.Members.Add(new XmlRpcStructMember("moviehash", new XmlRpcValueBasic(p.moviehash)));
                 pstruct.Members.Add(new XmlRpcStructMember("moviebytesize", new XmlRpcValueBasic(p.moviebytesize)));
                 pstruct.Members.Add(new XmlRpcStructMember("imdbid", new XmlRpcValueBasic(p.imdbid)));
@@ -1386,22 +1383,22 @@ namespace OpenSubtitlesHandler
                 pstruct.Members.Add(new XmlRpcStructMember("moviefilename", new XmlRpcValueBasic(p.moviefilename)));
                 parms.Add(pstruct);
             }
-            var call = new XmlRpcMethodCall("InsertMovieHash", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("InsertMovieHash", parms);
 
             OSHConsole.WriteLine("Sending InsertMovieHash request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseInsertMovieHash();
+                        MethodResponseInsertMovieHash R = new MethodResponseInsertMovieHash();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1417,13 +1414,13 @@ namespace OpenSubtitlesHandler
                                     OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString());
                                     break;
                                 case "data":
-                                    var dataStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct dataStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     foreach (XmlRpcStructMember dataMember in dataStruct.Members)
                                     {
                                         switch (dataMember.Name)
                                         {
                                             case "accepted_moviehashes":
-                                                var mh = (XmlRpcValueArray)dataMember.Data;
+                                                XmlRpcValueArray mh = (XmlRpcValueArray)dataMember.Data;
                                                 foreach (IXmlRpcValue val in mh.Values)
                                                 {
                                                     if (val is XmlRpcValueBasic)
@@ -1433,7 +1430,7 @@ namespace OpenSubtitlesHandler
                                                 }
                                                 break;
                                             case "new_imdbs":
-                                                var mi = (XmlRpcValueArray)dataMember.Data;
+                                                XmlRpcValueArray mi = (XmlRpcValueArray)dataMember.Data;
                                                 foreach (IXmlRpcValue val in mi.Values)
                                                 {
                                                     if (val is XmlRpcValueBasic)
@@ -1461,7 +1458,7 @@ namespace OpenSubtitlesHandler
         }
         /*Reporting and rating*/
         /// <summary>
-        /// Get basic server information and statistics
+        /// Get basic server information and statistics 
         /// </summary>
         /// <returns>Status of the call operation. If the call success the response will be 'MethodResponseServerInfo'</returns>
         public static IMethodResponse ServerInfo()
@@ -1472,25 +1469,25 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             parms.Add(new XmlRpcValueBasic(XML_PRC_USERAGENT, XmlRpcBasicValueType.String));
-            var call = new XmlRpcMethodCall("ServerInfo", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("ServerInfo", parms);
 
             OSHConsole.WriteLine("Sending ServerInfo request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseServerInfo();
+                        MethodResponseServerInfo R = new MethodResponseServerInfo();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1568,7 +1565,7 @@ namespace OpenSubtitlesHandler
                                 case "last_update_strings":
                                     //R.total_subtitles_languages = (string)MEMBER.Data.Data;
                                     OSHConsole.WriteLine(">" + MEMBER.Name + ":");
-                                    var luStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct luStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     foreach (XmlRpcStructMember luMemeber in luStruct.Members)
                                     {
                                         R.last_update_strings.Add(luMemeber.Name + " [" + luMemeber.Data.Data.ToString() + "]");
@@ -1602,25 +1599,25 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             parms.Add(new XmlRpcValueBasic(IDSubMovieFile, XmlRpcBasicValueType.String));
-            var call = new XmlRpcMethodCall("ReportWrongMovieHash", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("ReportWrongMovieHash", parms);
 
             OSHConsole.WriteLine("Sending ReportWrongMovieHash request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseReportWrongMovieHash();
+                        MethodResponseReportWrongMovieHash R = new MethodResponseReportWrongMovieHash();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1650,9 +1647,9 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "ReportWrongMovieHash call failed !");
         }
         /// <summary>
-        /// This method is needed to report bad movie hash for imdbid. This method should be used for correcting wrong entries,
-        /// when using CheckMovieHash2. Pass moviehash and moviebytesize for file, and imdbid as new, corrected one IMDBID
-        /// (id number without trailing zeroes). After some reports, moviehash will be linked to new imdbid.
+        /// This method is needed to report bad movie hash for imdbid. This method should be used for correcting wrong entries, 
+        /// when using CheckMovieHash2. Pass moviehash and moviebytesize for file, and imdbid as new, corrected one IMDBID 
+        /// (id number without trailing zeroes). After some reports, moviehash will be linked to new imdbid. 
         /// </summary>
         /// <param name="moviehash">The movie hash</param>
         /// <param name="moviebytesize">The movie size in bytes</param>
@@ -1666,29 +1663,29 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
-            var s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+            XmlRpcValueStruct s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
             s.Members.Add(new XmlRpcStructMember("moviehash", new XmlRpcValueBasic(moviehash)));
             s.Members.Add(new XmlRpcStructMember("moviebytesize", new XmlRpcValueBasic(moviebytesize)));
             s.Members.Add(new XmlRpcStructMember("imdbid", new XmlRpcValueBasic(imdbid)));
             parms.Add(s);
-            var call = new XmlRpcMethodCall("ReportWrongImdbMovie", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("ReportWrongImdbMovie", parms);
 
             OSHConsole.WriteLine("Sending ReportWrongImdbMovie request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseAddComment();
+                        MethodResponseAddComment R = new MethodResponseAddComment();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1712,7 +1709,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "ReportWrongImdbMovie call failed !");
         }
         /// <summary>
-        /// Rate subtitles
+        /// Rate subtitles 
         /// </summary>
         /// <param name="idsubtitle">Id of subtitle (NOT subtitle file) user wants to rate </param>
         /// <param name="score">Subtitle rating, must be in interval 1 (worst) to 10 (best). </param>
@@ -1725,28 +1722,28 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
-            var s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+            XmlRpcValueStruct s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
             s.Members.Add(new XmlRpcStructMember("idsubtitle", new XmlRpcValueBasic(idsubtitle)));
             s.Members.Add(new XmlRpcStructMember("score", new XmlRpcValueBasic(score)));
             parms.Add(s);
-            var call = new XmlRpcMethodCall("SubtitlesVote", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("SubtitlesVote", parms);
 
             OSHConsole.WriteLine("Sending SubtitlesVote request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseSubtitlesVote();
+                        MethodResponseSubtitlesVote R = new MethodResponseSubtitlesVote();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1756,7 +1753,7 @@ namespace OpenSubtitlesHandler
                                 case "status": R.Status = (string)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "seconds": R.Seconds = (double)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "data":
-                                    var dataStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct dataStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     foreach (XmlRpcStructMember dataMemeber in dataStruct.Members)
                                     {
                                         OSHConsole.WriteLine("  >" + dataMemeber.Name + "= " + dataMemeber.Data.Data.ToString());
@@ -1783,7 +1780,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "SubtitlesVote call failed !");
         }
         /// <summary>
-        /// Add comment to a subtitle
+        /// Add comment to a subtitle 
         /// </summary>
         /// <param name="idsubtitle">Subtitle identifier (BEWARE! this is not the ID of subtitle file but of the whole subtitle (a subtitle can contain multiple subtitle files))</param>
         /// <param name="comment">User's comment</param>
@@ -1797,32 +1794,32 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
-            var s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+            XmlRpcValueStruct s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
             s.Members.Add(new XmlRpcStructMember("idsubtitle", new XmlRpcValueBasic(idsubtitle)));
             s.Members.Add(new XmlRpcStructMember("comment", new XmlRpcValueBasic(comment)));
             s.Members.Add(new XmlRpcStructMember("badsubtitle", new XmlRpcValueBasic(badsubtitle)));
             parms.Add(s);
-            var call = new XmlRpcMethodCall("AddComment", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("AddComment", parms);
 
             OSHConsole.WriteLine("Sending AddComment request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseAddComment();
+                        MethodResponseAddComment R = new MethodResponseAddComment();
 
                         // To make sure response is not currepted by server, do it in loop
-                        foreach (var MEMBER in mainStruct.Members)
+                        foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
                         {
                             switch (MEMBER.Name)
                             {
@@ -1857,29 +1854,29 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
-            var s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+            XmlRpcValueStruct s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
             s.Members.Add(new XmlRpcStructMember("sublanguageid", new XmlRpcValueBasic(sublanguageid)));
             s.Members.Add(new XmlRpcStructMember("idmovieimdb", new XmlRpcValueBasic(idmovieimdb)));
             s.Members.Add(new XmlRpcStructMember("comment", new XmlRpcValueBasic(comment)));
             parms.Add(s);
-            var call = new XmlRpcMethodCall("AddRequest", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("AddRequest", parms);
 
             OSHConsole.WriteLine("Sending AddRequest request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseAddRequest();
+                        MethodResponseAddRequest R = new MethodResponseAddRequest();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1889,7 +1886,7 @@ namespace OpenSubtitlesHandler
                                 case "status": R.Status = (string)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "seconds": R.Seconds = (double)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "data":
-                                    var dataStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct dataStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     foreach (XmlRpcStructMember dataMemeber in dataStruct.Members)
                                     {
                                         switch (dataMemeber.Name)
@@ -1926,25 +1923,25 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN));
             parms.Add(new XmlRpcValueBasic(language));
-            var call = new XmlRpcMethodCall("GetSubLanguages", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("GetSubLanguages", parms);
 
             OSHConsole.WriteLine("Sending GetSubLanguages request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseGetSubLanguages();
+                        MethodResponseGetSubLanguages R = new MethodResponseGetSubLanguages();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -1954,13 +1951,13 @@ namespace OpenSubtitlesHandler
                                 case "status": R.Status = (string)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "seconds": R.Seconds = (double)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "data":// array of structs
-                                    var array = (XmlRpcValueArray)MEMBER.Data;
+                                    XmlRpcValueArray array = (XmlRpcValueArray)MEMBER.Data;
                                     foreach (IXmlRpcValue value in array.Values)
                                     {
                                         if (value is XmlRpcValueStruct)
                                         {
-                                            var valueStruct = (XmlRpcValueStruct)value;
-                                            var lang = new SubtitleLanguage();
+                                            XmlRpcValueStruct valueStruct = (XmlRpcValueStruct)value;
+                                            SubtitleLanguage lang = new SubtitleLanguage();
                                             OSHConsole.WriteLine(">SubLanguage:");
                                             foreach (XmlRpcStructMember langMemeber in valueStruct.Members)
                                             {
@@ -1996,7 +1993,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "GetSubLanguages call failed !");
         }
         /// <summary>
-        /// Detect language for given strings
+        /// Detect language for given strings 
         /// </summary>
         /// <param name="texts">Array of strings you want language detected for</param>
         /// <param name="encodingUsed">The encoding that will be used to get buffer of given strings. (this is not OS official parameter)</param>
@@ -2009,10 +2006,10 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
             // We need to gzip texts then code them with base 24
-            var decodedTexts = new List<string>();
+            List<string> decodedTexts = new List<string>();
             foreach (string text in texts)
             {
                 // compress
@@ -2025,22 +2022,22 @@ namespace OpenSubtitlesHandler
                 decodedTexts.Add(Convert.ToBase64String(data));
             }
             parms.Add(new XmlRpcValueArray(decodedTexts.ToArray()));
-            var call = new XmlRpcMethodCall("DetectLanguage", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("DetectLanguage", parms);
 
             OSHConsole.WriteLine("Sending DetectLanguage request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseDetectLanguage();
+                        MethodResponseDetectLanguage R = new MethodResponseDetectLanguage();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -2053,10 +2050,10 @@ namespace OpenSubtitlesHandler
                                     if (MEMBER.Data is XmlRpcValueStruct)
                                     {
                                         OSHConsole.WriteLine(">Languages:");
-                                        var dataStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                        XmlRpcValueStruct dataStruct = (XmlRpcValueStruct)MEMBER.Data;
                                         foreach (XmlRpcStructMember dataMember in dataStruct.Members)
                                         {
-                                            var lang = new DetectLanguageResult();
+                                            DetectLanguageResult lang = new DetectLanguageResult();
                                             lang.InputSample = dataMember.Name;
                                             lang.LanguageID = dataMember.Data.Data.ToString();
                                             R.Results.Add(lang);
@@ -2095,25 +2092,25 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN));
             parms.Add(new XmlRpcValueBasic(program));
-            var call = new XmlRpcMethodCall("GetAvailableTranslations", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("GetAvailableTranslations", parms);
 
             OSHConsole.WriteLine("Sending GetAvailableTranslations request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseGetAvailableTranslations();
+                        MethodResponseGetAvailableTranslations R = new MethodResponseGetAvailableTranslations();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -2123,14 +2120,14 @@ namespace OpenSubtitlesHandler
                                 case "status": R.Status = (string)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "seconds": R.Seconds = (double)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "data":
-                                    var dataStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct dataStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     OSHConsole.WriteLine(">data:");
                                     foreach (XmlRpcStructMember dataMember in dataStruct.Members)
                                     {
                                         if (dataMember.Data is XmlRpcValueStruct)
                                         {
-                                            var resStruct = (XmlRpcValueStruct)dataMember.Data;
-                                            var res = new GetAvailableTranslationsResult();
+                                            XmlRpcValueStruct resStruct = (XmlRpcValueStruct)dataMember.Data;
+                                            GetAvailableTranslationsResult res = new GetAvailableTranslationsResult();
                                             res.LanguageID = dataMember.Name;
                                             OSHConsole.WriteLine("  >LanguageID: " + dataMember.Name);
                                             foreach (XmlRpcStructMember resMember in resStruct.Members)
@@ -2164,7 +2161,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "GetAvailableTranslations call failed !");
         }
         /// <summary>
-        /// Get a translation for given program and language
+        /// Get a translation for given program and language 
         /// </summary>
         /// <param name="iso639">language ​ISO639-1 2-letter code </param>
         /// <param name="format">available formats: [gnugettext compatible: mo, po] and [additional: txt, xml]</param>
@@ -2178,12 +2175,12 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN));
             parms.Add(new XmlRpcValueBasic(iso639));
             parms.Add(new XmlRpcValueBasic(format));
             parms.Add(new XmlRpcValueBasic(program));
-            var call = new XmlRpcMethodCall("GetTranslation", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("GetTranslation", parms);
 
             OSHConsole.WriteLine("Sending GetTranslation request to the server ...", DebugCode.Good);
             // Send the request to the server
@@ -2191,15 +2188,15 @@ namespace OpenSubtitlesHandler
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseGetTranslation();
+                        MethodResponseGetTranslation R = new MethodResponseGetTranslation();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -2224,7 +2221,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "GetTranslation call failed !");
         }
         /// <summary>
-        /// Check for the latest version of given application
+        /// Check for the latest version of given application 
         /// </summary>
         /// <param name="program">name of the program/client application you want to check. (Currently supported values: subdownloader, oscar)</param>
         /// <returns>Status of the call operation. If the call success the response will be 'MethodResponseAutoUpdate'</returns>
@@ -2236,26 +2233,26 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }*/
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             // parms.Add(new XmlRpcValueBasic(TOKEN));
             parms.Add(new XmlRpcValueBasic(program));
             // parms.Add(new XmlRpcValueBasic(XML_PRC_USERAGENT));
 
-            var call = new XmlRpcMethodCall("AutoUpdate", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("AutoUpdate", parms);
             OSHConsole.WriteLine("Sending AutoUpdate request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseAutoUpdate();
+                        MethodResponseAutoUpdate R = new MethodResponseAutoUpdate();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -2296,25 +2293,25 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN));
             parms.Add(new XmlRpcValueArray(hashes));
-            var call = new XmlRpcMethodCall("CheckMovieHash", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("CheckMovieHash", parms);
 
             OSHConsole.WriteLine("Sending CheckMovieHash request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseCheckMovieHash();
+                        MethodResponseCheckMovieHash R = new MethodResponseCheckMovieHash();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -2324,14 +2321,14 @@ namespace OpenSubtitlesHandler
                                 case "status": R.Status = (string)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "seconds": R.Seconds = (double)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "data":
-                                    var dataStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct dataStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     OSHConsole.WriteLine(">Data:");
                                     foreach (XmlRpcStructMember dataMember in dataStruct.Members)
                                     {
-                                        var res = new CheckMovieHashResult();
+                                        CheckMovieHashResult res = new CheckMovieHashResult();
                                         res.Name = dataMember.Name;
                                         OSHConsole.WriteLine("  >" + res.Name + ":");
-                                        var movieStruct = (XmlRpcValueStruct)dataMember.Data;
+                                        XmlRpcValueStruct movieStruct = (XmlRpcValueStruct)dataMember.Data;
                                         foreach (XmlRpcStructMember movieMember in movieStruct.Members)
                                         {
                                             switch (movieMember.Name)
@@ -2360,7 +2357,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "CheckMovieHash call failed !");
         }
         /// <summary>
-        /// Check if video file hashes are already stored in the database. This method returns matching !MovieImdbID, MovieName, MovieYear, SeriesSeason, SeriesEpisode,
+        /// Check if video file hashes are already stored in the database. This method returns matching !MovieImdbID, MovieName, MovieYear, SeriesSeason, SeriesEpisode, 
         /// MovieKind if available for each $moviehash, always sorted by SeenCount DESC.
         /// </summary>
         /// <param name="hashes">Array of video file hashes</param>
@@ -2373,25 +2370,25 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN));
             parms.Add(new XmlRpcValueArray(hashes));
-            var call = new XmlRpcMethodCall("CheckMovieHash2", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("CheckMovieHash2", parms);
 
             OSHConsole.WriteLine("Sending CheckMovieHash2 request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseCheckMovieHash2();
+                        MethodResponseCheckMovieHash2 R = new MethodResponseCheckMovieHash2();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -2401,18 +2398,18 @@ namespace OpenSubtitlesHandler
                                 case "status": R.Status = (string)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "seconds": R.Seconds = (double)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "data":
-                                    var dataStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct dataStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     OSHConsole.WriteLine(">Data:");
                                     foreach (XmlRpcStructMember dataMember in dataStruct.Members)
                                     {
-                                        var res = new CheckMovieHash2Result();
+                                        CheckMovieHash2Result res = new CheckMovieHash2Result();
                                         res.Name = dataMember.Name;
                                         OSHConsole.WriteLine("  >" + res.Name + ":");
 
-                                        var dataArray = (XmlRpcValueArray)dataMember.Data;
+                                        XmlRpcValueArray dataArray = (XmlRpcValueArray)dataMember.Data;
                                         foreach (XmlRpcValueStruct movieStruct in dataArray.Values)
                                         {
-                                            var d = new CheckMovieHash2Data();
+                                            CheckMovieHash2Data d = new CheckMovieHash2Data();
                                             foreach (XmlRpcStructMember movieMember in movieStruct.Members)
                                             {
                                                 switch (movieMember.Name)
@@ -2447,7 +2444,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "CheckMovieHash2 call failed !");
         }
         /// <summary>
-        /// Check if given subtitle files are already stored in the database
+        /// Check if given subtitle files are already stored in the database 
         /// </summary>
         /// <param name="hashes">Array of subtitle file hashes (MD5 hashes of subtitle file contents) </param>
         /// <returns>Status of the call operation. If the call success the response will be 'MethodResponseCheckSubHash'</returns>
@@ -2459,25 +2456,25 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN));
             parms.Add(new XmlRpcValueArray(hashes));
-            var call = new XmlRpcMethodCall("CheckSubHash", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("CheckSubHash", parms);
 
             OSHConsole.WriteLine("Sending CheckSubHash request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseCheckSubHash();
+                        MethodResponseCheckSubHash R = new MethodResponseCheckSubHash();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -2488,11 +2485,11 @@ namespace OpenSubtitlesHandler
                                 case "seconds": R.Seconds = (double)MEMBER.Data.Data; OSHConsole.WriteLine(">" + MEMBER.Name + "= " + MEMBER.Data.Data.ToString()); break;
                                 case "data":
                                     OSHConsole.WriteLine(">Data:");
-                                    var dataStruct = (XmlRpcValueStruct)MEMBER.Data;
+                                    XmlRpcValueStruct dataStruct = (XmlRpcValueStruct)MEMBER.Data;
                                     foreach (XmlRpcStructMember dataMember in dataStruct.Members)
                                     {
                                         OSHConsole.WriteLine("  >" + dataMember.Name + "= " + dataMember.Data.Data.ToString());
-                                        var r = new CheckSubHashResult();
+                                        CheckSubHashResult r = new CheckSubHashResult();
                                         r.Hash = dataMember.Name;
                                         r.SubID = dataMember.Data.Data.ToString();
                                         R.Results.Add(r);
@@ -2514,7 +2511,7 @@ namespace OpenSubtitlesHandler
         }
         /*Upload*/
         /// <summary>
-        /// Try to upload subtitles, perform pre-upload checking (i.e. check if subtitles already exist on server)
+        /// Try to upload subtitles, perform pre-upload checking (i.e. check if subtitles already exist on server) 
         /// </summary>
         /// <param name="subs">The subtitle parameters collection to try to upload</param>
         /// <returns>Status of the call operation. If the call success the response will be 'MethodResponseTryUploadSubtitles'</returns>
@@ -2526,14 +2523,14 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN, XmlRpcBasicValueType.String));
-            var s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+            XmlRpcValueStruct s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
             int i = 1;
-            foreach (var cd in subs)
+            foreach (TryUploadSubtitlesParameters cd in subs)
             {
-                var member = new XmlRpcStructMember("cd" + i, null);
-                var memberStruct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+                XmlRpcStructMember member = new XmlRpcStructMember("cd" + i, null);
+                XmlRpcValueStruct memberStruct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
                 memberStruct.Members.Add(new XmlRpcStructMember("subhash", new XmlRpcValueBasic(cd.subhash)));
                 memberStruct.Members.Add(new XmlRpcStructMember("subfilename", new XmlRpcValueBasic(cd.subfilename)));
                 memberStruct.Members.Add(new XmlRpcStructMember("moviehash", new XmlRpcValueBasic(cd.moviehash)));
@@ -2547,22 +2544,22 @@ namespace OpenSubtitlesHandler
                 i++;
             }
             parms.Add(s);
-            var call = new XmlRpcMethodCall("TryUploadSubtitles", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("TryUploadSubtitles", parms);
 
             OSHConsole.WriteLine("Sending TryUploadSubtitles request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseTryUploadSubtitles();
+                        MethodResponseTryUploadSubtitles R = new MethodResponseTryUploadSubtitles();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)
@@ -2577,13 +2574,13 @@ namespace OpenSubtitlesHandler
                                     {
                                         OSHConsole.WriteLine("Results: ");
 
-                                        var rarray = (XmlRpcValueArray)MEMBER.Data;
+                                        XmlRpcValueArray rarray = (XmlRpcValueArray)MEMBER.Data;
                                         foreach (IXmlRpcValue subStruct in rarray.Values)
                                         {
                                             if (subStruct == null) continue;
                                             if (!(subStruct is XmlRpcValueStruct)) continue;
 
-                                            var result = new SubtitleSearchResult();
+                                            SubtitleSearchResult result = new SubtitleSearchResult();
                                             foreach (XmlRpcStructMember submember in ((XmlRpcValueStruct)subStruct).Members)
                                             {
                                                 // To avoid errors of arranged info or missing ones, let's do it with switch..
@@ -2646,7 +2643,7 @@ namespace OpenSubtitlesHandler
             return new MethodResponseError("Fail", "TryUploadSubtitles call failed !");
         }
         /// <summary>
-        /// Upload given subtitles to OSDb server
+        /// Upload given subtitles to OSDb server 
         /// </summary>
         /// <param name="info">The pamaters of upload method</param>
         /// <returns>Status of the call operation. If the call success the response will be 'MethodResponseUploadSubtitles'</returns>
@@ -2658,16 +2655,16 @@ namespace OpenSubtitlesHandler
                 return new MethodResponseError("Fail", "Can't do this call, 'token' value not set. Please use Log In method first.");
             }
             // Method call ..
-            var parms = new List<IXmlRpcValue>();
+            List<IXmlRpcValue> parms = new List<IXmlRpcValue>();
             parms.Add(new XmlRpcValueBasic(TOKEN));
             // Main struct
-            var s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+            XmlRpcValueStruct s = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
 
             // Base info member as struct
-            var member = new XmlRpcStructMember("baseinfo", null);
-            var memberStruct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+            XmlRpcStructMember member = new XmlRpcStructMember("baseinfo", null);
+            XmlRpcValueStruct memberStruct = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
             memberStruct.Members.Add(new XmlRpcStructMember("idmovieimdb", new XmlRpcValueBasic(info.idmovieimdb)));
-            memberStruct.Members.Add(new XmlRpcStructMember("sublanguageid", new XmlRpcValueBasic(info.sublanguageid)));
+            memberStruct.Members.Add(new XmlRpcStructMember("sublanguageid", new XmlRpcValueBasic(info.sublanguageid))); 
             memberStruct.Members.Add(new XmlRpcStructMember("moviereleasename", new XmlRpcValueBasic(info.moviereleasename)));
             memberStruct.Members.Add(new XmlRpcStructMember("movieaka", new XmlRpcValueBasic(info.movieaka)));
             memberStruct.Members.Add(new XmlRpcStructMember("subauthorcomment", new XmlRpcValueBasic(info.subauthorcomment)));
@@ -2681,8 +2678,8 @@ namespace OpenSubtitlesHandler
             int i = 1;
             foreach (UploadSubtitleParameters cd in info.CDS)
             {
-                var member2 = new XmlRpcStructMember("cd" + i, null);
-                var memberStruct2 = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
+                XmlRpcStructMember member2 = new XmlRpcStructMember("cd" + i, null);
+                XmlRpcValueStruct memberStruct2 = new XmlRpcValueStruct(new List<XmlRpcStructMember>());
                 memberStruct2.Members.Add(new XmlRpcStructMember("subhash", new XmlRpcValueBasic(cd.subhash)));
                 memberStruct2.Members.Add(new XmlRpcStructMember("subfilename", new XmlRpcValueBasic(cd.subfilename)));
                 memberStruct2.Members.Add(new XmlRpcStructMember("moviehash", new XmlRpcValueBasic(cd.moviehash)));
@@ -2701,21 +2698,21 @@ namespace OpenSubtitlesHandler
             parms.Add(s);
             // add user agent
             //parms.Add(new XmlRpcValueBasic(XML_PRC_USERAGENT));
-            var call = new XmlRpcMethodCall("UploadSubtitles", parms);
+            XmlRpcMethodCall call = new XmlRpcMethodCall("UploadSubtitles", parms);
             OSHConsole.WriteLine("Sending UploadSubtitles request to the server ...", DebugCode.Good);
             // Send the request to the server
             string response = Utilities.GetStreamString(Utilities.SendRequest(XmlRpcGenerator.Generate(call), XML_PRC_USERAGENT));
             if (!response.Contains("ERROR:"))
             {
-                // No error occur, get and decode the response.
+                // No error occur, get and decode the response. 
                 XmlRpcMethodCall[] calls = XmlRpcGenerator.DecodeMethodResponse(response);
                 if (calls.Length > 0)
                 {
                     if (calls[0].Parameters.Count > 0)
                     {
-                        var mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
+                        XmlRpcValueStruct mainStruct = (XmlRpcValueStruct)calls[0].Parameters[0];
                         // Create the response, we'll need it later
-                        var R = new MethodResponseUploadSubtitles();
+                        MethodResponseUploadSubtitles R = new MethodResponseUploadSubtitles();
 
                         // To make sure response is not currepted by server, do it in loop
                         foreach (XmlRpcStructMember MEMBER in mainStruct.Members)

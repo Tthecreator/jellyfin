@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.Providers;
 

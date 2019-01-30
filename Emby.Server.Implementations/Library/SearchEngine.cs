@@ -1,15 +1,17 @@
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.Library;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Querying;
+using MediaBrowser.Model.Search;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MediaBrowser.Controller.Dto;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Extensions;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Querying;
-using MediaBrowser.Model.Search;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Extensions;
 
 namespace Emby.Server.Implementations.Library
 {
@@ -62,7 +64,7 @@ namespace Emby.Server.Implementations.Library
             };
         }
 
-        private static void AddIfMissing(List<string> list, string value)
+        private void AddIfMissing(List<string> list, string value)
         {
             if (!list.Contains(value, StringComparer.OrdinalIgnoreCase))
             {
@@ -76,14 +78,14 @@ namespace Emby.Server.Implementations.Library
         /// <param name="query">The query.</param>
         /// <param name="user">The user.</param>
         /// <returns>IEnumerable{SearchHintResult}.</returns>
-        /// <exception cref="ArgumentNullException">searchTerm</exception>
+        /// <exception cref="System.ArgumentNullException">searchTerm</exception>
         private List<SearchHintInfo> GetSearchHints(SearchQuery query, User user)
         {
             var searchTerm = query.SearchTerm;
 
             if (string.IsNullOrEmpty(searchTerm))
             {
-                throw new ArgumentNullException(nameof(searchTerm));
+                throw new ArgumentNullException("searchTerm");
             }
 
             searchTerm = searchTerm.Trim().RemoveDiacritics();

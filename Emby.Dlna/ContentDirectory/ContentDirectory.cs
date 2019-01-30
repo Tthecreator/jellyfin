@@ -1,18 +1,18 @@
-using System;
-using System.Collections.Generic;
-using Emby.Dlna.Service;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Dlna;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using Emby.Dlna.Service;
+using MediaBrowser.Model.Dlna;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.TV;
-using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Xml;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Dlna.ContentDirectory
 {
@@ -76,6 +76,7 @@ namespace Emby.Dlna.ContentDirectory
                           _dlna.GetDefaultProfile();
 
             var serverAddress = request.RequestedUrl.Substring(0, request.RequestedUrl.IndexOf("/dlna", StringComparison.OrdinalIgnoreCase));
+            string accessToken = null;
 
             var user = GetUser(profile);
 
@@ -84,7 +85,7 @@ namespace Emby.Dlna.ContentDirectory
                 _libraryManager,
                 profile,
                 serverAddress,
-                null,
+                accessToken,
                 _imageProcessor,
                 _userDataManager,
                 user,

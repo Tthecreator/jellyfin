@@ -1,4 +1,4 @@
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.LiveTv;
@@ -11,11 +11,20 @@ namespace MediaBrowser.Providers.Movies
     {
         public const string BaseMovieDbUrl = "https://www.themoviedb.org/";
 
-        public string Name => "TheMovieDb";
+        public string Name
+        {
+            get { return "TheMovieDb"; }
+        }
 
-        public string Key => MetadataProviders.Tmdb.ToString();
+        public string Key
+        {
+            get { return MetadataProviders.Tmdb.ToString(); }
+        }
 
-        public string UrlFormatString => BaseMovieDbUrl + "movie/{0}";
+        public string UrlFormatString
+        {
+            get { return BaseMovieDbUrl + "movie/{0}"; }
+        }
 
         public bool Supports(IHasProviderIds item)
         {
@@ -32,11 +41,20 @@ namespace MediaBrowser.Providers.Movies
 
     public class MovieDbSeriesExternalId : IExternalId
     {
-        public string Name => "TheMovieDb";
+        public string Name
+        {
+            get { return "TheMovieDb"; }
+        }
 
-        public string Key => MetadataProviders.Tmdb.ToString();
+        public string Key
+        {
+            get { return MetadataProviders.Tmdb.ToString(); }
+        }
 
-        public string UrlFormatString => MovieDbMovieExternalId.BaseMovieDbUrl + "tv/{0}";
+        public string UrlFormatString
+        {
+            get { return MovieDbMovieExternalId.BaseMovieDbUrl + "tv/{0}"; }
+        }
 
         public bool Supports(IHasProviderIds item)
         {
@@ -46,11 +64,20 @@ namespace MediaBrowser.Providers.Movies
 
     public class MovieDbMovieCollectionExternalId : IExternalId
     {
-        public string Name => "TheMovieDb Collection";
+        public string Name
+        {
+            get { return "TheMovieDb Collection"; }
+        }
 
-        public string Key => MetadataProviders.TmdbCollection.ToString();
+        public string Key
+        {
+            get { return MetadataProviders.TmdbCollection.ToString(); }
+        }
 
-        public string UrlFormatString => MovieDbMovieExternalId.BaseMovieDbUrl + "collection/{0}";
+        public string UrlFormatString
+        {
+            get { return MovieDbMovieExternalId.BaseMovieDbUrl + "collection/{0}"; }
+        }
 
         public bool Supports(IHasProviderIds item)
         {
@@ -60,11 +87,20 @@ namespace MediaBrowser.Providers.Movies
 
     public class MovieDbPersonExternalId : IExternalId
     {
-        public string Name => "TheMovieDb";
+        public string Name
+        {
+            get { return "TheMovieDb"; }
+        }
 
-        public string Key => MetadataProviders.Tmdb.ToString();
+        public string Key
+        {
+            get { return MetadataProviders.Tmdb.ToString(); }
+        }
 
-        public string UrlFormatString => MovieDbMovieExternalId.BaseMovieDbUrl + "person/{0}";
+        public string UrlFormatString
+        {
+            get { return MovieDbMovieExternalId.BaseMovieDbUrl + "person/{0}"; }
+        }
 
         public bool Supports(IHasProviderIds item)
         {
@@ -74,11 +110,20 @@ namespace MediaBrowser.Providers.Movies
 
     public class MovieDbCollectionExternalId : IExternalId
     {
-        public string Name => "TheMovieDb";
+        public string Name
+        {
+            get { return "TheMovieDb"; }
+        }
 
-        public string Key => MetadataProviders.Tmdb.ToString();
+        public string Key
+        {
+            get { return MetadataProviders.Tmdb.ToString(); }
+        }
 
-        public string UrlFormatString => MovieDbMovieExternalId.BaseMovieDbUrl + "collection/{0}";
+        public string UrlFormatString
+        {
+            get { return MovieDbMovieExternalId.BaseMovieDbUrl + "collection/{0}"; }
+        }
 
         public bool Supports(IHasProviderIds item)
         {
@@ -88,11 +133,20 @@ namespace MediaBrowser.Providers.Movies
 
     public class ImdbExternalId : IExternalId
     {
-        public string Name => "IMDb";
+        public string Name
+        {
+            get { return "IMDb"; }
+        }
 
-        public string Key => MetadataProviders.Imdb.ToString();
+        public string Key
+        {
+            get { return MetadataProviders.Imdb.ToString(); }
+        }
 
-        public string UrlFormatString => "https://www.imdb.com/title/{0}";
+        public string UrlFormatString
+        {
+            get { return "https://www.imdb.com/title/{0}"; }
+        }
 
         public bool Supports(IHasProviderIds item)
         {
@@ -110,11 +164,20 @@ namespace MediaBrowser.Providers.Movies
 
     public class ImdbPersonExternalId : IExternalId
     {
-        public string Name => "IMDb";
+        public string Name
+        {
+            get { return "IMDb"; }
+        }
 
-        public string Key => MetadataProviders.Imdb.ToString();
+        public string Key
+        {
+            get { return MetadataProviders.Imdb.ToString(); }
+        }
 
-        public string UrlFormatString => "https://www.imdb.com/name/{0}";
+        public string UrlFormatString
+        {
+            get { return "https://www.imdb.com/name/{0}"; }
+        }
 
         public bool Supports(IHasProviderIds item)
         {

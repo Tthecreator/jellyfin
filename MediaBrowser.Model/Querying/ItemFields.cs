@@ -1,4 +1,4 @@
-namespace MediaBrowser.Model.Querying
+﻿namespace MediaBrowser.Model.Querying
 {
     /// <summary>
     /// Used to control the data that gets attached to DtoBaseItems
@@ -41,7 +41,7 @@ namespace MediaBrowser.Model.Querying
         /// The custom rating
         /// </summary>
         CustomRating,
-
+        
         /// <summary>
         /// The date created of the item
         /// </summary>

@@ -1,3 +1,5 @@
+﻿using System.Collections.Generic;
+
 namespace Emby.Naming.Video
 {
     public class ExtraResult

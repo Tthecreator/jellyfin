@@ -1,3 +1,4 @@
+﻿
 namespace MediaBrowser.Controller.Drawing
 {
     public class ImageCollageOptions

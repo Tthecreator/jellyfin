@@ -1,17 +1,17 @@
+﻿using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Configuration;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Querying;
+using MediaBrowser.Model.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Dto;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Extensions;
 using MediaBrowser.Model.Providers;
-using MediaBrowser.Model.Querying;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Model.Users;
 
 namespace MediaBrowser.Controller.Entities.TV
 {
@@ -32,19 +32,43 @@ namespace MediaBrowser.Controller.Entities.TV
         public string AirTime { get; set; }
 
         [IgnoreDataMember]
-        public override bool SupportsAddingToPlaylist => true;
+        public override bool SupportsAddingToPlaylist
+        {
+            get { return true; }
+        }
 
         [IgnoreDataMember]
-        public override bool IsPreSorted => true;
+        public override bool IsPreSorted
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsDateLastMediaAdded => true;
+        public override bool SupportsDateLastMediaAdded
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsInheritedParentImages => false;
+        public override bool SupportsInheritedParentImages
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsPeople => true;
+        public override bool SupportsPeople
+        {
+            get { return true; }
+        }
 
         public Guid[] LocalTrailerIds { get; set; }
         public Guid[] RemoteTrailerIds { get; set; }
@@ -119,7 +143,7 @@ namespace MediaBrowser.Controller.Entities.TV
                 IncludeItemTypes = new[] { typeof(Season).Name },
                 IsVirtualItem = false,
                 Limit = 0,
-                DtoOptions = new DtoOptions(false)
+                DtoOptions = new Dto.DtoOptions(false)
                 {
                     EnableImages = false
                 }
@@ -136,7 +160,7 @@ namespace MediaBrowser.Controller.Entities.TV
             {
                 AncestorWithPresentationUniqueKey = null,
                 SeriesPresentationUniqueKey = seriesKey,
-                DtoOptions = new DtoOptions(false)
+                DtoOptions = new Dto.DtoOptions(false)
                 {
                     EnableImages = false
                 }
@@ -502,6 +526,13 @@ namespace MediaBrowser.Controller.Entities.TV
         }
 
         [IgnoreDataMember]
-        public override bool StopRefreshIfLocalMetadataFound => false;
+        public override bool StopRefreshIfLocalMetadataFound
+        {
+            get
+            {
+                // Need people id's from internet metadata
+                return false;
+            }
+        }
     }
 }

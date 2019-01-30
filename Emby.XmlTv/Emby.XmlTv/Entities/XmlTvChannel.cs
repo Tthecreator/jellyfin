@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Text;
 
 namespace Emby.XmlTv.Entities
 {
     public class XmlTvChannel : IEquatable<XmlTvChannel>
     {
-        public string Id { get; set; }
-        public string DisplayName { get; set; }
-        public string Number { get; set; }
+        public String Id { get; set; }
+        public String DisplayName { get; set; }
+        public String Number { get; set; }
         public string Url { get; set; }
         public XmlTvIcon Icon { get; set; }
 

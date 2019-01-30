@@ -1,6 +1,8 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Priority_Queue
 {
@@ -133,7 +135,8 @@ namespace Priority_Queue
                     return false;
                 }
 
-                if (_queue.TryDequeue(out SimpleNode node))
+                SimpleNode node;
+                if (_queue.TryDequeue(out node))
                 {
                     item = node.Data;
                     return true;
@@ -154,7 +157,7 @@ namespace Priority_Queue
         {
             lock (_queue)
             {
-                var node = new SimpleNode(item);
+                SimpleNode node = new SimpleNode(item);
                 if (_queue.Count == _queue.MaxSize)
                 {
                     _queue.Resize(_queue.MaxSize * 2 + 1);
@@ -164,9 +167,9 @@ namespace Priority_Queue
         }
 
         /// <summary>
-        /// Removes an item from the queue.  The item does not need to be the head of the queue.
+        /// Removes an item from the queue.  The item does not need to be the head of the queue.  
         /// If the item is not in the queue, an exception is thrown.  If unsure, check Contains() first.
-        /// If multiple copies of the item are enqueued, only the first one is removed.
+        /// If multiple copies of the item are enqueued, only the first one is removed. 
         /// O(n)
         /// </summary>
         public void Remove(TItem item)
@@ -210,7 +213,7 @@ namespace Priority_Queue
 
         public IEnumerator<TItem> GetEnumerator()
         {
-            var queueData = new List<TItem>();
+            List<TItem> queueData = new List<TItem>();
             lock (_queue)
             {
                 //Copy to a separate list because we don't want to 'yield return' inside a lock

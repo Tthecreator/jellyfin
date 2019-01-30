@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
@@ -13,12 +6,22 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Globalization;
-using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Providers.Movies;
-using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Providers.TV
 {
@@ -49,7 +52,10 @@ namespace MediaBrowser.Providers.TV
             Current = this;
         }
 
-        public string Name => "TheMovieDb";
+        public string Name
+        {
+            get { return "TheMovieDb"; }
+        }
 
         public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(SeriesInfo searchInfo, CancellationToken cancellationToken)
         {
@@ -177,7 +183,13 @@ namespace MediaBrowser.Providers.TV
 
         private async Task<MetadataResult<Series>> FetchMovieData(string tmdbId, string language, string preferredCountryCode, CancellationToken cancellationToken)
         {
-            RootObject seriesInfo = await FetchMainResult(tmdbId, language, cancellationToken).ConfigureAwait(false);
+            string dataFilePath = null;
+            RootObject seriesInfo = null;
+
+            if (!string.IsNullOrEmpty(tmdbId))
+            {
+                seriesInfo = await FetchMainResult(tmdbId, language, cancellationToken).ConfigureAwait(false);
+            }
 
             if (seriesInfo == null)
             {
@@ -186,8 +198,8 @@ namespace MediaBrowser.Providers.TV
 
             tmdbId = seriesInfo.id.ToString(_usCulture);
 
-            string dataFilePath = GetDataFilePath(tmdbId, language);
-            Directory.CreateDirectory(Path.GetDirectoryName(dataFilePath));
+            dataFilePath = GetDataFilePath(tmdbId, language);
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(dataFilePath));
             _jsonSerializer.SerializeToFile(seriesInfo, dataFilePath);
 
             await EnsureSeriesInfo(tmdbId, language, cancellationToken).ConfigureAwait(false);
@@ -213,8 +225,9 @@ namespace MediaBrowser.Providers.TV
             //series.VoteCount = seriesInfo.vote_count;
 
             string voteAvg = seriesInfo.vote_average.ToString(CultureInfo.InvariantCulture);
+            float rating;
 
-            if (float.TryParse(voteAvg, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float rating))
+            if (float.TryParse(voteAvg, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out rating))
             {
                 series.CommunityRating = rating;
             }
@@ -287,11 +300,14 @@ namespace MediaBrowser.Providers.TV
             {
                 foreach (var video in seriesInfo.videos.results)
                 {
-                    if ((video.type.Equals("trailer", StringComparison.OrdinalIgnoreCase)
-                        || video.type.Equals("clip", StringComparison.OrdinalIgnoreCase))
-                        && video.site.Equals("youtube", StringComparison.OrdinalIgnoreCase))
+                    if (video.type.Equals("trailer", System.StringComparison.OrdinalIgnoreCase)
+                        || video.type.Equals("clip", System.StringComparison.OrdinalIgnoreCase))
                     {
-                        series.AddTrailerUrl($"http://www.youtube.com/watch?v={video.key}");
+                        if (video.site.Equals("youtube", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            var videoUrl = string.Format("http://www.youtube.com/watch?v={0}", video.key);
+                            series.AddTrailerUrl(videoUrl);
+                        }
                     }
                 }
             }
@@ -342,16 +358,13 @@ namespace MediaBrowser.Providers.TV
 
         internal async Task DownloadSeriesInfo(string id, string preferredMetadataLanguage, CancellationToken cancellationToken)
         {
-            RootObject mainResult = await FetchMainResult(id, preferredMetadataLanguage, cancellationToken).ConfigureAwait(false);
+            var mainResult = await FetchMainResult(id, preferredMetadataLanguage, cancellationToken).ConfigureAwait(false);
 
-            if (mainResult == null)
-            {
-                return;
-            }
+            if (mainResult == null) return;
 
             var dataFilePath = GetDataFilePath(id, preferredMetadataLanguage);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(dataFilePath));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(dataFilePath));
 
             _jsonSerializer.SerializeToFile(mainResult, dataFilePath);
         }
@@ -362,8 +375,10 @@ namespace MediaBrowser.Providers.TV
 
             if (!string.IsNullOrEmpty(language))
             {
-                url += "&language=" + MovieDbProvider.NormalizeLanguage(language)
-                    + "&include_image_language=" + MovieDbProvider.GetImageLanguagesParam(language); // Get images in english and with no language
+                url += string.Format("&language={0}", MovieDbProvider.NormalizeLanguage(language));
+
+                // Get images in english and with no language
+                url += "&include_image_language=" + MovieDbProvider.GetImageLanguagesParam(language);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -397,7 +412,7 @@ namespace MediaBrowser.Providers.TV
                 !string.IsNullOrEmpty(language) &&
                 !string.Equals(language, "en", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("MovieDbSeriesProvider couldn't find meta for language {Language}. Trying English...", language);
+                _logger.LogInformation("MovieDbSeriesProvider couldn't find meta for language " + language + ". Trying English...");
 
                 url = string.Format(GetTvInfo3, id, MovieDbProvider.ApiKey) + "&language=en";
 
@@ -432,7 +447,7 @@ namespace MediaBrowser.Providers.TV
         {
             if (string.IsNullOrEmpty(tmdbId))
             {
-                throw new ArgumentNullException(nameof(tmdbId));
+                throw new ArgumentNullException("tmdbId");
             }
 
             var path = GetDataFilePath(tmdbId, language);
@@ -455,7 +470,7 @@ namespace MediaBrowser.Providers.TV
         {
             if (string.IsNullOrEmpty(tmdbId))
             {
-                throw new ArgumentNullException(nameof(tmdbId));
+                throw new ArgumentNullException("tmdbId");
             }
 
             var path = GetSeriesDataPath(_configurationManager.ApplicationPaths, tmdbId);
@@ -668,8 +683,15 @@ namespace MediaBrowser.Providers.TV
             public ContentRatings content_ratings { get; set; }
             public string ResultLanguage { get; set; }
         }
-        // After TheTVDB
-        public int Order => 1;
+
+        public int Order
+        {
+            get
+            {
+                // After Tvdb
+                return 1;
+            }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {

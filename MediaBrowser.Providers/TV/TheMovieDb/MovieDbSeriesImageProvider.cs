@@ -1,18 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Providers.Movies;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Model.IO;
 
 namespace MediaBrowser.Providers.TV
 {
@@ -29,9 +30,15 @@ namespace MediaBrowser.Providers.TV
             _fileSystem = fileSystem;
         }
 
-        public string Name => ProviderName;
+        public string Name
+        {
+            get { return ProviderName; }
+        }
 
-        public static string ProviderName => "TheMovieDb";
+        public static string ProviderName
+        {
+            get { return "TheMovieDb"; }
+        }
 
         public bool Supports(BaseItem item)
         {
@@ -42,7 +49,7 @@ namespace MediaBrowser.Providers.TV
         {
             return new List<ImageType>
             {
-                ImageType.Primary,
+                ImageType.Primary, 
                 ImageType.Backdrop
             };
         }
@@ -170,8 +177,15 @@ namespace MediaBrowser.Providers.TV
 
             return null;
         }
-        // After tvdb and fanart
-        public int Order => 2;
+
+        public int Order
+        {
+            get
+            {
+                // After tvdb and fanart
+                return 2;
+            }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {

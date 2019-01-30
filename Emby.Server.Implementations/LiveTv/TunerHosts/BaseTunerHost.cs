@@ -1,3 +1,8 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.LiveTv;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -5,16 +10,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.MediaEncoding;
-using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Serialization;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Controller.Library;
 
 namespace Emby.Server.Implementations.LiveTv.TunerHosts
 {
@@ -38,7 +40,13 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
             FileSystem = fileSystem;
         }
 
-        public virtual bool IsSupported => true;
+        public virtual bool IsSupported
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         protected abstract Task<List<ChannelInfo>> GetChannelsInternal(TunerHostInfo tuner, CancellationToken cancellationToken);
         public abstract string Type { get; }
@@ -95,7 +103,7 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
                     {
                         try
                         {
-                            Directory.CreateDirectory(Path.GetDirectoryName(channelCacheFile));
+                            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(channelCacheFile));
                             JsonSerializer.SerializeToFile(channels, channelCacheFile);
                         }
                         catch (IOException)
@@ -132,7 +140,7 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
         {
             if (string.IsNullOrEmpty(channelId))
             {
-                throw new ArgumentNullException(nameof(channelId));
+                throw new ArgumentNullException("channelId");
             }
 
             if (IsValidChannelId(channelId))
@@ -167,7 +175,7 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
         {
             if (string.IsNullOrEmpty(channelId))
             {
-                throw new ArgumentNullException(nameof(channelId));
+                throw new ArgumentNullException("channelId");
             }
 
             if (!IsValidChannelId(channelId))
@@ -220,13 +228,18 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
             throw new LiveTvConflictException();
         }
 
-        protected virtual string ChannelIdPrefix => Type + "_";
-
+        protected virtual string ChannelIdPrefix
+        {
+            get
+            {
+                return Type + "_";
+            }
+        }
         protected virtual bool IsValidChannelId(string channelId)
         {
             if (string.IsNullOrEmpty(channelId))
             {
-                throw new ArgumentNullException(nameof(channelId));
+                throw new ArgumentNullException("channelId");
             }
 
             return channelId.StartsWith(ChannelIdPrefix, StringComparison.OrdinalIgnoreCase);

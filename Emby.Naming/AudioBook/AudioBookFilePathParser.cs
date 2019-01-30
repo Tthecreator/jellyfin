@@ -1,7 +1,12 @@
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Emby.Naming.Common;
+using Emby.Naming.TV;
 
 namespace Emby.Naming.AudioBook
 {
@@ -16,7 +21,7 @@ namespace Emby.Naming.AudioBook
 
         public AudioBookFilePathParserResult Parse(string path, bool IsDirectory)
         {
-            var result = Parse(path);
+            AudioBookFilePathParserResult result = Parse(path);
             return !result.Success ? new AudioBookFilePathParserResult() : result;
         }
 
@@ -34,7 +39,8 @@ namespace Emby.Naming.AudioBook
                         var value = match.Groups["chapter"];
                         if (value.Success)
                         {
-                            if (int.TryParse(value.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                            int intValue;
+                            if (int.TryParse(value.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out intValue))
                             {
                                 result.ChapterNumber = intValue;
                             }
@@ -45,7 +51,8 @@ namespace Emby.Naming.AudioBook
                         var value = match.Groups["part"];
                         if (value.Success)
                         {
-                            if (int.TryParse(value.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                            int intValue;
+                            if (int.TryParse(value.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out intValue))
                             {
                                 result.ChapterNumber = intValue;
                             }

@@ -1,16 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.MediaInfo;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Providers.MediaInfo
 {
@@ -120,7 +122,10 @@ namespace MediaBrowser.Providers.MediaInfo
             };
         }
 
-        public string Name => "Screen Grabber";
+        public string Name
+        {
+            get { return "Screen Grabber"; }
+        }
 
         public bool Supports(BaseItem item)
         {
@@ -142,7 +147,14 @@ namespace MediaBrowser.Providers.MediaInfo
 
             return false;
         }
-        // Make sure this comes after internet image providers
-        public int Order => 100;
+
+        public int Order
+        {
+            get
+            {
+                // Make sure this comes after internet image providers
+                return 100;
+            }
+        }
     }
 }

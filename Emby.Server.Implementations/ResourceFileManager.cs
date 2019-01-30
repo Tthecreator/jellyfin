@@ -1,11 +1,23 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller;
+using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Net;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Services;
+using MediaBrowser.Controller.Plugins;
+using MediaBrowser.Model.Extensions;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Serialization;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.Plugins;
+using MediaBrowser.Model.Reflection;
+using MediaBrowser.Model.Services;
 
 namespace Emby.Server.Implementations
 {
@@ -15,13 +27,10 @@ namespace Emby.Server.Implementations
         private readonly ILogger _logger;
         private readonly IHttpResultFactory _resultFactory;
 
-        public ResourceFileManager(
-            IHttpResultFactory resultFactory,
-            ILoggerFactory loggerFactory,
-            IFileSystem fileSystem)
+        public ResourceFileManager(IHttpResultFactory resultFactory, ILogger logger, IFileSystem fileSystem)
         {
             _resultFactory = resultFactory;
-            _logger = loggerFactory.CreateLogger("ResourceManager");
+            _logger = logger;
             _fileSystem = fileSystem;
         }
 
@@ -37,16 +46,16 @@ namespace Emby.Server.Implementations
 
         public string ReadAllText(string basePath, string virtualPath)
         {
-            return File.ReadAllText(GetResourcePath(basePath, virtualPath));
+            return _fileSystem.ReadAllText(GetResourcePath(basePath, virtualPath));
         }
 
         private string GetResourcePath(string basePath, string virtualPath)
         {
-            var fullPath = Path.Combine(basePath, virtualPath.Replace('/', Path.DirectorySeparatorChar));
+            var fullPath = Path.Combine(basePath, virtualPath.Replace('/', _fileSystem.DirectorySeparatorChar));
 
             try
             {
-                fullPath = Path.GetFullPath(fullPath);
+                fullPath = _fileSystem.GetFullPath(fullPath);
             }
             catch (Exception ex)
             {

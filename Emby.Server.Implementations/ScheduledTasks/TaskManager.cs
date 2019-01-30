@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.Events;
 using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.System;
 using MediaBrowser.Model.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Server.Implementations.ScheduledTasks
 {
@@ -46,6 +46,8 @@ namespace Emby.Server.Implementations.ScheduledTasks
         /// <value>The application paths.</value>
         private IApplicationPaths ApplicationPaths { get; set; }
 
+        private readonly ISystemEvents _systemEvents;
+
         /// <summary>
         /// Gets the logger.
         /// </summary>
@@ -58,20 +60,53 @@ namespace Emby.Server.Implementations.ScheduledTasks
         /// </summary>
         /// <param name="applicationPaths">The application paths.</param>
         /// <param name="jsonSerializer">The json serializer.</param>
-        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="logger">The logger.</param>
         /// <exception cref="System.ArgumentException">kernel</exception>
-        public TaskManager(
-            IApplicationPaths applicationPaths,
-            IJsonSerializer jsonSerializer,
-            ILoggerFactory loggerFactory,
-            IFileSystem fileSystem)
+        public TaskManager(IApplicationPaths applicationPaths, IJsonSerializer jsonSerializer, ILogger logger, IFileSystem fileSystem, ISystemEvents systemEvents)
         {
             ApplicationPaths = applicationPaths;
             JsonSerializer = jsonSerializer;
-            Logger = loggerFactory.CreateLogger(nameof(TaskManager));
+            Logger = logger;
             _fileSystem = fileSystem;
+            _systemEvents = systemEvents;
 
             ScheduledTasks = new IScheduledTaskWorker[] { };
+        }
+
+        private void BindToSystemEvent()
+        {
+            _systemEvents.Resume += _systemEvents_Resume;
+        }
+
+        private void _systemEvents_Resume(object sender, EventArgs e)
+        {
+            foreach (var task in ScheduledTasks)
+            {
+                task.ReloadTriggerEvents();
+            }
+        }
+
+        public void RunTaskOnNextStartup(string key)
+        {
+            var path = Path.Combine(ApplicationPaths.CachePath, "startuptasks.txt");
+
+            List<string> lines;
+
+            try
+            {
+                lines = _fileSystem.ReadAllLines(path).ToList() ;
+            }
+            catch
+            {
+                lines = new List<string>();
+            }
+
+            if (!lines.Contains(key, StringComparer.OrdinalIgnoreCase))
+            {
+                lines.Add(key);
+                _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
+                _fileSystem.WriteAllLines(path, lines);
+            }
         }
 
         private void RunStartupTasks()
@@ -86,7 +121,7 @@ namespace Emby.Server.Implementations.ScheduledTasks
 
             try
             {
-                lines = File.ReadAllLines(path).Where(i => !string.IsNullOrWhiteSpace(i)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                lines = _fileSystem.ReadAllLines(path).Where(i => !string.IsNullOrWhiteSpace(i)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
                 foreach (var key in lines)
                 {
@@ -250,9 +285,11 @@ namespace Emby.Server.Implementations.ScheduledTasks
             var myTasks = ScheduledTasks.ToList();
 
             var list = tasks.ToList();
-            myTasks.AddRange(list.Select(t => new ScheduledTaskWorker(t, ApplicationPaths, this, JsonSerializer, Logger, _fileSystem)));
+            myTasks.AddRange(list.Select(t => new ScheduledTaskWorker(t, ApplicationPaths, this, JsonSerializer, Logger, _fileSystem, _systemEvents)));
 
             ScheduledTasks = myTasks.ToArray();
+
+            BindToSystemEvent();
 
             RunStartupTasks();
         }
@@ -327,7 +364,8 @@ namespace Emby.Server.Implementations.ScheduledTasks
             {
                 var list = new List<Tuple<Type, TaskOptions>>();
 
-                while (_taskQueue.TryDequeue(out var item))
+                Tuple<Type, TaskOptions> item;
+                while (_taskQueue.TryDequeue(out item))
                 {
                     if (list.All(i => i.Item1 != item.Item1))
                     {

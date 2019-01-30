@@ -1,10 +1,12 @@
+﻿using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Server.Implementations.LiveTv.EmbyTV
 {
@@ -66,11 +68,11 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
         {
             if (newList == null)
             {
-                throw new ArgumentNullException(nameof(newList));
+                throw new ArgumentNullException("newList");
             }
 
             var file = _dataPath + ".json";
-            Directory.CreateDirectory(Path.GetDirectoryName(file));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(file));
 
             lock (_fileDataLock)
             {
@@ -83,7 +85,7 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
         {
             if (item == null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException("item");
             }
 
             var list = GetAll().ToList();
@@ -104,7 +106,7 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
         {
             if (item == null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException("item");
             }
 
             var list = GetAll().ToList();

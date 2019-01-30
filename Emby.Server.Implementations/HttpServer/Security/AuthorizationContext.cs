@@ -1,10 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using MediaBrowser.Controller.Library;
+﻿using MediaBrowser.Controller.Connect;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Security;
+using System;
+using System.Collections.Generic;
 using MediaBrowser.Model.Services;
+using System.Linq;
+using System.Threading;
+using MediaBrowser.Controller.Library;
 
 namespace Emby.Server.Implementations.HttpServer.Security
 {
@@ -26,7 +28,8 @@ namespace Emby.Server.Implementations.HttpServer.Security
 
         public AuthorizationInfo GetAuthorizationInfo(IRequest requestContext)
         {
-            if (requestContext.Items.TryGetValue("AuthorizationInfo", out var cached))
+            object cached;
+            if (requestContext.Items.TryGetValue("AuthorizationInfo", out cached))
             {
                 return (AuthorizationInfo)cached;
             }
@@ -112,7 +115,7 @@ namespace Emby.Server.Implementations.HttpServer.Security
                     {
                         info.Device = tokenInfo.DeviceName;
                     }
-
+                    
                     else if (!string.Equals(info.Device, tokenInfo.DeviceName, StringComparison.OrdinalIgnoreCase))
                     {
                         if (allowTokenInfoUpdate)
@@ -224,7 +227,7 @@ namespace Emby.Server.Implementations.HttpServer.Security
             return result;
         }
 
-        private static string NormalizeValue(string value)
+        private string NormalizeValue(string value)
         {
             if (string.IsNullOrEmpty(value))
             {

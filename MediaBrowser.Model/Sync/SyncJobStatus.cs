@@ -1,3 +1,4 @@
+﻿
 namespace MediaBrowser.Model.Sync
 {
     public enum SyncJobStatus

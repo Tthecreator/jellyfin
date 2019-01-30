@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SocketHttpListener.Net.WebSockets
@@ -26,11 +28,12 @@ namespace SocketHttpListener.Net.WebSockets
             string origin = request.Headers[HttpKnownHeaderNames.Origin];
 
             string[] secWebSocketProtocols = null;
+            string outgoingSecWebSocketProtocolString;
             bool shouldSendSecWebSocketProtocolHeader =
                 ProcessWebSocketProtocolHeader(
                     request.Headers[HttpKnownHeaderNames.SecWebSocketProtocol],
                     subProtocol,
-                    out var outgoingSecWebSocketProtocolString);
+                    out outgoingSecWebSocketProtocolString);
 
             if (shouldSendSecWebSocketProtocolHeader)
             {
@@ -49,15 +52,15 @@ namespace SocketHttpListener.Net.WebSockets
             response.StatusCode = (int)HttpStatusCode.SwitchingProtocols; // HTTP 101
             response.StatusDescription = HttpStatusDescription.Get(HttpStatusCode.SwitchingProtocols);
 
-            var responseStream = response.OutputStream as HttpResponseStream;
+            HttpResponseStream responseStream = response.OutputStream as HttpResponseStream;
 
             // Send websocket handshake headers
             await responseStream.WriteWebSocketHandshakeHeadersAsync().ConfigureAwait(false);
 
             //WebSocket webSocket = WebSocket.CreateFromStream(context.Connection.ConnectedStream, isServer: true, subProtocol, keepAliveInterval);
-            var webSocket = new WebSocket(subProtocol);
+            WebSocket webSocket = new WebSocket(subProtocol);
 
-            var webSocketContext = new HttpListenerWebSocketContext(
+            HttpListenerWebSocketContext webSocketContext = new HttpListenerWebSocketContext(
                                                                 request.Url,
                                                                 request.Headers,
                                                                 request.Cookies,

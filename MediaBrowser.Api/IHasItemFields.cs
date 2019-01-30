@@ -1,6 +1,7 @@
+﻿using MediaBrowser.Model.Querying;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using MediaBrowser.Model.Querying;
 
 namespace MediaBrowser.Api
 {
@@ -37,7 +38,9 @@ namespace MediaBrowser.Api
 
             return val.Split(',').Select(v =>
             {
-                if (Enum.TryParse(v, true, out ItemFields value))
+                ItemFields value;
+
+                if (Enum.TryParse(v, true, out value))
                 {
                     return (ItemFields?)value;
                 }

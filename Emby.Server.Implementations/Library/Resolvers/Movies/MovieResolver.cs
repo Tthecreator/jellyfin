@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Emby.Naming.Video;
-using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -12,7 +6,15 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Controller.Resolvers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Extensions;
+using Emby.Naming.Video;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using MediaBrowser.Controller.Drawing;
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Emby.Server.Implementations.Library.Resolvers.Movies
 {
@@ -25,7 +27,17 @@ namespace Emby.Server.Implementations.Library.Resolvers.Movies
         /// Gets the priority.
         /// </summary>
         /// <value>The priority.</value>
-        public override ResolverPriority Priority => ResolverPriority.Third;
+        public override ResolverPriority Priority
+        {
+            get
+            {
+                // Give plugins a chance to catch iso's first
+                // Also since we have to loop through child files looking for videos, 
+                // see if we can avoid some of that by letting other resolvers claim folders first
+                // Also run after series resolver
+                return ResolverPriority.Third;
+            }
+        }
 
         public MultiItemResolverResult ResolveMultiple(Folder parent,
             List<FileSystemMetadata> files,
@@ -164,7 +176,7 @@ namespace Emby.Server.Implementations.Library.Resolvers.Movies
             return result;
         }
 
-        private static bool IsIgnored(string filename)
+        private bool IsIgnored(string filename)
         {
             // Ignore samples
             var sampleFilename = " " + filename.Replace(".", " ", StringComparison.OrdinalIgnoreCase)
@@ -192,7 +204,7 @@ namespace Emby.Server.Implementations.Library.Resolvers.Movies
                 result.Extras.Any(i => ContainsFile(i, file));
         }
 
-        private static bool ContainsFile(VideoFileInfo result, FileSystemMetadata file)
+        private bool ContainsFile(VideoFileInfo result, FileSystemMetadata file)
         {
             return string.Equals(result.Path, file.FullName, StringComparison.OrdinalIgnoreCase);
         }
@@ -318,7 +330,7 @@ namespace Emby.Server.Implementations.Library.Resolvers.Movies
         /// Sets the provider id from path.
         /// </summary>
         /// <param name="item">The item.</param>
-        private static void SetProviderIdsFromPath(Video item)
+        private void SetProviderIdsFromPath(Video item)
         {
             if (item is Movie || item is MusicVideo)
             {
@@ -410,7 +422,7 @@ namespace Emby.Server.Implementations.Library.Resolvers.Movies
             }
 
             // TODO: Allow GetMultiDiscMovie in here
-            const bool supportsMultiVersion = true;
+            var supportsMultiVersion = true;
 
             var result = ResolveVideos<T>(parent, fileSystemEntries, directoryService, supportsMultiVersion, collectionType, parseName) ??
                 new MultiItemResolverResult();

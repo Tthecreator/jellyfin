@@ -1,17 +1,19 @@
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Providers;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Providers.MediaInfo;
 
 namespace MediaBrowser.Providers.Manager
 {
@@ -415,7 +417,7 @@ namespace MediaBrowser.Providers.Manager
             var folder = item as Folder;
             if (folder != null && folder.SupportsDateLastMediaAdded)
             {
-                var dateLastMediaAdded = DateTime.MinValue;
+                DateTime dateLastMediaAdded = DateTime.MinValue;
                 var any = false;
 
                 foreach (var child in children)
@@ -441,13 +443,34 @@ namespace MediaBrowser.Providers.Manager
             return updateType;
         }
 
-        protected virtual bool EnableUpdatingPremiereDateFromChildren => false;
-
-        protected virtual bool EnableUpdatingGenresFromChildren => false;
-
-        protected virtual bool EnableUpdatingStudiosFromChildren => false;
-
-        protected virtual bool EnableUpdatingOfficialRatingFromChildren => false;
+        protected virtual bool EnableUpdatingPremiereDateFromChildren
+        {
+            get
+            {
+                return false;
+            }
+        }
+        protected virtual bool EnableUpdatingGenresFromChildren
+        {
+            get
+            {
+                return false;
+            }
+        }
+        protected virtual bool EnableUpdatingStudiosFromChildren
+        {
+            get
+            {
+                return false;
+            }
+        }
+        protected virtual bool EnableUpdatingOfficialRatingFromChildren
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         private ItemUpdateType UpdatePremiereDate(TItemType item, IList<BaseItem> children)
         {
@@ -905,7 +928,13 @@ namespace MediaBrowser.Providers.Manager
             bool replaceData,
             bool mergeMetadataSettings);
 
-        public virtual int Order => 0;
+        public virtual int Order
+        {
+            get
+            {
+                return 0;
+            }
+        }
 
         private bool HasChanged(BaseItem item, IHasItemChangeMonitor changeMonitor, IDirectoryService directoryService)
         {

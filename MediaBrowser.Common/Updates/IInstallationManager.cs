@@ -1,10 +1,10 @@
+﻿using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.Events;
+using MediaBrowser.Model.Updates;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Plugins;
-using MediaBrowser.Model.Events;
-using MediaBrowser.Model.Updates;
 
 namespace MediaBrowser.Common.Updates
 {
@@ -49,7 +49,9 @@ namespace MediaBrowser.Common.Updates
         /// <param name="applicationVersion">The application version.</param>
         /// <returns>Task{List{PackageInfo}}.</returns>
         Task<List<PackageInfo>> GetAvailablePackages(CancellationToken cancellationToken,
-            bool withRegistration = true, string packageType = null, Version applicationVersion = null);
+            bool withRegistration = true,
+                                                                                  string packageType = null,
+                                                                                  Version applicationVersion = null);
 
         /// <summary>
         /// Gets all available packages from a static resource.
@@ -106,14 +108,14 @@ namespace MediaBrowser.Common.Updates
         /// <param name="progress">The progress.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">package</exception>
+        /// <exception cref="System.ArgumentNullException">package</exception>
         Task InstallPackage(PackageVersionInfo package, bool isPlugin, IProgress<double> progress, CancellationToken cancellationToken);
 
         /// <summary>
         /// Uninstalls a plugin
         /// </summary>
         /// <param name="plugin">The plugin.</param>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="System.ArgumentException"></exception>
         void UninstallPlugin(IPlugin plugin);
     }
 }

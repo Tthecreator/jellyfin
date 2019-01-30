@@ -1,5 +1,5 @@
+﻿using Emby.Dlna.Common;
 using System.Collections.Generic;
-using Emby.Dlna.Common;
 
 namespace Emby.Dlna.ConnectionManager
 {
@@ -19,7 +19,7 @@ namespace Emby.Dlna.ConnectionManager
             return list;
         }
 
-        private static ServiceAction PrepareForConnection()
+        private ServiceAction PrepareForConnection()
         {
             var action = new ServiceAction
             {
@@ -77,8 +77,8 @@ namespace Emby.Dlna.ConnectionManager
 
             return action;
         }
-
-        private static ServiceAction GetCurrentConnectionInfo()
+        
+        private ServiceAction GetCurrentConnectionInfo()
         {
             var action = new ServiceAction
             {

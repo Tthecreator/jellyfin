@@ -1,10 +1,12 @@
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.Net;
+using System.Collections.Generic;
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Services;
 using MediaBrowser.Model.System;
 using Microsoft.Extensions.Logging;
@@ -50,7 +52,13 @@ namespace MediaBrowser.Api.Playback.Progressive
             _environment = environment;
         }
 
-        public IDictionary<string, string> Headers => _outputHeaders;
+        public IDictionary<string, string> Headers
+        {
+            get
+            {
+                return _outputHeaders;
+            }
+        }
 
         private Stream GetInputStream(bool allowAsyncFileRead)
         {

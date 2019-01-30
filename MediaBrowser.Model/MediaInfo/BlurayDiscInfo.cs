@@ -1,4 +1,5 @@
-using MediaBrowser.Model.Entities;
+﻿using MediaBrowser.Model.Entities;
+using System.Collections.Generic;
 
 namespace MediaBrowser.Model.MediaInfo
 {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -148,7 +149,7 @@ namespace SocketHttpListener
         internal static string CheckIfValidControlData(this byte[] data, string paramName)
         {
             return data.Length > 125
-                   ? string.Format("'{0}' length must be less.", paramName)
+                   ? String.Format("'{0}' length must be less.", paramName)
                    : null;
         }
 
@@ -221,7 +222,7 @@ namespace SocketHttpListener
         internal static bool EqualsWith(this int value, char c, Action<int> action)
         {
             if (value < 0 || value > 255)
-                throw new ArgumentOutOfRangeException(nameof(value));
+                throw new ArgumentOutOfRangeException("value");
 
             action(value);
             return value == c - 0;
@@ -247,7 +248,7 @@ namespace SocketHttpListener
                                  ? "WebSocket server got an internal error."
                                  : code == CloseStatusCode.TlsHandshakeFailure
                                    ? "An error has occurred while handshaking."
-                                   : string.Empty;
+                                   : String.Empty;
         }
 
         internal static string GetNameInternal(this string nameAndValue, string separator)
@@ -328,7 +329,7 @@ namespace SocketHttpListener
         {
             return value.IsToken()
                    ? value
-                   : string.Format("\"{0}\"", value.Replace("\"", "\\\""));
+                   : String.Format("\"{0}\"", value.Replace("\"", "\\\""));
         }
 
         internal static byte[] ReadBytes(this Stream stream, int length)
@@ -440,8 +441,7 @@ namespace SocketHttpListener
                         continue;
                     }
                 }
-                else
-                {
+                else {
                 }
 
                 buffer.Append(c);
@@ -484,13 +484,13 @@ namespace SocketHttpListener
           this CompressionMethod method, params string[] parameters)
         {
             if (method == CompressionMethod.None)
-                return string.Empty;
+                return String.Empty;
 
-            var m = string.Format("permessage-{0}", method.ToString().ToLower());
+            var m = String.Format("permessage-{0}", method.ToString().ToLower());
             if (parameters == null || parameters.Length == 0)
                 return m;
 
-            return string.Format("{0}; {1}", m, parameters.ToString("; "));
+            return String.Format("{0}; {1}", m, parameters.ToString("; "));
         }
 
         internal static List<TSource> ToList<TSource>(this IEnumerable<TSource> source)
@@ -715,7 +715,7 @@ namespace SocketHttpListener
                 case 507: return "Insufficient Storage";
             }
 
-            return string.Empty;
+            return String.Empty;
         }
 
         /// <summary>
@@ -855,7 +855,7 @@ namespace SocketHttpListener
         public static byte[] ToHostOrder(this byte[] src, ByteOrder srcOrder)
         {
             if (src == null)
-                throw new ArgumentNullException(nameof(src));
+                throw new ArgumentNullException("src");
 
             return src.Length > 1 && !srcOrder.IsHostOrder()
                    ? src.Reverse()
@@ -886,14 +886,14 @@ namespace SocketHttpListener
         public static string ToString<T>(this T[] array, string separator)
         {
             if (array == null)
-                throw new ArgumentNullException(nameof(array));
+                throw new ArgumentNullException("array");
 
             var len = array.Length;
             if (len == 0)
-                return string.Empty;
+                return String.Empty;
 
             if (separator == null)
-                separator = string.Empty;
+                separator = String.Empty;
 
             var buff = new StringBuilder(64);
             (len - 1).Times(i => buff.AppendFormat("{0}{1}", array[i].ToString(), separator));
@@ -932,8 +932,9 @@ namespace SocketHttpListener
         /// </param>
         public static Uri ToUri(this string uriString)
         {
+            Uri res;
             return Uri.TryCreate(
-                     uriString, uriString.MaybeUri() ? UriKind.Absolute : UriKind.Relative, out var res)
+                     uriString, uriString.MaybeUri() ? UriKind.Absolute : UriKind.Relative, out res)
                    ? res
                    : null;
         }

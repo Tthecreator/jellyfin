@@ -1,16 +1,18 @@
+﻿using MediaBrowser.Model.IO;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Configuration;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Providers.Movies;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.Globalization;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
-using MediaBrowser.Providers.Movies;
-using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Providers.TV
 {
@@ -34,7 +36,10 @@ namespace MediaBrowser.Providers.TV
             _logger = loggerFactory.CreateLogger(GetType().Name);
         }
 
-        protected ILogger Logger => _logger;
+        protected ILogger Logger
+        {
+            get { return _logger; }
+        }
 
         protected async Task<RootObject> GetEpisodeInfo(string seriesTmdbId, int season, int episodeNumber, string preferredMetadataLanguage,
             CancellationToken cancellationToken)
@@ -51,11 +56,11 @@ namespace MediaBrowser.Providers.TV
         {
             if (string.IsNullOrEmpty(tmdbId))
             {
-                throw new ArgumentNullException(nameof(tmdbId));
+                throw new ArgumentNullException("tmdbId");
             }
             if (string.IsNullOrEmpty(language))
             {
-                throw new ArgumentNullException(nameof(language));
+                throw new ArgumentNullException("language");
             }
 
             var path = GetDataFilePath(tmdbId, seasonNumber, episodeNumber, language);
@@ -78,11 +83,11 @@ namespace MediaBrowser.Providers.TV
         {
             if (string.IsNullOrEmpty(tmdbId))
             {
-                throw new ArgumentNullException(nameof(tmdbId));
+                throw new ArgumentNullException("tmdbId");
             }
             if (string.IsNullOrEmpty(preferredLanguage))
             {
-                throw new ArgumentNullException(nameof(preferredLanguage));
+                throw new ArgumentNullException("preferredLanguage");
             }
 
             var path = MovieDbSeriesProvider.GetSeriesDataPath(_configurationManager.ApplicationPaths, tmdbId);
@@ -101,7 +106,7 @@ namespace MediaBrowser.Providers.TV
 
             var dataFilePath = GetDataFilePath(id, seasonNumber, episodeNumber, preferredMetadataLanguage);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(dataFilePath));
+			_fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(dataFilePath));
             _jsonSerializer.SerializeToFile(mainResult, dataFilePath);
         }
 

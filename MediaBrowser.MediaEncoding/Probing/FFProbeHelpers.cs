@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MediaBrowser.MediaEncoding.Probing
@@ -13,7 +13,7 @@ namespace MediaBrowser.MediaEncoding.Probing
         {
             if (result == null)
             {
-                throw new ArgumentNullException(nameof(result));
+                throw new ArgumentNullException("result");
             }
 
             if (result.format != null && result.format.tags != null)
@@ -52,7 +52,9 @@ namespace MediaBrowser.MediaEncoding.Probing
                 return null;
             }
 
-            tags.TryGetValue(key, out var val);
+            string val;
+
+            tags.TryGetValue(key, out val);
             return val;
         }
 
@@ -68,7 +70,9 @@ namespace MediaBrowser.MediaEncoding.Probing
 
             if (!string.IsNullOrEmpty(val))
             {
-                if (int.TryParse(val, out var i))
+                int i;
+
+                if (int.TryParse(val, out i))
                 {
                     return i;
                 }
@@ -89,7 +93,9 @@ namespace MediaBrowser.MediaEncoding.Probing
 
             if (!string.IsNullOrEmpty(val))
             {
-                if (DateTime.TryParse(val, out var i))
+                DateTime i;
+
+                if (DateTime.TryParse(val, out i))
                 {
                     return i.ToUniversalTime();
                 }

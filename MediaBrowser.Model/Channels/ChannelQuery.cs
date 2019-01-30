@@ -1,6 +1,6 @@
-using System;
-using MediaBrowser.Model.Entities;
+﻿using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Querying;
+using System;
 
 namespace MediaBrowser.Model.Channels
 {
@@ -14,7 +14,7 @@ namespace MediaBrowser.Model.Channels
         public bool? EnableImages { get; set; }
         public int? ImageTypeLimit { get; set; }
         public ImageType[] EnableImageTypes { get; set; }
-
+        
         /// <summary>
         /// Gets or sets the user identifier.
         /// </summary>

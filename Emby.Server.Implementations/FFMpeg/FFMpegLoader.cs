@@ -1,11 +1,11 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Model.IO;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Server.Implementations.FFMpeg
 {
@@ -48,7 +48,7 @@ namespace Emby.Server.Implementations.FFMpeg
             var prebuiltFolder = _appPaths.ProgramSystemPath;
             var prebuiltffmpeg = Path.Combine(prebuiltFolder, downloadInfo.FFMpegFilename);
             var prebuiltffprobe = Path.Combine(prebuiltFolder, downloadInfo.FFProbeFilename);
-            if (File.Exists(prebuiltffmpeg) && File.Exists(prebuiltffprobe))
+            if (_fileSystem.FileExists(prebuiltffmpeg) && _fileSystem.FileExists(prebuiltffprobe))
             {
                 return new FFMpegInfo
                 {
@@ -75,11 +75,11 @@ namespace Emby.Server.Implementations.FFMpeg
                 Version = version
             };
 
-            Directory.CreateDirectory(versionedDirectoryPath);
+            _fileSystem.CreateDirectory(versionedDirectoryPath);
 
             var excludeFromDeletions = new List<string> { versionedDirectoryPath };
 
-            if (!File.Exists(info.ProbePath) || !File.Exists(info.EncoderPath))
+            if (!_fileSystem.FileExists(info.ProbePath) || !_fileSystem.FileExists(info.EncoderPath))
             {
                 // ffmpeg not present. See if there's an older version we can start with
                 var existingVersion = GetExistingVersion(info, rootEncoderPath);
@@ -92,7 +92,7 @@ namespace Emby.Server.Implementations.FFMpeg
                 else
                 {
                     info = existingVersion;
-                    versionedDirectoryPath = Path.GetDirectoryName(info.EncoderPath);
+                    versionedDirectoryPath = _fileSystem.GetDirectoryName(info.EncoderPath);
                     excludeFromDeletions.Add(versionedDirectoryPath);
                 }
             }
@@ -114,7 +114,7 @@ namespace Emby.Server.Implementations.FFMpeg
         {
             var encoderFilename = Path.GetFileName(info.EncoderPath);
             var probeFilename = Path.GetFileName(info.ProbePath);
-
+            
             foreach (var directory in _fileSystem.GetDirectoryPaths(rootEncoderPath)
                 .ToList())
             {
@@ -130,7 +130,7 @@ namespace Emby.Server.Implementations.FFMpeg
                     {
                         EncoderPath = encoder,
                         ProbePath = probe,
-                        Version = Path.GetFileName(Path.GetDirectoryName(probe))
+                        Version = Path.GetFileName(_fileSystem.GetDirectoryName(probe))
                     };
                 }
             }

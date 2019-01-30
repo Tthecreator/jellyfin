@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Model.Text;
+using SocketHttpListener.Primitives;
+using System.Threading;
 using MediaBrowser.Model.IO;
 
 namespace SocketHttpListener.Net
@@ -16,10 +19,12 @@ namespace SocketHttpListener.Net
         private int _statusCode = 200;
         internal object _headersLock = new object();
         private bool _forceCloseChunked;
+        private ITextEncoding _textEncoding;
 
-        internal HttpListenerResponse(HttpListenerContext context)
+        internal HttpListenerResponse(HttpListenerContext context, ITextEncoding textEncoding)
         {
             _httpContext = context;
+            _textEncoding = textEncoding;
         }
 
         internal bool ForceCloseChunked => _forceCloseChunked;
@@ -34,7 +39,7 @@ namespace SocketHttpListener.Net
 
         public Version ProtocolVersion
         {
-            get => _version;
+            get { return _version; }
             set
             {
                 CheckDisposed();
@@ -53,7 +58,7 @@ namespace SocketHttpListener.Net
 
         public int StatusCode
         {
-            get => _statusCode;
+            get { return _statusCode; }
             set
             {
                 CheckDisposed();
@@ -202,13 +207,13 @@ namespace SocketHttpListener.Net
                 }
 
                 /* Apache forces closing the connection for these status codes:
-                 * HttpStatusCode.BadRequest            400
-                 * HttpStatusCode.RequestTimeout        408
-                 * HttpStatusCode.LengthRequired        411
-                 * HttpStatusCode.RequestEntityTooLarge 413
-                 * HttpStatusCode.RequestUriTooLong     414
-                 * HttpStatusCode.InternalServerError   500
-                 * HttpStatusCode.ServiceUnavailable    503
+                 *	HttpStatusCode.BadRequest 		        400
+                 *	HttpStatusCode.RequestTimeout 		    408
+                 *	HttpStatusCode.LengthRequired 		    411
+                 *	HttpStatusCode.RequestEntityTooLarge 	413
+                 *	HttpStatusCode.RequestUriTooLong 	    414
+                 *	HttpStatusCode.InternalServerError      500
+                 *	HttpStatusCode.ServiceUnavailable 	    503
                  */
                 bool conn_close = (_statusCode == (int)HttpStatusCode.BadRequest || _statusCode == (int)HttpStatusCode.RequestTimeout
                         || _statusCode == (int)HttpStatusCode.LengthRequired || _statusCode == (int)HttpStatusCode.RequestEntityTooLarge
@@ -259,8 +264,8 @@ namespace SocketHttpListener.Net
                 ComputeCookies();
             }
 
-            var encoding = Encoding.UTF8;
-            var writer = new StreamWriter(ms, encoding, 256);
+            Encoding encoding = _textEncoding.GetDefaultEncoding();
+            StreamWriter writer = new StreamWriter(ms, encoding, 256);
             writer.Write("HTTP/1.1 {0} ", _statusCode); // "1.1" matches Windows implementation, which ignores the response version
             writer.Flush();
             byte[] statusDescriptionBytes = WebHeaderEncoding.GetBytes(StatusDescription);

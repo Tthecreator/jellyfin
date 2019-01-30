@@ -1,10 +1,11 @@
+﻿using MediaBrowser.Model.Querying;
+using MediaBrowser.Model.Sync;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Querying;
-using MediaBrowser.Model.Sync;
+using MediaBrowser.Controller.Entities;
 
 namespace MediaBrowser.Controller.Sync
 {

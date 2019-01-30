@@ -1,29 +1,30 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Devices;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Devices;
+using MediaBrowser.Model.Events;
+using MediaBrowser.Model.Extensions;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Querying;
+using MediaBrowser.Model.Session;
+using MediaBrowser.Model.Users;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Devices;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Plugins;
-using MediaBrowser.Controller.Security;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Devices;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Events;
-using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Net;
-using MediaBrowser.Model.Querying;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Configuration;
+using MediaBrowser.Controller.Plugins;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Controller.Security;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Model.Session;
-using MediaBrowser.Model.Users;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Common.Extensions;
 
 namespace Emby.Server.Implementations.Devices
 {
@@ -47,24 +48,14 @@ namespace Emby.Server.Implementations.Devices
         private readonly object _cameraUploadSyncLock = new object();
         private readonly object _capabilitiesSyncLock = new object();
 
-        public DeviceManager(
-            IAuthenticationRepository authRepo,
-            IJsonSerializer json,
-            ILibraryManager libraryManager,
-            ILocalizationManager localizationManager,
-            IUserManager userManager,
-            IFileSystem fileSystem,
-            ILibraryMonitor libraryMonitor,
-            IServerConfigurationManager config,
-            ILoggerFactory loggerFactory,
-            INetworkManager network)
+        public DeviceManager(IAuthenticationRepository authRepo, IJsonSerializer json, ILibraryManager libraryManager, ILocalizationManager localizationManager, IUserManager userManager, IFileSystem fileSystem, ILibraryMonitor libraryMonitor, IServerConfigurationManager config, ILogger logger, INetworkManager network)
         {
             _json = json;
             _userManager = userManager;
             _fileSystem = fileSystem;
             _libraryMonitor = libraryMonitor;
             _config = config;
-            _logger = loggerFactory.CreateLogger(nameof(DeviceManager));
+            _logger = logger;
             _network = network;
             _libraryManager = libraryManager;
             _localizationManager = localizationManager;
@@ -76,7 +67,7 @@ namespace Emby.Server.Implementations.Devices
         public void SaveCapabilities(string deviceId, ClientCapabilities capabilities)
         {
             var path = Path.Combine(GetDevicePath(deviceId), "capabilities.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
             lock (_capabilitiesSyncLock)
             {
@@ -108,7 +99,8 @@ namespace Emby.Server.Implementations.Devices
         {
             lock (_capabilitiesSyncLock)
             {
-                if (_capabilitiesCache.TryGetValue(id, out var result))
+                ClientCapabilities result;
+                if (_capabilitiesCache.TryGetValue(id, out result))
                 {
                     return result;
                 }
@@ -152,7 +144,7 @@ namespace Emby.Server.Implementations.Devices
                 HasUser = true
 
             }).Items;
-
+            
             // TODO: DeviceQuery doesn't seem to be used from client. Not even Swagger.
             if (query.SupportsSync.HasValue)
             {
@@ -239,7 +231,7 @@ namespace Emby.Server.Implementations.Devices
             path = Path.Combine(path, file.Name);
             path = Path.ChangeExtension(path, MimeTypes.ToExtension(file.MimeType) ?? "jpg");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
             await EnsureLibraryFolder(uploadPathInfo.Item2, uploadPathInfo.Item3).ConfigureAwait(false);
 
@@ -275,7 +267,7 @@ namespace Emby.Server.Implementations.Devices
         private void AddCameraUpload(string deviceId, LocalFileInfo file)
         {
             var path = Path.Combine(GetDevicePath(deviceId), "camerauploads.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
             lock (_cameraUploadSyncLock)
             {
@@ -317,7 +309,7 @@ namespace Emby.Server.Implementations.Devices
                 return Task.CompletedTask;
             }
 
-            Directory.CreateDirectory(path);
+            _fileSystem.CreateDirectory(path);
 
             var libraryOptions = new LibraryOptions
             {
@@ -368,7 +360,10 @@ namespace Emby.Server.Implementations.Devices
             return path;
         }
 
-        private string DefaultCameraUploadsPath => Path.Combine(_config.CommonApplicationPaths.DataPath, "camerauploads");
+        private string DefaultCameraUploadsPath
+        {
+            get { return Path.Combine(_config.CommonApplicationPaths.DataPath, "camerauploads"); }
+        }
 
         public bool CanAccessDevice(User user, string deviceId)
         {
@@ -378,7 +373,7 @@ namespace Emby.Server.Implementations.Devices
             }
             if (string.IsNullOrEmpty(deviceId))
             {
-                throw new ArgumentNullException(nameof(deviceId));
+                throw new ArgumentNullException("deviceId");
             }
 
             if (!CanAccessDevice(user.Policy, deviceId))
@@ -394,7 +389,7 @@ namespace Emby.Server.Implementations.Devices
             return true;
         }
 
-        private static bool CanAccessDevice(UserPolicy policy, string id)
+        private bool CanAccessDevice(UserPolicy policy, string id)
         {
             if (policy.EnableAllDevices)
             {
@@ -431,7 +426,7 @@ namespace Emby.Server.Implementations.Devices
             {
                 var path = _deviceManager.GetUploadsPath();
 
-                if (Directory.Exists(path))
+                if (_fileSystem.DirectoryExists(path))
                 {
                     try
                     {

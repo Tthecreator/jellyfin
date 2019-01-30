@@ -1,8 +1,10 @@
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
 
 namespace MediaBrowser.LocalMetadata
@@ -67,14 +69,32 @@ namespace MediaBrowser.LocalMetadata
             return file.Exists && FileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
         }
 
-        public string Name => XmlProviderUtils.Name;
+        public string Name
+        {
+            get
+            {
+                return XmlProviderUtils.Name;
+            }
+        }
 
-        //After Nfo
-        public virtual int Order => 1;
+        public  virtual int Order
+        {
+            get
+            {
+                // After Nfo
+                return 1;
+            }
+        }
     }
 
     static class XmlProviderUtils
     {
-        public static string Name => "Emby Xml";
+        public static string Name
+        {
+            get
+            {
+                return "Emby Xml";
+            }
+        }
     }
 }

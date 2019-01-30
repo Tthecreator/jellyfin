@@ -1,10 +1,11 @@
-using System;
-using System.Collections.Generic;
-using MediaBrowser.Model.Drawing;
+﻿using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Extensions;
 using MediaBrowser.Model.Library;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Providers;
+using System;
+using System.Collections.Generic;
 
 namespace MediaBrowser.Model.Dto
 {
@@ -45,7 +46,7 @@ namespace MediaBrowser.Model.Dto
         /// </summary>
         /// <value>The type of the source.</value>
         public string SourceType { get; set; }
-
+        
         /// <summary>
         /// Gets or sets the playlist item identifier.
         /// </summary>

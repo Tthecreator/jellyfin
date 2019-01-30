@@ -1,15 +1,18 @@
-using System.Collections.Generic;
-using Emby.Server.Implementations.Images;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Emby.Server.Implementations.Images;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Querying;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Dto;
 
 namespace Emby.Server.Implementations.Photos
 {
@@ -31,7 +34,7 @@ namespace Emby.Server.Implementations.Photos
                 Parent = item,
                 DtoOptions = new DtoOptions(true),
                 ImageTypes = new ImageType[] { ImageType.Primary },
-                OrderBy = new System.ValueTuple<string, SortOrder>[]
+                OrderBy = new System.ValueTuple<string, SortOrder>[] 
                 {
                     new System.ValueTuple<string, SortOrder>(ItemSortBy.IsFolder, SortOrder.Ascending),
                     new System.ValueTuple<string, SortOrder>(ItemSortBy.SortName, SortOrder.Ascending)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using MediaBrowser.Common.Configuration;
@@ -10,12 +10,15 @@ namespace Emby.Server.Implementations.Devices
     public class DeviceId
     {
         private readonly IApplicationPaths _appPaths;
-        private readonly ILogger _logger;
-        private readonly IFileSystem _fileSystem;
+		private readonly ILogger _logger;
+		private readonly IFileSystem _fileSystem;
 
         private readonly object _syncLock = new object();
 
-        private string CachePath => Path.Combine(_appPaths.DataPath, "device.txt");
+        private string CachePath
+        {
+            get { return Path.Combine(_appPaths.DataPath, "device.txt"); }
+        }
 
         private string GetCachedId()
         {
@@ -23,9 +26,10 @@ namespace Emby.Server.Implementations.Devices
             {
                 lock (_syncLock)
                 {
-                    var value = File.ReadAllText(CachePath, Encoding.UTF8);
+					var value = File.ReadAllText(CachePath, Encoding.UTF8);
 
-                    if (Guid.TryParse(value, out var guid))
+                    Guid guid;
+                    if (Guid.TryParse(value, out guid))
                     {
                         return value;
                     }
@@ -53,11 +57,11 @@ namespace Emby.Server.Implementations.Devices
             {
                 var path = CachePath;
 
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
+				_fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 
                 lock (_syncLock)
                 {
-                    File.WriteAllText(path, id, Encoding.UTF8);
+                    _fileSystem.WriteAllText(path, id, Encoding.UTF8);
                 }
             }
             catch (Exception ex)
@@ -66,7 +70,7 @@ namespace Emby.Server.Implementations.Devices
             }
         }
 
-        private static string GetNewId()
+        private string GetNewId()
         {
             return Guid.NewGuid().ToString("N");
         }
@@ -86,21 +90,20 @@ namespace Emby.Server.Implementations.Devices
 
         private string _id;
 
-        public DeviceId(
-            IApplicationPaths appPaths,
-            ILoggerFactory loggerFactory,
-            IFileSystem fileSystem)
+        public DeviceId(IApplicationPaths appPaths, ILogger logger, IFileSystem fileSystem)
         {
-            if (fileSystem == null)
-            {
-                throw new ArgumentNullException(nameof(fileSystem));
-            }
+			if (fileSystem == null) {
+				throw new ArgumentNullException ("fileSystem");
+			}
 
             _appPaths = appPaths;
-            _logger = loggerFactory.CreateLogger("SystemId");
-            _fileSystem = fileSystem;
+            _logger = logger;
+			_fileSystem = fileSystem;
         }
 
-        public string Value => _id ?? (_id = GetDeviceId());
+        public string Value
+        {
+            get { return _id ?? (_id = GetDeviceId()); }
+        }
     }
 }

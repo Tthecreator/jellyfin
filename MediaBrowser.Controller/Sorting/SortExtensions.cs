@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -72,8 +72,8 @@ namespace MediaBrowser.Controller.Sorting
                     char thisCh = s1[thisMarker];
                     char thatCh = s2[thatMarker];
 
-                    var thisChunk = new StringBuilder();
-                    var thatChunk = new StringBuilder();
+                    StringBuilder thisChunk = new StringBuilder();
+                    StringBuilder thatChunk = new StringBuilder();
 
                     while ((thisMarker < s1.Length) && (thisChunk.Length == 0 || InChunk(thisCh, thisChunk[0])))
                     {

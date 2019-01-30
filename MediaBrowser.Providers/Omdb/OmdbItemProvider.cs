@@ -1,3 +1,16 @@
+﻿using MediaBrowser.Model.IO;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Providers;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,18 +19,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Providers;
-using MediaBrowser.Model.Serialization;
-using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Providers.Omdb
 {
@@ -42,8 +43,15 @@ namespace MediaBrowser.Providers.Omdb
             _configurationManager = configurationManager;
             _appHost = appHost;
         }
-        // After primary option
-        public int Order => 2;
+
+        public int Order
+        {
+            get
+            {
+                // After primary option
+                return 2;
+            }
+        }
 
         public Task<IEnumerable<RemoteSearchResult>> GetSearchResults(SeriesInfo searchInfo, CancellationToken cancellationToken)
         {
@@ -119,7 +127,7 @@ namespace MediaBrowser.Providers.Omdb
                 }
             }
 
-            var url = OmdbProvider.GetOmdbUrl(urlQuery, _appHost, cancellationToken);
+            var url =  OmdbProvider.GetOmdbUrl(urlQuery, _appHost, cancellationToken);
 
             using (var response = await OmdbProvider.GetOmdbResponse(_httpClient, url, cancellationToken).ConfigureAwait(false))
             {
@@ -161,14 +169,16 @@ namespace MediaBrowser.Providers.Omdb
 
                         item.SetProviderId(MetadataProviders.Imdb, result.imdbID);
 
+                        int parsedYear;
                         if (result.Year.Length > 0
-                            && int.TryParse(result.Year.Substring(0, Math.Min(result.Year.Length, 4)), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedYear))
+                            && int.TryParse(result.Year.Substring(0, Math.Min(result.Year.Length, 4)), NumberStyles.Integer, CultureInfo.InvariantCulture, out parsedYear))
                         {
                             item.ProductionYear = parsedYear;
                         }
 
+                        DateTime released;
                         if (!string.IsNullOrEmpty(result.Released)
-                            && DateTime.TryParse(result.Released, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var released))
+                            && DateTime.TryParse(result.Released, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out released))
                         {
                             item.PremiereDate = released;
                         }
@@ -194,7 +204,10 @@ namespace MediaBrowser.Providers.Omdb
             return GetSearchResults(searchInfo, "movie", cancellationToken);
         }
 
-        public string Name => "The Open Movie Database";
+        public string Name
+        {
+            get { return "The Open Movie Database"; }
+        }
 
         public async Task<MetadataResult<Series>> GetMetadata(SeriesInfo info, CancellationToken cancellationToken)
         {

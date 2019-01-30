@@ -1,15 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using MediaBrowser.Controller.Dto;
+﻿using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
-using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Querying;
-using MediaBrowser.Model.Services;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Querying;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Api
 {
@@ -95,7 +96,7 @@ namespace MediaBrowser.Api
             var items = GetSimilaritems(item, libraryManager, inputItems, getSimilarityScore)
                 .ToList();
 
-            var returnItems = items;
+            List<BaseItem> returnItems = items;
 
             if (request.Limit.HasValue)
             {

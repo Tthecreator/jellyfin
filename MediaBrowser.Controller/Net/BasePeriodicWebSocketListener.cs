@@ -1,12 +1,12 @@
-using System;
+﻿using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Threading;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.WebSockets;
-using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Model.Net;
-using MediaBrowser.Model.Threading;
+using System.Threading;
+using System;
 using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Controller.Net
@@ -50,7 +50,7 @@ namespace MediaBrowser.Controller.Net
         {
             if (logger == null)
             {
-                throw new ArgumentNullException(nameof(logger));
+                throw new ArgumentNullException("logger");
             }
 
             Logger = logger;
@@ -65,7 +65,7 @@ namespace MediaBrowser.Controller.Net
         {
             if (message == null)
             {
-                throw new ArgumentNullException(nameof(message));
+                throw new ArgumentNullException("message");
             }
 
             if (string.Equals(message.MessageType, Name + "Start", StringComparison.OrdinalIgnoreCase))
@@ -83,11 +83,17 @@ namespace MediaBrowser.Controller.Net
 
         protected readonly CultureInfo UsCulture = new CultureInfo("en-US");
 
-        protected virtual bool SendOnTimer => false;
+        protected virtual bool SendOnTimer
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         protected virtual void ParseMessageParams(string[] values)
         {
-
+            
         }
 
         /// <summary>
@@ -263,7 +269,7 @@ namespace MediaBrowser.Controller.Net
                 }
                 catch (ObjectDisposedException)
                 {
-                    //TODO Investigate and properly fix.
+
                 }
             }
 
@@ -274,13 +280,10 @@ namespace MediaBrowser.Controller.Net
             }
             catch (ObjectDisposedException)
             {
-                //TODO Investigate and properly fix.
+
             }
 
-            lock (ActiveConnections)
-            {
-                ActiveConnections.Remove(connection);
-            }
+            ActiveConnections.Remove(connection);
         }
 
         /// <summary>

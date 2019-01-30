@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Collections.Generic;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
+using System;
+using System.Threading;
 
 namespace MediaBrowser.Controller.Library
 {

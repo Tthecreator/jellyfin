@@ -1,3 +1,10 @@
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,15 +13,10 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Extensions;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Providers.Movies
 {
@@ -41,7 +43,7 @@ namespace MediaBrowser.Providers.Movies
             var tmdbId = itemId.GetProviderId(MetadataProviders.Tmdb);
             var imdbId = itemId.GetProviderId(MetadataProviders.Imdb);
 
-            // Don't search for music video id's because it is very easy to misidentify.
+            // Don't search for music video id's because it is very easy to misidentify. 
             if (string.IsNullOrEmpty(tmdbId) && string.IsNullOrEmpty(imdbId) && typeof(T) != typeof(MusicVideo))
             {
                 var searchResults = await new MovieDbSearch(_logger, _jsonSerializer, _libraryManager).GetMovieSearchResults(itemId, cancellationToken).ConfigureAwait(false);
@@ -92,7 +94,7 @@ namespace MediaBrowser.Providers.Movies
                     tmdbId = movieInfo.id.ToString(_usCulture);
 
                     dataFilePath = MovieDbProvider.Current.GetDataFilePath(tmdbId, language);
-                    Directory.CreateDirectory(Path.GetDirectoryName(dataFilePath));
+                    _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(dataFilePath));
                     _jsonSerializer.SerializeToFile(movieInfo, dataFilePath);
                 }
             }
@@ -162,9 +164,10 @@ namespace MediaBrowser.Providers.Movies
                 }
             }
 
+            float rating;
             string voteAvg = movieData.vote_average.ToString(CultureInfo.InvariantCulture);
 
-            if (float.TryParse(voteAvg, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var rating))
+            if (float.TryParse(voteAvg, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out rating))
             {
                 movie.CommunityRating = rating;
             }
@@ -195,8 +198,10 @@ namespace MediaBrowser.Providers.Movies
 
             if (!string.IsNullOrWhiteSpace(movieData.release_date))
             {
+                DateTime r;
+
                 // These dates are always in this exact format
-                if (DateTime.TryParse(movieData.release_date, _usCulture, DateTimeStyles.None, out var r))
+                if (DateTime.TryParse(movieData.release_date, _usCulture, DateTimeStyles.None, out r))
                 {
                     movie.PremiereDate = r.ToUniversalTime();
                     movie.ProductionYear = movie.PremiereDate.Value.Year;

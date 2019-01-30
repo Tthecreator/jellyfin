@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace MediaBrowser.Model.Tasks
 {
@@ -24,6 +24,12 @@ namespace MediaBrowser.Model.Tasks
         /// </summary>
         /// <value>The interval.</value>
         public long? IntervalTicks { get; set; }
+
+        /// <summary>
+        /// Gets or sets the system event.
+        /// </summary>
+        /// <value>The system event.</value>
+        public SystemEvent? SystemEvent { get; set; }
 
         /// <summary>
         /// Gets or sets the day of week.

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Playlists;
@@ -25,13 +25,28 @@ namespace Emby.Server.Implementations.Playlists
         }
 
         [IgnoreDataMember]
-        public override bool IsHidden => true;
+        public override bool IsHidden
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsInheritedParentImages => false;
+        public override bool SupportsInheritedParentImages
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         [IgnoreDataMember]
-        public override string CollectionType => MediaBrowser.Model.Entities.CollectionType.Playlists;
+        public override string CollectionType
+        {
+            get { return MediaBrowser.Model.Entities.CollectionType.Playlists; }
+        }
 
         protected override QueryResult<BaseItem> GetItemsInternal(InternalItemsQuery query)
         {

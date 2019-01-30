@@ -1,15 +1,15 @@
-using System;
+﻿using System;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Configuration;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Users;
 using System.Collections.Generic;
 using System.Linq;
+using MediaBrowser.Model.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Serialization;
-using MediaBrowser.Model.Users;
 
 namespace MediaBrowser.Controller.Entities.Audio
 {
@@ -28,13 +28,22 @@ namespace MediaBrowser.Controller.Entities.Audio
         }
 
         [IgnoreDataMember]
-        public override bool SupportsAddingToPlaylist => true;
+        public override bool SupportsAddingToPlaylist
+        {
+            get { return true; }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsInheritedParentImages => true;
+        public override bool SupportsInheritedParentImages
+        {
+            get { return true; }
+        }
 
         [IgnoreDataMember]
-        public MusicArtist MusicArtist => GetMusicArtist(new DtoOptions(true));
+        public MusicArtist MusicArtist
+        {
+            get { return GetMusicArtist(new DtoOptions(true)); }
+        }
 
         public MusicArtist GetMusicArtist(DtoOptions options)
         {
@@ -57,10 +66,22 @@ namespace MediaBrowser.Controller.Entities.Audio
         }
 
         [IgnoreDataMember]
-        public override bool SupportsPlayedStatus => false;
+        public override bool SupportsPlayedStatus
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsCumulativeRunTimeTicks => true;
+        public override bool SupportsCumulativeRunTimeTicks
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         [IgnoreDataMember]
         public string[] AllArtists
@@ -86,17 +107,29 @@ namespace MediaBrowser.Controller.Entities.Audio
         }
 
         [IgnoreDataMember]
-        public string AlbumArtist => AlbumArtists.Length == 0 ? null : AlbumArtists[0];
+        public string AlbumArtist
+        {
+            get { return AlbumArtists.Length == 0 ? null : AlbumArtists[0]; }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsPeople => false;
+        public override bool SupportsPeople
+        {
+            get { return false; }
+        }
 
         /// <summary>
         /// Gets the tracks.
         /// </summary>
         /// <value>The tracks.</value>
         [IgnoreDataMember]
-        public IEnumerable<Audio> Tracks => GetRecursiveChildren(i => i is Audio).Cast<Audio>();
+        public IEnumerable<BaseItem> Tracks
+        {
+            get
+            {
+                return GetRecursiveChildren(i => i is Audio);
+            }
+        }
 
         protected override IEnumerable<BaseItem> GetEligibleChildrenForRecursiveChildren(User user)
         {

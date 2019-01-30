@@ -1,4 +1,4 @@
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
 
@@ -25,7 +25,7 @@ namespace Emby.Server.Implementations.Sorting
         /// </summary>
         /// <param name="x">The x.</param>
         /// <returns>DateTime.</returns>
-        private static int GetValue(BaseItem x)
+        private int GetValue(BaseItem x)
         {
             if (x.ProductionYear.HasValue)
             {
@@ -44,6 +44,9 @@ namespace Emby.Server.Implementations.Sorting
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name => ItemSortBy.ProductionYear;
+        public string Name
+        {
+            get { return ItemSortBy.ProductionYear; }
+        }
     }
 }

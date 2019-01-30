@@ -1,15 +1,15 @@
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Querying;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using MediaBrowser.Model.Serialization;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Dto;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Querying;
-using MediaBrowser.Model.Serialization;
+using System.Threading;
 
 namespace MediaBrowser.Controller.Playlists
 {
@@ -34,7 +34,13 @@ namespace MediaBrowser.Controller.Playlists
         }
 
         [IgnoreDataMember]
-        public bool IsFile => IsPlaylistFile(Path);
+        public bool IsFile
+        {
+            get
+            {
+                return IsPlaylistFile(Path);
+            }
+        }
 
         public static bool IsPlaylistFile(string path)
         {
@@ -50,7 +56,7 @@ namespace MediaBrowser.Controller.Playlists
 
                 if (IsPlaylistFile(path))
                 {
-                    return System.IO.Path.GetDirectoryName(path);
+                    return FileSystem.GetDirectoryName(path);
                 }
 
                 return path;
@@ -58,19 +64,49 @@ namespace MediaBrowser.Controller.Playlists
         }
 
         [IgnoreDataMember]
-        protected override bool FilterLinkedChildrenPerUser => true;
+        protected override bool FilterLinkedChildrenPerUser
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsInheritedParentImages => false;
+        public override bool SupportsInheritedParentImages
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsPlayedStatus => string.Equals(MediaType, "Video", StringComparison.OrdinalIgnoreCase);
+        public override bool SupportsPlayedStatus
+        {
+            get
+            {
+                return string.Equals(MediaType, "Video", StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool AlwaysScanInternalMetadataPath => true;
+        public override bool AlwaysScanInternalMetadataPath
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsCumulativeRunTimeTicks => true;
+        public override bool SupportsCumulativeRunTimeTicks
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         public override double GetDefaultPrimaryImageAspectRatio()
         {
@@ -193,12 +229,24 @@ namespace MediaBrowser.Controller.Playlists
         }
 
         [IgnoreDataMember]
-        public override bool IsPreSorted => true;
+        public override bool IsPreSorted
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         public string PlaylistMediaType { get; set; }
 
         [IgnoreDataMember]
-        public override string MediaType => PlaylistMediaType;
+        public override string MediaType
+        {
+            get
+            {
+                return PlaylistMediaType;
+            }
+        }
 
         public void SetMediaType(string value)
         {

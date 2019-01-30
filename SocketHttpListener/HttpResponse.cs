@@ -1,11 +1,13 @@
-using System;
-using System.Linq;
+﻿using System;
+using System.Collections.Specialized;
+using System.IO;
 using System.Net;
 using System.Text;
-using MediaBrowser.Model.Services;
-using SocketHttpListener.Net;
 using HttpStatusCode = SocketHttpListener.Net.HttpStatusCode;
 using HttpVersion = SocketHttpListener.Net.HttpVersion;
+using System.Linq;
+using MediaBrowser.Model.Services;
+using SocketHttpListener.Net;
 
 namespace SocketHttpListener
 {
@@ -46,9 +48,15 @@ namespace SocketHttpListener
 
         #region Public Properties
 
-        public CookieCollection Cookies => GetCookies(Headers, true);
+        public CookieCollection Cookies
+        {
+            get
+            {
+                return GetCookies(Headers, true);
+            }
+        }
 
-        private static CookieCollection GetCookies(QueryParamCollection headers, bool response)
+        private CookieCollection GetCookies(QueryParamCollection headers, bool response)
         {
             var name = response ? "Set-Cookie" : "Cookie";
             return headers == null || !headers.Contains(name)
@@ -56,9 +64,21 @@ namespace SocketHttpListener
                    : CookieHelper.Parse(headers[name], response);
         }
 
-        public bool IsProxyAuthenticationRequired => _code == "407";
+        public bool IsProxyAuthenticationRequired
+        {
+            get
+            {
+                return _code == "407";
+            }
+        }
 
-        public bool IsUnauthorized => _code == "401";
+        public bool IsUnauthorized
+        {
+            get
+            {
+                return _code == "401";
+            }
+        }
 
         public bool IsWebSocketResponse
         {
@@ -72,9 +92,21 @@ namespace SocketHttpListener
             }
         }
 
-        public string Reason => _reason;
+        public string Reason
+        {
+            get
+            {
+                return _reason;
+            }
+        }
 
-        public string StatusCode => _code;
+        public string StatusCode
+        {
+            get
+            {
+                return _code;
+            }
+        }
 
         #endregion
 
@@ -114,6 +146,10 @@ namespace SocketHttpListener
                 output.AppendFormat("{0}: {1}{2}", key, headers[key], CrLf);
 
             output.Append(CrLf);
+
+            var entity = EntityBody;
+            if (entity.Length > 0)
+                output.Append(entity);
 
             return output.ToString();
         }

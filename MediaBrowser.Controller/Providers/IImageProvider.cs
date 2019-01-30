@@ -1,4 +1,4 @@
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 
 namespace MediaBrowser.Controller.Providers
 {

@@ -1,3 +1,5 @@
+﻿using System;
+
 namespace MediaBrowser.Model.Diagnostics
 {
     public interface IProcessFactory
@@ -7,9 +9,9 @@ namespace MediaBrowser.Model.Diagnostics
 
     public class ProcessOptions
     {
-        public string FileName { get; set; }
-        public string Arguments { get; set; }
-        public string WorkingDirectory { get; set; }
+        public String FileName { get; set; }
+        public String Arguments { get; set; }
+        public String WorkingDirectory { get; set; }
         public bool CreateNoWindow { get; set; }
         public bool UseShellExecute { get; set; }
         public bool EnableRaisingEvents { get; set; }

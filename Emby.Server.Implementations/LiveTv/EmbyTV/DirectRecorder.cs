@@ -1,11 +1,13 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Model.IO;
+
 using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
 
 namespace Emby.Server.Implementations.LiveTv.EmbyTV
@@ -42,7 +44,7 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
 
         private async Task RecordFromDirectStreamProvider(IDirectStreamProvider directStreamProvider, string targetFile, TimeSpan duration, Action onStarted, CancellationToken cancellationToken)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(targetFile));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(targetFile));
 
             using (var output = _fileSystem.GetFileStream(targetFile, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read))
             {
@@ -78,7 +80,7 @@ namespace Emby.Server.Implementations.LiveTv.EmbyTV
             {
                 _logger.LogInformation("Opened recording stream from tuner provider");
 
-                Directory.CreateDirectory(Path.GetDirectoryName(targetFile));
+                _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(targetFile));
 
                 using (var output = _fileSystem.GetFileStream(targetFile, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read))
                 {

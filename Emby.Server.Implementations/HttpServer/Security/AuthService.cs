@@ -1,13 +1,15 @@
-using System;
-using System.Linq;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
+﻿using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Connect;
+using MediaBrowser.Controller.Devices;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Security;
 using MediaBrowser.Controller.Session;
+using System;
+using System.Linq;
 using MediaBrowser.Model.Services;
+using MediaBrowser.Common.Net;
 
 namespace Emby.Server.Implementations.HttpServer.Security
 {
@@ -171,7 +173,7 @@ namespace Emby.Server.Implementations.HttpServer.Security
             return false;
         }
 
-        private static void ValidateRoles(string[] roles, User user)
+        private void ValidateRoles(string[] roles, User user)
         {
             if (roles.Contains("admin", StringComparer.OrdinalIgnoreCase))
             {
@@ -205,9 +207,10 @@ namespace Emby.Server.Implementations.HttpServer.Security
             }
         }
 
-        private static AuthenticationInfo GetTokenInfo(IRequest request)
+        private AuthenticationInfo GetTokenInfo(IRequest request)
         {
-            request.Items.TryGetValue("OriginalAuthenticationInfo", out var info);
+            object info;
+            request.Items.TryGetValue("OriginalAuthenticationInfo", out info);
             return info as AuthenticationInfo;
         }
 

@@ -1,11 +1,11 @@
+﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Net;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Net;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Net;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Api
@@ -98,7 +98,7 @@ namespace MediaBrowser.Api
     [Route("/Environment/DefaultDirectoryBrowser", "GET", Summary = "Gets the parent path of a given path")]
     public class GetDefaultDirectoryBrowser : IReturn<DefaultDirectoryBrowserInfo>
     {
-
+        
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ namespace MediaBrowser.Api
         {
             if (networkManager == null)
             {
-                throw new ArgumentNullException(nameof(networkManager));
+                throw new ArgumentNullException("networkManager");
             }
 
             _networkManager = networkManager;
@@ -137,14 +137,14 @@ namespace MediaBrowser.Api
             {
                 if (request.IsFile.Value)
                 {
-                    if (!File.Exists(request.Path))
+                    if (!_fileSystem.FileExists(request.Path))
                     {
                         throw new FileNotFoundException("File not found", request.Path);
                     }
                 }
                 else
                 {
-                    if (!Directory.Exists(request.Path))
+                    if (!_fileSystem.DirectoryExists(request.Path))
                     {
                         throw new FileNotFoundException("File not found", request.Path);
                     }
@@ -153,7 +153,7 @@ namespace MediaBrowser.Api
 
             else
             {
-                if (!File.Exists(request.Path) && !Directory.Exists(request.Path))
+                if (!_fileSystem.FileExists(request.Path) && !_fileSystem.DirectoryExists(request.Path))
                 {
                     throw new FileNotFoundException("Path not found", request.Path);
                 }
@@ -169,7 +169,7 @@ namespace MediaBrowser.Api
         {
             var file = Path.Combine(path, Guid.NewGuid().ToString());
 
-            File.WriteAllText(file, string.Empty);
+            _fileSystem.WriteAllText(file, string.Empty);
             _fileSystem.DeleteFile(file);
         }
 
@@ -193,7 +193,7 @@ namespace MediaBrowser.Api
 
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentNullException(nameof(Path));
+                throw new ArgumentNullException("Path");
             }
 
             var networkPrefix = UncSeparatorString + UncSeparatorString;
@@ -303,7 +303,7 @@ namespace MediaBrowser.Api
 
         public object Get(GetParentPath request)
         {
-            var parent = Path.GetDirectoryName(request.Path);
+            var parent = _fileSystem.GetDirectoryName(request.Path);
 
             if (string.IsNullOrEmpty(parent))
             {

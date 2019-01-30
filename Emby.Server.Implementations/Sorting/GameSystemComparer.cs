@@ -1,7 +1,7 @@
-using System;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
+using System;
 
 namespace Emby.Server.Implementations.Sorting
 {
@@ -23,7 +23,7 @@ namespace Emby.Server.Implementations.Sorting
         /// </summary>
         /// <param name="x">The x.</param>
         /// <returns>System.String.</returns>
-        private static string GetValue(BaseItem x)
+        private string GetValue(BaseItem x)
         {
             var game = x as Game;
 
@@ -46,6 +46,9 @@ namespace Emby.Server.Implementations.Sorting
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name => ItemSortBy.GameSystem;
+        public string Name
+        {
+            get { return ItemSortBy.GameSystem; }
+        }
     }
 }

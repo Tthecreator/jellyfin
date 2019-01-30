@@ -1,8 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <Compile Include="..\SharedVersion.cs" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\MediaBrowser.Model\MediaBrowser.Model.csproj" />

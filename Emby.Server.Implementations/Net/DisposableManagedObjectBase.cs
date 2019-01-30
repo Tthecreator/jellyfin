@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Emby.Server.Implementations.Net
 {
@@ -16,17 +16,15 @@ namespace Emby.Server.Implementations.Net
         /// <param name="disposing">True if managed objects should be disposed, if false, only unmanaged resources should be released.</param>
         protected abstract void Dispose(bool disposing);
 
-
-        //TODO Remove and reimplement using the IsDisposed property directly.
         /// <summary>
-        /// Throws an <see cref="ObjectDisposedException"/> if the <see cref="IsDisposed"/> property is true.
+        /// Throws and <see cref="System.ObjectDisposedException"/> if the <see cref="IsDisposed"/> property is true.
         /// </summary>
         /// <seealso cref="IsDisposed"/>
-        /// <exception cref="ObjectDisposedException">Thrown if the <see cref="IsDisposed"/> property is true.</exception>
+        /// <exception cref="System.ObjectDisposedException">Thrown if the <see cref="IsDisposed"/> property is true.</exception>
         /// <seealso cref="Dispose()"/>
         protected virtual void ThrowIfDisposed()
         {
-            if (IsDisposed) throw new ObjectDisposedException(GetType().Name);
+            if (this.IsDisposed) throw new ObjectDisposedException(this.GetType().FullName);
         }
 
         #endregion

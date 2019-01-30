@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,8 +10,8 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Xml;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Xml;
 
 namespace MediaBrowser.LocalMetadata.Parsers
 {
@@ -51,17 +51,17 @@ namespace MediaBrowser.LocalMetadata.Parsers
         /// <param name="item">The item.</param>
         /// <param name="metadataFile">The metadata file.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="System.ArgumentNullException"></exception>
         public void Fetch(MetadataResult<T> item, string metadataFile, CancellationToken cancellationToken)
         {
             if (item == null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException();
             }
 
             if (string.IsNullOrEmpty(metadataFile))
             {
-                throw new ArgumentException("The metadata file was empty or null.", nameof(metadataFile));
+                throw new ArgumentNullException();
             }
 
             var settings = XmlReaderSettingsFactory.Create(false);
@@ -102,7 +102,7 @@ namespace MediaBrowser.LocalMetadata.Parsers
         {
             item.ResetPeople();
 
-            using (var fileStream = File.OpenRead(metadataFile))
+            using (Stream fileStream = FileSystem.OpenRead(metadataFile))
             {
                 using (var streamReader = new StreamReader(fileStream, encoding))
                 {
@@ -151,7 +151,8 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            if (DateTime.TryParse(val, out var added))
+                            DateTime added;
+                            if (DateTime.TryParse(val, out added))
                             {
                                 item.DateCreated = added.ToUniversalTime();
                             }
@@ -184,7 +185,8 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                         if (!string.IsNullOrEmpty(text))
                         {
-                            if (float.TryParse(text, NumberStyles.Any, _usCulture, out var value))
+                            float value;
+                            if (float.TryParse(text, NumberStyles.Any, _usCulture, out value))
                             {
                                 item.CriticRating = value;
                             }
@@ -259,7 +261,9 @@ namespace MediaBrowser.LocalMetadata.Parsers
                         {
                             item.LockedFields = val.Split('|').Select(i =>
                             {
-                                if (Enum.TryParse(i, true, out MetadataFields field))
+                                MetadataFields field;
+
+                                if (Enum.TryParse<MetadataFields>(i, true, out field))
                                 {
                                     return (MetadataFields?)field;
                                 }
@@ -333,7 +337,8 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(text))
                         {
-                            if (int.TryParse(text.Split(' ')[0], NumberStyles.Integer, _usCulture, out var runtime))
+                            int runtime;
+                            if (int.TryParse(text.Split(' ')[0], NumberStyles.Integer, _usCulture, out runtime))
                             {
                                 item.RunTimeTicks = TimeSpan.FromMinutes(runtime).Ticks;
                             }
@@ -379,7 +384,7 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                 case "Director":
                     {
-                        foreach (var p in SplitNames(reader.ReadElementContentAsString()).Select(v => new PersonInfo { Name = v.Trim(), Type = PersonType.Director }))
+                        foreach (var p in SplitNames(reader.ReadElementContentAsString()).Select(v => new Controller.Entities.PersonInfo { Name = v.Trim(), Type = PersonType.Director }))
                         {
                             if (string.IsNullOrWhiteSpace(p.Name))
                             {
@@ -391,7 +396,7 @@ namespace MediaBrowser.LocalMetadata.Parsers
                     }
                 case "Writer":
                     {
-                        foreach (var p in SplitNames(reader.ReadElementContentAsString()).Select(v => new PersonInfo { Name = v.Trim(), Type = PersonType.Writer }))
+                        foreach (var p in SplitNames(reader.ReadElementContentAsString()).Select(v => new Controller.Entities.PersonInfo { Name = v.Trim(), Type = PersonType.Writer }))
                         {
                             if (string.IsNullOrWhiteSpace(p.Name))
                             {
@@ -416,7 +421,7 @@ namespace MediaBrowser.LocalMetadata.Parsers
                         else
                         {
                             // Old-style piped string
-                            foreach (var p in SplitNames(actors).Select(v => new PersonInfo { Name = v.Trim(), Type = PersonType.Actor }))
+                            foreach (var p in SplitNames(actors).Select(v => new Controller.Entities.PersonInfo { Name = v.Trim(), Type = PersonType.Actor }))
                             {
                                 if (string.IsNullOrWhiteSpace(p.Name))
                                 {
@@ -430,7 +435,7 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                 case "GuestStars":
                     {
-                        foreach (var p in SplitNames(reader.ReadElementContentAsString()).Select(v => new PersonInfo { Name = v.Trim(), Type = PersonType.GuestStar }))
+                        foreach (var p in SplitNames(reader.ReadElementContentAsString()).Select(v => new Controller.Entities.PersonInfo { Name = v.Trim(), Type = PersonType.GuestStar }))
                         {
                             if (string.IsNullOrWhiteSpace(p.Name))
                             {
@@ -489,7 +494,8 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            if (int.TryParse(val, out var productionYear) && productionYear > 1850)
+                            int productionYear;
+                            if (int.TryParse(val, out productionYear) && productionYear > 1850)
                             {
                                 item.ProductionYear = productionYear;
                             }
@@ -506,8 +512,9 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(rating))
                         {
+                            float val;
                             // All external meta is saving this as '.' for decimal I believe...but just to be sure
-                            if (float.TryParse(rating.Replace(',', '.'), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var val))
+                            if (float.TryParse(rating.Replace(',', '.'), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out val))
                             {
                                 item.CommunityRating = val;
                             }
@@ -523,7 +530,9 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(firstAired))
                         {
-                            if (DateTime.TryParseExact(firstAired, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var airDate) && airDate.Year > 1850)
+                            DateTime airDate;
+
+                            if (DateTime.TryParseExact(firstAired, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out airDate) && airDate.Year > 1850)
                             {
                                 item.PremiereDate = airDate.ToUniversalTime();
                                 item.ProductionYear = airDate.Year;
@@ -540,7 +549,9 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(firstAired))
                         {
-                            if (DateTime.TryParseExact(firstAired, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var airDate) && airDate.Year > 1850)
+                            DateTime airDate;
+
+                            if (DateTime.TryParseExact(firstAired, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out airDate) && airDate.Year > 1850)
                             {
                                 item.EndDate = airDate.ToUniversalTime();
                             }
@@ -676,7 +687,8 @@ namespace MediaBrowser.LocalMetadata.Parsers
                 default:
                     {
                         string readerName = reader.Name;
-                        if (_validProviderIds.TryGetValue(readerName, out string providerIdValue))
+                        string providerIdValue;
+                        if (_validProviderIds.TryGetValue(readerName, out providerIdValue))
                         {
                             var id = reader.ReadElementContentAsString();
                             if (!string.IsNullOrWhiteSpace(id))
@@ -1115,7 +1127,8 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
-                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var intVal))
+                                    int intVal;
+                                    if (int.TryParse(val, NumberStyles.Integer, _usCulture, out intVal))
                                     {
                                         sortOrder = intVal;
                                     }

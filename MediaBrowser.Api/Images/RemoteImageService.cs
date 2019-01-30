@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Extensions;
+﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Dto;
@@ -13,8 +7,16 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Providers;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Api.Images
@@ -220,9 +222,9 @@ namespace MediaBrowser.Api.Images
 
             try
             {
-                contentPath = File.ReadAllText(pointerCachePath);
+                contentPath = _fileSystem.ReadAllText(pointerCachePath);
 
-                if (File.Exists(contentPath))
+                if (_fileSystem.FileExists(contentPath))
                 {
                     return await ResultFactory.GetStaticFileResult(Request, contentPath).ConfigureAwait(false);
                 }
@@ -239,7 +241,7 @@ namespace MediaBrowser.Api.Images
             await DownloadImage(request.ImageUrl, urlHash, pointerCachePath).ConfigureAwait(false);
 
             // Read the pointer file again
-            contentPath = File.ReadAllText(pointerCachePath);
+            contentPath = _fileSystem.ReadAllText(pointerCachePath);
 
             return await ResultFactory.GetStaticFileResult(Request, contentPath).ConfigureAwait(false);
         }
@@ -264,7 +266,7 @@ namespace MediaBrowser.Api.Images
 
                 var fullCachePath = GetFullCachePath(urlHash + "." + ext);
 
-                Directory.CreateDirectory(Path.GetDirectoryName(fullCachePath));
+                _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(fullCachePath));
                 using (var stream = result.Content)
                 {
                     using (var filestream = _fileSystem.GetFileStream(fullCachePath, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read, true))
@@ -273,8 +275,8 @@ namespace MediaBrowser.Api.Images
                     }
                 }
 
-                Directory.CreateDirectory(Path.GetDirectoryName(pointerCachePath));
-                File.WriteAllText(pointerCachePath, fullCachePath);
+                _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(pointerCachePath));
+                _fileSystem.WriteAllText(pointerCachePath, fullCachePath);
             }
         }
 

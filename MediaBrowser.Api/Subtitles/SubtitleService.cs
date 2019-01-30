@@ -1,3 +1,11 @@
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.MediaEncoding;
+using MediaBrowser.Controller.Net;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Controller.Subtitles;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,18 +14,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.MediaEncoding;
-using MediaBrowser.Controller.Net;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Controller.Subtitles;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Services;
-using Microsoft.Extensions.Logging;
 using MimeTypes = MediaBrowser.Model.Net.MimeTypes;
+using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Api.Subtitles
 {
@@ -252,7 +252,7 @@ namespace MediaBrowser.Api.Subtitles
         {
             var video = (Video)_libraryManager.GetItemById(request.Id);
 
-            return await _subtitleManager.SearchSubtitles(video, request.Language, request.IsPerfectMatch, CancellationToken.None).ConfigureAwait(false);
+           return await _subtitleManager.SearchSubtitles(video, request.Language, request.IsPerfectMatch, CancellationToken.None).ConfigureAwait(false);
         }
 
         public Task Delete(DeleteSubtitle request)

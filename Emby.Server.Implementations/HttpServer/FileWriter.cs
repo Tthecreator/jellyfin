@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Services;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Services;
+using System.Linq;
 
 namespace Emby.Server.Implementations.HttpServer
 {
@@ -21,7 +21,7 @@ namespace Emby.Server.Implementations.HttpServer
         private long RangeStart { get; set; }
         private long RangeEnd { get; set; }
         private long RangeLength { get; set; }
-        public long TotalContentLength { get; set; }
+        private long TotalContentLength { get; set; }
 
         public Action OnComplete { get; set; }
         public Action OnError { get; set; }
@@ -38,7 +38,10 @@ namespace Emby.Server.Implementations.HttpServer
         /// Gets the options.
         /// </summary>
         /// <value>The options.</value>
-        public IDictionary<string, string> Headers => _options;
+        public IDictionary<string, string> Headers
+        {
+            get { return _options; }
+        }
 
         public string Path { get; set; }
 
@@ -46,7 +49,7 @@ namespace Emby.Server.Implementations.HttpServer
         {
             if (string.IsNullOrEmpty(contentType))
             {
-                throw new ArgumentNullException(nameof(contentType));
+                throw new ArgumentNullException("contentType");
             }
 
             Path = path;
@@ -145,7 +148,7 @@ namespace Emby.Server.Implementations.HttpServer
             }
         }
 
-        private string[] SkipLogExtensions = new string[]
+        private string[] SkipLogExtensions = new string[] 
         {
             ".js",
             ".html",
@@ -200,8 +203,8 @@ namespace Emby.Server.Implementations.HttpServer
 
         public HttpStatusCode StatusCode
         {
-            get => (HttpStatusCode)Status;
-            set => Status = (int)value;
+            get { return (HttpStatusCode)Status; }
+            set { Status = (int)value; }
         }
 
         public string StatusDescription { get; set; }

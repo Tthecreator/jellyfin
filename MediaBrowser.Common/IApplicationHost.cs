@@ -1,10 +1,10 @@
+﻿using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.Events;
+using MediaBrowser.Model.Updates;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Plugins;
-using MediaBrowser.Model.Events;
-using MediaBrowser.Model.Updates;
 
 namespace MediaBrowser.Common
 {
@@ -69,13 +69,7 @@ namespace MediaBrowser.Common
         /// Gets the application version.
         /// </summary>
         /// <value>The application version.</value>
-        string ApplicationVersion { get; }
-
-        /// <summary>
-        /// Gets the application user agent.
-        /// </summary>
-        /// <value>The application user agent.</value>
-        string ApplicationUserAgent { get; }
+        Version ApplicationVersion { get; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance can self update.

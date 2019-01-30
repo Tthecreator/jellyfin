@@ -1,11 +1,18 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
+using System.Globalization;
+using System.Runtime.InteropServices;
+using System.ComponentModel;
+using System.Diagnostics;
+using Microsoft.Win32.SafeHandles;
 
 namespace SocketHttpListener.Net
 {
-    public sealed partial class HttpListenerResponse : IDisposable
+    public sealed unsafe partial class HttpListenerResponse : IDisposable
     {
         private BoundaryType _boundaryType = BoundaryType.None;
         private CookieCollection _cookies;
@@ -15,13 +22,16 @@ namespace SocketHttpListener.Net
         private string _statusDescription;
         private WebHeaderCollection _webHeaders = new WebHeaderCollection();
 
-        public WebHeaderCollection Headers => _webHeaders;
+        public WebHeaderCollection Headers
+        {
+            get { return _webHeaders; }
+        }
 
         public Encoding ContentEncoding { get; set; }
 
         public string ContentType
         {
-            get => Headers["Content-Type"];
+            get { return Headers["Content-Type"]; }
             set
             {
                 CheckDisposed();
@@ -36,13 +46,13 @@ namespace SocketHttpListener.Net
             }
         }
 
-        private HttpListenerContext HttpListenerContext => _httpContext;
+        private HttpListenerContext HttpListenerContext { get { return _httpContext; } }
 
-        private HttpListenerRequest HttpListenerRequest => HttpListenerContext.Request;
+        private HttpListenerRequest HttpListenerRequest { get { return HttpListenerContext.Request; } }
 
         internal EntitySendFormat EntitySendFormat
         {
-            get => (EntitySendFormat)_boundaryType;
+            get { return (EntitySendFormat)_boundaryType; }
             set
             {
                 CheckDisposed();
@@ -61,8 +71,8 @@ namespace SocketHttpListener.Net
 
         public bool SendChunked
         {
-            get => EntitySendFormat == EntitySendFormat.Chunked;
-            set => EntitySendFormat = value ? EntitySendFormat.Chunked : EntitySendFormat.ContentLength;
+            get { return EntitySendFormat == EntitySendFormat.Chunked; ; }
+            set { EntitySendFormat = value ? EntitySendFormat.Chunked : EntitySendFormat.ContentLength; }
         }
 
         // We MUST NOT send message-body when we send responses with these Status codes
@@ -82,7 +92,7 @@ namespace SocketHttpListener.Net
 
         public long ContentLength64
         {
-            get => _contentLength;
+            get { return _contentLength; }
             set
             {
                 CheckDisposed();
@@ -94,20 +104,20 @@ namespace SocketHttpListener.Net
                 }
                 else
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value));
+                    throw new ArgumentOutOfRangeException("net_clsmall");
                 }
             }
         }
 
         public CookieCollection Cookies
         {
-            get => _cookies ?? (_cookies = new CookieCollection());
-            set => _cookies = value;
+            get { return _cookies ?? (_cookies = new CookieCollection()); }
+            set { _cookies = value; }
         }
 
         public bool KeepAlive
         {
-            get => _keepAlive;
+            get { return _keepAlive; }
             set
             {
                 CheckDisposed();
@@ -127,7 +137,7 @@ namespace SocketHttpListener.Net
 
         public string RedirectLocation
         {
-            get => Headers["Location"];
+            get { return Headers["Location"]; }
             set
             {
                 // note that this doesn't set the status code to a redirect one

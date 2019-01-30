@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -11,6 +6,11 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Providers.Movies;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Providers.People
 {
@@ -27,9 +27,15 @@ namespace MediaBrowser.Providers.People
             _httpClient = httpClient;
         }
 
-        public string Name => ProviderName;
+        public string Name
+        {
+            get { return ProviderName; }
+        }
 
-        public static string ProviderName => "TheMovieDb";
+        public static string ProviderName
+        {
+            get { return "TheMovieDb"; }
+        }
 
         public bool Supports(BaseItem item)
         {
@@ -118,7 +124,10 @@ namespace MediaBrowser.Providers.People
             return profile.iso_639_1 == null ? null : profile.iso_639_1.ToString();
         }
 
-        public int Order => 0;
+        public int Order
+        {
+            get { return 0; }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {

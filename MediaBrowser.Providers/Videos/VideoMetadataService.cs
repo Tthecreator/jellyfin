@@ -1,18 +1,25 @@
-using MediaBrowser.Controller.Configuration;
+﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Providers.Manager;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Providers.Manager;
+using System.Collections.Generic;
+using MediaBrowser.Model.IO;
 
 namespace MediaBrowser.Providers.Videos
 {
     public class VideoMetadataService : MetadataService<Video, ItemLookupInfo>
     {
-        // Make sure the type-specific services get picked first
-        public override int Order => 10;
+        public override int Order
+        {
+            get
+            {
+                // Make sure the type-specific services get picked first
+                return 10;
+            }
+        }
 
         protected override void MergeData(MetadataResult<Video> source, MetadataResult<Video> target, MetadataFields[] lockedFields, bool replaceData, bool mergeMetadataSettings)
         {

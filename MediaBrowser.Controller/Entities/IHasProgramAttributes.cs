@@ -1,4 +1,4 @@
-using MediaBrowser.Model.LiveTv;
+﻿using MediaBrowser.Model.LiveTv;
 
 namespace MediaBrowser.Controller.Entities
 {

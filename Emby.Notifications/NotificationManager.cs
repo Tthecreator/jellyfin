@@ -1,17 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Notifications;
-using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Notifications;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Notifications;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Extensions;
+using MediaBrowser.Model.Dto;
 
 namespace Emby.Notifications
 {

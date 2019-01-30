@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Services;
+using MediaBrowser.Model.Extensions;
 
 namespace Emby.Server.Implementations.Services
 {
@@ -73,7 +74,8 @@ namespace Emby.Server.Implementations.Services
         {
             var actionName = request.Verb ?? "POST";
 
-            if (execMap.TryGetValue(ServiceMethod.Key(serviceType, actionName, requestName), out ServiceMethod actionContext))
+            ServiceMethod actionContext;
+            if (ServiceExecGeneral.execMap.TryGetValue(ServiceMethod.Key(serviceType, actionName, requestName), out actionContext))
             {
                 if (actionContext.RequestFilters != null)
                 {

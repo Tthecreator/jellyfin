@@ -1,14 +1,14 @@
+﻿using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Configuration;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MediaBrowser.Model.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Extensions;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Serialization;
-using MediaBrowser.Model.Users;
 using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Controller.Entities.Audio
@@ -19,25 +19,61 @@ namespace MediaBrowser.Controller.Entities.Audio
     public class MusicArtist : Folder, IItemByName, IHasMusicGenres, IHasDualAccess, IHasLookupInfo<ArtistInfo>
     {
         [IgnoreDataMember]
-        public bool IsAccessedByName => ParentId.Equals(Guid.Empty);
+        public bool IsAccessedByName
+        {
+            get { return ParentId.Equals(Guid.Empty); }
+        }
 
         [IgnoreDataMember]
-        public override bool IsFolder => !IsAccessedByName;
+        public override bool IsFolder
+        {
+            get
+            {
+                return !IsAccessedByName;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsInheritedParentImages => false;
+        public override bool SupportsInheritedParentImages
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsCumulativeRunTimeTicks => true;
+        public override bool SupportsCumulativeRunTimeTicks
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool IsDisplayedAsFolder => true;
+        public override bool IsDisplayedAsFolder
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsAddingToPlaylist => true;
+        public override bool SupportsAddingToPlaylist
+        {
+            get { return true; }
+        }
 
         [IgnoreDataMember]
-        public override bool SupportsPlayedStatus => false;
+        public override bool SupportsPlayedStatus
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         public override double GetDefaultPrimaryImageAspectRatio()
         {
@@ -118,7 +154,13 @@ namespace MediaBrowser.Controller.Entities.Audio
         /// </summary>
         /// <value>The containing folder path.</value>
         [IgnoreDataMember]
-        public override string ContainingFolderPath => Path;
+        public override string ContainingFolderPath
+        {
+            get
+            {
+                return Path;
+            }
+        }
 
         /// <summary>
         /// Gets the user data key.
@@ -165,7 +207,13 @@ namespace MediaBrowser.Controller.Entities.Audio
         }
 
         [IgnoreDataMember]
-        public override bool SupportsPeople => false;
+        public override bool SupportsPeople
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         public static string GetPath(string name)
         {

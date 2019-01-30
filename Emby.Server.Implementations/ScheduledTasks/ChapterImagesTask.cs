@@ -1,20 +1,22 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.MediaEncoding;
+using MediaBrowser.Controller.Persistence;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Dto;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.MediaEncoding;
-using MediaBrowser.Controller.Persistence;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Tasks;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Extensions;
+using MediaBrowser.Controller.Providers;
 
 namespace Emby.Server.Implementations.ScheduledTasks
 {
@@ -68,7 +70,10 @@ namespace Emby.Server.Implementations.ScheduledTasks
             };
         }
 
-        public string Key => "RefreshChapterImages";
+        public string Key
+        {
+            get { return "RefreshChapterImages"; }
+        }
 
         /// <summary>
         /// Returns the task to be executed
@@ -101,20 +106,17 @@ namespace Emby.Server.Implementations.ScheduledTasks
 
             List<string> previouslyFailedImages;
 
-            if (File.Exists(failHistoryPath))
+            try
             {
-                try
-                {
-                    previouslyFailedImages = File.ReadAllText(failHistoryPath)
-                        .Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)
-                        .ToList();
-                }
-                catch (IOException)
-                {
-                    previouslyFailedImages = new List<string>();
-                }
+                previouslyFailedImages = _fileSystem.ReadAllText(failHistoryPath)
+                    .Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)
+                    .ToList();
             }
-            else
+            catch (FileNotFoundException)
+            {
+                previouslyFailedImages = new List<string>();
+            }
+            catch (IOException)
             {
                 previouslyFailedImages = new List<string>();
             }
@@ -139,12 +141,11 @@ namespace Emby.Server.Implementations.ScheduledTasks
                     {
                         previouslyFailedImages.Add(key);
 
-                        var parentPath = Path.GetDirectoryName(failHistoryPath);
+                        var parentPath = _fileSystem.GetDirectoryName(failHistoryPath);
 
-                        Directory.CreateDirectory(parentPath);
+                        _fileSystem.CreateDirectory(parentPath);
 
-                        string text = string.Join("|", previouslyFailedImages);
-                        File.WriteAllText(failHistoryPath, text);
+                        _fileSystem.WriteAllText(failHistoryPath, string.Join("|", previouslyFailedImages.ToArray()));
                     }
 
                     numComplete++;
@@ -155,7 +156,6 @@ namespace Emby.Server.Implementations.ScheduledTasks
                 }
                 catch (ObjectDisposedException)
                 {
-                    //TODO Investigate and properly fix.
                     break;
                 }
             }
@@ -165,18 +165,33 @@ namespace Emby.Server.Implementations.ScheduledTasks
         /// Gets the name of the task
         /// </summary>
         /// <value>The name.</value>
-        public string Name => "Chapter image extraction";
+        public string Name
+        {
+            get
+            {
+                return "Chapter image extraction";
+            }
+        }
 
         /// <summary>
         /// Gets the description.
         /// </summary>
         /// <value>The description.</value>
-        public string Description => "Creates thumbnails for videos that have chapters.";
+        public string Description
+        {
+            get { return "Creates thumbnails for videos that have chapters."; }
+        }
 
         /// <summary>
         /// Gets the category.
         /// </summary>
         /// <value>The category.</value>
-        public string Category => "Library";
+        public string Category
+        {
+            get
+            {
+                return "Library";
+            }
+        }
     }
 }

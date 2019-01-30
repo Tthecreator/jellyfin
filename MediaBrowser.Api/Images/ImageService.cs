@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Extensions;
+﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
@@ -15,8 +8,19 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using MediaBrowser.Controller.Dto;
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Services;
+
 using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Api.Images
@@ -328,9 +332,10 @@ namespace MediaBrowser.Api.Images
                         var fileInfo = _fileSystem.GetFileInfo(info.Path);
                         length = fileInfo.Length;
 
-                        ImageDimensions size = _imageProcessor.GetImageSize(item, info, true);
-                        width = size.Width;
-                        height = size.Height;
+                        var size = _imageProcessor.GetImageSize(item, info, true, true);
+
+                        width = Convert.ToInt32(size.Width);
+                        height = Convert.ToInt32(size.Height);
 
                         if (width <= 0 || height <= 0)
                         {
@@ -658,7 +663,8 @@ namespace MediaBrowser.Api.Images
         {
             if (!string.IsNullOrWhiteSpace(request.Format))
             {
-                if (Enum.TryParse(request.Format, true, out ImageFormat format))
+                ImageFormat format;
+                if (Enum.TryParse(request.Format, true, out format))
                 {
                     return new ImageFormat[] { format };
                 }

@@ -1,15 +1,18 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller;
-using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.LiveTv;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.System;
+using MediaBrowser.Model.LiveTv;
+using System.Linq;
+using MediaBrowser.Controller.Library;
 
 namespace Emby.Server.Implementations.LiveTv.TunerHosts
 {
@@ -214,7 +217,13 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
             }
         }
 
-        protected virtual int EmptyReadLimit => 1000;
+        protected virtual int EmptyReadLimit
+        {
+            get
+            {
+                return 1000;
+            }
+        }
 
         private void TrySeek(FileStream stream, long offset)
         {

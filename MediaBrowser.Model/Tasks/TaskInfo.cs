@@ -1,3 +1,5 @@
+﻿using System.Collections.Generic;
+
 namespace MediaBrowser.Model.Tasks
 {
     /// <summary>
@@ -70,7 +72,7 @@ namespace MediaBrowser.Model.Tasks
         /// </summary>
         public TaskInfo()
         {
-            Triggers = new TaskTriggerInfo[] { };
+            Triggers = new TaskTriggerInfo[]{};
         }
     }
 }

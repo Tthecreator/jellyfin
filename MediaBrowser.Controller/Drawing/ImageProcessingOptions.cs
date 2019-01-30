@@ -1,9 +1,10 @@
-using System;
-using System.IO;
-using System.Linq;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Drawing;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace MediaBrowser.Controller.Drawing
 {
@@ -57,7 +58,7 @@ namespace MediaBrowser.Controller.Drawing
                 !MaxHeight.HasValue;
         }
 
-        public bool HasDefaultOptions(string originalImagePath, ImageDimensions? size)
+        public bool HasDefaultOptions(string originalImagePath, ImageSize? size)
         {
             if (!size.HasValue)
             {

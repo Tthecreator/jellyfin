@@ -1,5 +1,9 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
 using System.Text;
+using System.Threading;
 using MediaBrowser.Model.Services;
 
 namespace SocketHttpListener
@@ -10,6 +14,12 @@ namespace SocketHttpListener
 
         private QueryParamCollection _headers;
         private Version _version;
+
+        #endregion
+
+        #region Internal Fields
+
+        internal byte[] EntityBodyData;
 
         #endregion
 
@@ -31,9 +41,33 @@ namespace SocketHttpListener
 
         #region Public Properties
 
-        public QueryParamCollection Headers => _headers;
+        public string EntityBody
+        {
+            get
+            {
+                var data = EntityBodyData;
 
-        public Version ProtocolVersion => _version;
+                return data != null && data.Length > 0
+                       ? getEncoding(_headers["Content-Type"]).GetString(data, 0, data.Length)
+                       : String.Empty;
+            }
+        }
+
+        public QueryParamCollection Headers
+        {
+            get
+            {
+                return _headers;
+            }
+        }
+
+        public Version ProtocolVersion
+        {
+            get
+            {
+                return _version;
+            }
+        }
 
         #endregion
 

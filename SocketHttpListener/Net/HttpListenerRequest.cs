@@ -1,14 +1,21 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
+using System.IO;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Services;
+using MediaBrowser.Model.Text;
+using SocketHttpListener.Primitives;
+using System.Collections.Generic;
 using SocketHttpListener.Net.WebSockets;
 
 namespace SocketHttpListener.Net
 {
-    public sealed partial class HttpListenerRequest
+    public sealed unsafe partial class HttpListenerRequest
     {
         private CookieCollection _cookies;
         private bool? _keepAlive;
@@ -20,9 +27,9 @@ namespace SocketHttpListener.Net
 
         public string[] UserLanguages => Helpers.ParseMultivalueHeader(Headers[HttpKnownHeaderNames.AcceptLanguage]);
 
-        private static CookieCollection ParseCookies(Uri uri, string setCookieHeader)
+        private CookieCollection ParseCookies(Uri uri, string setCookieHeader)
         {
-            var cookies = new CookieCollection();
+            CookieCollection cookies = new CookieCollection();
             return cookies;
         }
 
@@ -81,7 +88,7 @@ namespace SocketHttpListener.Net
                         }
                     }
                 }
-                return Encoding.UTF8;
+                return TextEncodingExtensions.GetDefaultEncoding();
             }
         }
 
@@ -170,7 +177,7 @@ namespace SocketHttpListener.Net
         {
             get
             {
-                var queryString = new QueryParamCollection();
+                QueryParamCollection queryString = new QueryParamCollection();
                 Helpers.FillFromString(queryString, Url.Query, true, ContentEncoding);
                 return queryString;
             }
@@ -196,7 +203,7 @@ namespace SocketHttpListener.Net
                     return null;
                 }
 
-                bool success = Uri.TryCreate(referrer, UriKind.RelativeOrAbsolute, out var urlReferrer);
+                bool success = Uri.TryCreate(referrer, UriKind.RelativeOrAbsolute, out Uri urlReferrer);
                 return success ? urlReferrer : null;
             }
         }
@@ -295,7 +302,7 @@ namespace SocketHttpListener.Net
 
                 // collect comma-separated values into list
 
-                var values = new List<string>();
+                List<string> values = new List<string>();
                 int i = 0;
 
                 while (i < l)
@@ -340,7 +347,7 @@ namespace SocketHttpListener.Net
             private static string UrlDecodeStringFromStringInternal(string s, Encoding e)
             {
                 int count = s.Length;
-                var helper = new UrlDecoder(count, e);
+                UrlDecoder helper = new UrlDecoder(count, e);
 
                 // go through the string's chars collapsing %XX and %uXXXX and
                 // appending each char as char, with exception of %XX constructs

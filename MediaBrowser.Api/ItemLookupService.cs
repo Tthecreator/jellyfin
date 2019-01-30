@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Extensions;
+﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
@@ -13,8 +7,14 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Providers;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Services;
 using Microsoft.Extensions.Logging;
@@ -240,7 +240,7 @@ namespace MediaBrowser.Api
             //item.ProductionYear = request.ProductionYear;
             //item.Name = request.Name;
 
-            return _providerManager.RefreshFullItem(item, new MetadataRefreshOptions(new DirectoryService(Logger, _fileSystem))
+            return _providerManager.RefreshFullItem(item, new MetadataRefreshOptions(new DirectoryService(Logger,  _fileSystem))
             {
                 MetadataRefreshMode = MetadataRefreshMode.FullRefresh,
                 ImageRefreshMode = MetadataRefreshMode.FullRefresh,
@@ -265,9 +265,9 @@ namespace MediaBrowser.Api
 
             try
             {
-                contentPath = File.ReadAllText(pointerCachePath);
+                contentPath = _fileSystem.ReadAllText(pointerCachePath);
 
-                if (File.Exists(contentPath))
+                if (_fileSystem.FileExists(contentPath))
                 {
                     return await ResultFactory.GetStaticFileResult(Request, contentPath).ConfigureAwait(false);
                 }
@@ -284,7 +284,7 @@ namespace MediaBrowser.Api
             await DownloadImage(request.ProviderName, request.ImageUrl, urlHash, pointerCachePath).ConfigureAwait(false);
 
             // Read the pointer file again
-            contentPath = File.ReadAllText(pointerCachePath);
+            contentPath = _fileSystem.ReadAllText(pointerCachePath);
 
             return await ResultFactory.GetStaticFileResult(Request, contentPath).ConfigureAwait(false);
         }
@@ -305,7 +305,7 @@ namespace MediaBrowser.Api
 
             var fullCachePath = GetFullCachePath(urlHash + "." + ext);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(fullCachePath));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(fullCachePath));
             using (var stream = result.Content)
             {
                 using (var filestream = _fileSystem.GetFileStream(fullCachePath, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read, true))
@@ -314,8 +314,8 @@ namespace MediaBrowser.Api
                 }
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(pointerCachePath));
-            File.WriteAllText(pointerCachePath, fullCachePath);
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(pointerCachePath));
+            _fileSystem.WriteAllText(pointerCachePath, fullCachePath);
         }
 
         /// <summary>

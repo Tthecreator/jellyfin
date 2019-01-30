@@ -1,12 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
@@ -14,12 +6,23 @@ using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Extensions;
+using MediaBrowser.Model.Providers;
+using MediaBrowser.Providers.TV;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Net;
-using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Providers.TV;
+using MediaBrowser.Model.Extensions;
 
 namespace MediaBrowser.Providers.Music
 {
@@ -46,9 +49,15 @@ namespace MediaBrowser.Providers.Music
             Current = this;
         }
 
-        public string Name => ProviderName;
+        public string Name
+        {
+            get { return ProviderName; }
+        }
 
-        public static string ProviderName => "FanArt";
+        public static string ProviderName
+        {
+            get { return "FanArt"; }
+        }
 
         public bool Supports(BaseItem item)
         {
@@ -59,7 +68,7 @@ namespace MediaBrowser.Providers.Music
         {
             return new List<ImageType>
             {
-                ImageType.Primary,
+                ImageType.Primary, 
                 ImageType.Logo,
                 ImageType.Art,
                 ImageType.Banner,
@@ -75,7 +84,7 @@ namespace MediaBrowser.Providers.Music
 
             var artistMusicBrainzId = artist.GetProviderId(MetadataProviders.MusicBrainzArtist);
 
-            if (!string.IsNullOrEmpty(artistMusicBrainzId))
+            if (!String.IsNullOrEmpty(artistMusicBrainzId))
             {
                 await EnsureArtistJson(artistMusicBrainzId, cancellationToken).ConfigureAwait(false);
 
@@ -97,24 +106,24 @@ namespace MediaBrowser.Providers.Music
 
             var language = item.GetPreferredMetadataLanguage();
 
-            var isLanguageEn = string.Equals(language, "en", StringComparison.OrdinalIgnoreCase);
+            var isLanguageEn = String.Equals(language, "en", StringComparison.OrdinalIgnoreCase);
 
             // Sort first by width to prioritize HD versions
             return list.OrderByDescending(i => i.Width ?? 0)
                 .ThenByDescending(i =>
                 {
-                    if (string.Equals(language, i.Language, StringComparison.OrdinalIgnoreCase))
+                    if (String.Equals(language, i.Language, StringComparison.OrdinalIgnoreCase))
                     {
                         return 3;
                     }
                     if (!isLanguageEn)
                     {
-                        if (string.Equals("en", i.Language, StringComparison.OrdinalIgnoreCase))
+                        if (String.Equals("en", i.Language, StringComparison.OrdinalIgnoreCase))
                         {
                             return 2;
                         }
                     }
-                    if (string.IsNullOrEmpty(i.Language))
+                    if (String.IsNullOrEmpty(i.Language))
                     {
                         return isLanguageEn ? 3 : 2;
                     }
@@ -161,6 +170,7 @@ namespace MediaBrowser.Providers.Music
                 if (!string.IsNullOrEmpty(url))
                 {
                     var likesString = i.likes;
+                    int likes;
 
                     var info = new RemoteImageInfo
                     {
@@ -173,7 +183,7 @@ namespace MediaBrowser.Providers.Music
                         Language = i.lang
                     };
 
-                    if (!string.IsNullOrEmpty(likesString) && int.TryParse(likesString, NumberStyles.Integer, _usCulture, out var likes))
+                    if (!string.IsNullOrEmpty(likesString) && int.TryParse(likesString, NumberStyles.Integer, _usCulture, out likes))
                     {
                         info.CommunityRating = likes;
                     }
@@ -185,7 +195,10 @@ namespace MediaBrowser.Providers.Music
             }).Where(i => i != null));
         }
 
-        public int Order => 0;
+        public int Order
+        {
+            get { return 0; }
+        }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {
@@ -233,7 +246,7 @@ namespace MediaBrowser.Providers.Music
 
             var jsonPath = GetArtistJsonPath(_config.ApplicationPaths, musicBrainzId);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(jsonPath));
+            _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(jsonPath));
 
             try
             {

@@ -1,8 +1,8 @@
-using System;
-using MediaBrowser.Controller.LiveTv;
-using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
+﻿using MediaBrowser.Controller.LiveTv;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
+using System;
+using MediaBrowser.Model.IO;
 
 namespace Emby.Server.Implementations.LiveTv.EmbyTV
 {

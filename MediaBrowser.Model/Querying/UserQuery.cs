@@ -1,3 +1,4 @@
+﻿
 namespace MediaBrowser.Model.Querying
 {
     public class UserQuery

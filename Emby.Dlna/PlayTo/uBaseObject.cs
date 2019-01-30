@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 
 namespace Emby.Dlna.PlayTo
 {
-    public class uBaseObject
+    public class uBaseObject 
     {
         public string Id { get; set; }
 
@@ -26,7 +26,7 @@ namespace Emby.Dlna.PlayTo
         {
             if (obj == null)
             {
-                throw new ArgumentNullException(nameof(obj));
+                throw new ArgumentNullException("obj");
             }
 
             return string.Equals(Id, obj.Id);

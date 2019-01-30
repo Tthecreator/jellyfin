@@ -1,8 +1,9 @@
+﻿using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Providers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Providers;
 
 namespace MediaBrowser.Controller.Subtitles
 {

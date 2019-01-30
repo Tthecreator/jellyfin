@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 
 namespace Emby.Server.Implementations.Serialization
 {
@@ -17,12 +17,10 @@ namespace Emby.Server.Implementations.Serialization
         private readonly IFileSystem _fileSystem;
         private readonly ILogger _logger;
 
-        public MyXmlSerializer(
-            IFileSystem fileSystem,
-            ILoggerFactory loggerFactory)
+        public MyXmlSerializer(IFileSystem fileSystem, ILogger logger)
         {
             _fileSystem = fileSystem;
-            _logger = loggerFactory.CreateLogger("XmlSerializer");
+            _logger = logger;
         }
 
         // Need to cache these
@@ -35,7 +33,8 @@ namespace Emby.Server.Implementations.Serialization
             var key = type.FullName;
             lock (_serializers)
             {
-                if (!_serializers.TryGetValue(key, out var serializer))
+                XmlSerializer serializer;
+                if (!_serializers.TryGetValue(key, out serializer))
                 {
                     serializer = new XmlSerializer(type);
                     _serializers[key] = serializer;
@@ -107,7 +106,7 @@ namespace Emby.Server.Implementations.Serialization
         public object DeserializeFromFile(Type type, string file)
         {
             _logger.LogDebug("Deserializing file {0}", file);
-            using (var stream = File.OpenRead(file))
+            using (var stream = _fileSystem.OpenRead(file))
             {
                 return DeserializeFromStream(type, stream);
             }

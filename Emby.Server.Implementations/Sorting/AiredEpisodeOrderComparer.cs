@@ -1,8 +1,8 @@
-using System;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
+using System;
 
 namespace Emby.Server.Implementations.Sorting
 {
@@ -16,16 +16,6 @@ namespace Emby.Server.Implementations.Sorting
         /// <returns>System.Int32.</returns>
         public int Compare(BaseItem x, BaseItem y)
         {
-            if (x == null)
-            {
-                throw new ArgumentNullException(nameof(x));
-            }
-
-            if (y == null)
-            {
-                throw new ArgumentNullException(nameof(y));
-            }
-
             if (x.PremiereDate.HasValue && y.PremiereDate.HasValue)
             {
                 var val = DateTime.Compare(x.PremiereDate.Value, y.PremiereDate.Value);
@@ -80,7 +70,7 @@ namespace Emby.Server.Implementations.Sorting
             return CompareEpisodeToSpecial(y, x) * -1;
         }
 
-        private static int CompareEpisodeToSpecial(Episode x, Episode y)
+        private int CompareEpisodeToSpecial(Episode x, Episode y)
         {
             // http://thetvdb.com/wiki/index.php?title=Special_Episodes
 
@@ -129,7 +119,7 @@ namespace Emby.Server.Implementations.Sorting
             return GetSpecialCompareValue(x).CompareTo(GetSpecialCompareValue(y));
         }
 
-        private static int GetSpecialCompareValue(Episode item)
+        private int GetSpecialCompareValue(Episode item)
         {
             // First sort by season number
             // Since there are three sort orders, pad with 9 digits (3 for each, figure 1000 episode buffer should be enough)
@@ -150,7 +140,7 @@ namespace Emby.Server.Implementations.Sorting
             return val;
         }
 
-        private static int CompareEpisodes(Episode x, Episode y)
+        private int CompareEpisodes(Episode x, Episode y)
         {
             var xValue = (x.ParentIndexNumber ?? -1) * 1000 + (x.IndexNumber ?? -1);
             var yValue = (y.ParentIndexNumber ?? -1) * 1000 + (y.IndexNumber ?? -1);
@@ -162,6 +152,9 @@ namespace Emby.Server.Implementations.Sorting
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name => ItemSortBy.AiredEpisodeOrder;
+        public string Name
+        {
+            get { return ItemSortBy.AiredEpisodeOrder; }
+        }
     }
 }

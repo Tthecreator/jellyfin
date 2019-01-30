@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
@@ -7,7 +7,7 @@ namespace MediaBrowser.Controller.Drawing
 {
     public static class ImageHelper
     {
-        public static ImageDimensions GetNewImageSize(ImageProcessingOptions options, ImageDimensions? originalImageSize)
+        public static ImageSize GetNewImageSize(ImageProcessingOptions options, ImageSize? originalImageSize)
         {
             if (originalImageSize.HasValue)
             {
@@ -21,26 +21,26 @@ namespace MediaBrowser.Controller.Drawing
 
         public static IImageProcessor ImageProcessor { get; set; }
 
-        private static ImageDimensions GetSizeEstimate(ImageProcessingOptions options)
+        private static ImageSize GetSizeEstimate(ImageProcessingOptions options)
         {
             if (options.Width.HasValue && options.Height.HasValue)
             {
-                return new ImageDimensions(options.Width.Value, options.Height.Value);
+                return new ImageSize(options.Width.Value, options.Height.Value);
             }
 
-            double aspect = GetEstimatedAspectRatio(options.Image.Type, options.Item);
+            var aspect = GetEstimatedAspectRatio(options.Image.Type, options.Item);
 
-            int? width = options.Width ?? options.MaxWidth;
+            var width = options.Width ?? options.MaxWidth;
 
             if (width.HasValue)
             {
-                int heightValue = Convert.ToInt32((double)width.Value / aspect);
-                return new ImageDimensions(width.Value, heightValue);
+                var heightValue = width.Value / aspect;
+                return new ImageSize(width.Value, heightValue);
             }
 
             var height = options.Height ?? options.MaxHeight ?? 200;
-            int widthValue = Convert.ToInt32(aspect * height);
-            return new ImageDimensions(widthValue, height);
+            var widthValue = aspect * height;
+            return new ImageSize(widthValue, height);
         }
 
         private static double GetEstimatedAspectRatio(ImageType type, BaseItem item)
@@ -63,8 +63,7 @@ namespace MediaBrowser.Controller.Drawing
                 case ImageType.Logo:
                     return 2.58;
                 case ImageType.Primary:
-                    double defaultPrimaryImageAspectRatio = item.GetDefaultPrimaryImageAspectRatio();
-                    return defaultPrimaryImageAspectRatio > 0 ? defaultPrimaryImageAspectRatio : 2.0 / 3;
+                    return item.GetDefaultPrimaryImageAspectRatio();
                 default:
                     return 1;
             }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using MediaBrowser.Model.Drawing;
 
 namespace MediaBrowser.Controller.Drawing
@@ -44,6 +44,6 @@ namespace MediaBrowser.Controller.Drawing
         /// <value><c>true</c> if [supports image encoding]; otherwise, <c>false</c>.</value>
         bool SupportsImageEncoding { get; }
 
-        ImageDimensions GetImageSize(string path);
+        ImageSize GetImageSize(string path);
     }
 }

@@ -1,11 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Persistence;
-using MediaBrowser.Model.Serialization;
+using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 using SQLitePCL.pretty;
 
 namespace Emby.Server.Implementations.Data
@@ -17,11 +19,8 @@ namespace Emby.Server.Implementations.Data
     {
         private readonly IJsonSerializer _jsonSerializer;
 
-        public SqliteUserRepository(
-            ILoggerFactory loggerFactory,
-            IServerApplicationPaths appPaths,
-            IJsonSerializer jsonSerializer)
-            : base(loggerFactory.CreateLogger(nameof(SqliteUserRepository)))
+        public SqliteUserRepository(ILogger logger, IServerApplicationPaths appPaths, IJsonSerializer jsonSerializer)
+            : base(logger)
         {
             _jsonSerializer = jsonSerializer;
 
@@ -32,7 +31,13 @@ namespace Emby.Server.Implementations.Data
         /// Gets the name of the repository
         /// </summary>
         /// <value>The name.</value>
-        public string Name => "SQLite";
+        public string Name
+        {
+            get
+            {
+                return "SQLite";
+            }
+        }
 
         /// <summary>
         /// Opens the connection to the database
@@ -80,7 +85,7 @@ namespace Emby.Server.Implementations.Data
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             var serialized = _jsonSerializer.SerializeToBytes(user);
@@ -117,7 +122,7 @@ namespace Emby.Server.Implementations.Data
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             var serialized = _jsonSerializer.SerializeToBytes(user);
@@ -202,13 +207,14 @@ namespace Emby.Server.Implementations.Data
         /// Deletes the user.
         /// </summary>
         /// <param name="user">The user.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        /// <exception cref="ArgumentNullException">user</exception>
+        /// <exception cref="System.ArgumentNullException">user</exception>
         public void DeleteUser(User user)
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException("user");
             }
 
             using (WriteLock.Write())

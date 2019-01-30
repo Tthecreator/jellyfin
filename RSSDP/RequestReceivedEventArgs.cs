@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -8,52 +8,54 @@ using MediaBrowser.Model.Net;
 
 namespace Rssdp.Infrastructure
 {
-    /// <summary>
-    /// Provides arguments for the <see cref="ISsdpCommunicationsServer.RequestReceived"/> event.
-    /// </summary>
-    public sealed class RequestReceivedEventArgs : EventArgs
-    {
-        #region Fields
+	/// <summary>
+	/// Provides arguments for the <see cref="ISsdpCommunicationsServer.RequestReceived"/> event.
+	/// </summary>
+	public sealed class RequestReceivedEventArgs : EventArgs
+	{
 
-        private readonly HttpRequestMessage _Message;
-        private readonly IpEndPointInfo _ReceivedFrom;
+		#region Fields
 
-        #endregion
+		private readonly HttpRequestMessage _Message;
+		private readonly IpEndPointInfo _ReceivedFrom;
 
-        public IpAddressInfo LocalIpAddress { get; private set; }
+		#endregion
 
-        #region Constructors
+	    public IpAddressInfo LocalIpAddress { get; private set; }
 
-        /// <summary>
-        /// Full constructor.
-        /// </summary>
-        public RequestReceivedEventArgs(HttpRequestMessage message, IpEndPointInfo receivedFrom, IpAddressInfo localIpAddress)
-        {
-            _Message = message;
-            _ReceivedFrom = receivedFrom;
-            LocalIpAddress = localIpAddress;
-        }
+	    #region Constructors
 
-        #endregion
+		/// <summary>
+		/// Full constructor.
+		/// </summary>
+		public RequestReceivedEventArgs(HttpRequestMessage message, IpEndPointInfo receivedFrom, IpAddressInfo localIpAddress)
+		{
+			_Message = message;
+			_ReceivedFrom = receivedFrom;
+		    LocalIpAddress = localIpAddress;
+		}
 
-        #region Public Properties
+		#endregion
 
-        /// <summary>
-        /// The <see cref="HttpRequestMessage"/> that was received.
-        /// </summary>
-        public HttpRequestMessage Message
-        {
-            get { return _Message; }
-        }
+		#region Public Properties
 
-        /// <summary>
-        /// The <see cref="UdpEndPoint"/> the request came from.
-        /// </summary>
-        public IpEndPointInfo ReceivedFrom
-        {
-            get { return _ReceivedFrom; }
-        }
+		/// <summary>
+		/// The <see cref="HttpRequestMessage"/> that was received.
+		/// </summary>
+		public HttpRequestMessage Message
+		{
+			get { return _Message; }
+		}
 
-        #endregion
-    }
+		/// <summary>
+		/// The <see cref="UdpEndPoint"/> the request came from.
+		/// </summary>
+		public IpEndPointInfo ReceivedFrom
+		{
+			get { return _ReceivedFrom; }
+		}
+
+		#endregion
+
+	}
 }

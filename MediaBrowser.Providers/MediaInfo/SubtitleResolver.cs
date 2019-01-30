@@ -1,13 +1,13 @@
+﻿using MediaBrowser.Model.Extensions;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Extensions;
-using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Globalization;
 
 namespace MediaBrowser.Providers.MediaInfo
 {
@@ -98,7 +98,7 @@ namespace MediaBrowser.Providers.MediaInfo
             int startIndex,
             string[] files)
         {
-            var videoFileNameWithoutExtension = Path.GetFileNameWithoutExtension(videoPath);
+            var videoFileNameWithoutExtension = _fileSystem.GetFileNameWithoutExtension(videoPath);
             videoFileNameWithoutExtension = NormalizeFilenameForSubtitleComparison(videoFileNameWithoutExtension);
 
             foreach (var fullName in files)
@@ -110,7 +110,7 @@ namespace MediaBrowser.Providers.MediaInfo
                     continue;
                 }
 
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fullName);
+                var fileNameWithoutExtension = _fileSystem.GetFileNameWithoutExtension(fullName);
                 fileNameWithoutExtension = NormalizeFilenameForSubtitleComparison(fileNameWithoutExtension);
 
                 if (!string.Equals(videoFileNameWithoutExtension, fileNameWithoutExtension, StringComparison.OrdinalIgnoreCase) &&

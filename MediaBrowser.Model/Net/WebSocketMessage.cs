@@ -1,3 +1,4 @@
+﻿
 namespace MediaBrowser.Model.Net
 {
     /// <summary>

@@ -1,24 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Api.Playback;
-using MediaBrowser.Common.Configuration;
+﻿using System;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Controller.Session;
-using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Diagnostics;
-using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Session;
-using MediaBrowser.Model.Threading;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Threading;
+using System.Collections.Generic;
+using System.Threading;
+using MediaBrowser.Controller.MediaEncoding;
+using MediaBrowser.Api.Playback;
+using System.IO;
+using MediaBrowser.Model.Session;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Configuration;
+using MediaBrowser.Common.Configuration;
 
 namespace MediaBrowser.Api
 {
@@ -101,7 +101,8 @@ namespace MediaBrowser.Api
         {
             lock (_transcodingLocks)
             {
-                if (!_transcodingLocks.TryGetValue(outputPath, out SemaphoreSlim result))
+                SemaphoreSlim result;
+                if (!_transcodingLocks.TryGetValue(outputPath, out result))
                 {
                     result = new SemaphoreSlim(1, 1);
                     _transcodingLocks[outputPath] = result;
@@ -387,7 +388,7 @@ namespace MediaBrowser.Api
         {
             if (string.IsNullOrEmpty(playSessionId))
             {
-                throw new ArgumentNullException(nameof(playSessionId));
+                throw new ArgumentNullException("playSessionId");
             }
 
             //Logger.LogDebug("PingTranscodingJob PlaySessionId={0} isUsedPaused: {1}", playSessionId, isUserPaused);
@@ -396,7 +397,7 @@ namespace MediaBrowser.Api
 
             lock (_activeTranscodingJobs)
             {
-                // This is really only needed for HLS.
+                // This is really only needed for HLS. 
                 // Progressive streams can stop on their own reliably
                 jobs = _activeTranscodingJobs.Where(j => string.Equals(playSessionId, j.PlaySessionId, StringComparison.OrdinalIgnoreCase)).ToList();
             }
@@ -498,7 +499,7 @@ namespace MediaBrowser.Api
 
             lock (_activeTranscodingJobs)
             {
-                // This is really only needed for HLS.
+                // This is really only needed for HLS. 
                 // Progressive streams can stop on their own reliably
                 jobs.AddRange(_activeTranscodingJobs.Where(killJob));
             }
@@ -646,7 +647,7 @@ namespace MediaBrowser.Api
         /// <param name="outputFilePath">The output file path.</param>
         private void DeleteHlsPartialStreamFiles(string outputFilePath)
         {
-            var directory = Path.GetDirectoryName(outputFilePath);
+            var directory = _fileSystem.GetDirectoryName(outputFilePath);
             var name = Path.GetFileNameWithoutExtension(outputFilePath);
 
             var filesToDelete = _fileSystem.GetFilePaths(directory)
@@ -680,7 +681,7 @@ namespace MediaBrowser.Api
         }
     }
 
-    /// <summary>
+        /// <summary>
     /// Class TranscodingJob
     /// </summary>
     public class TranscodingJob

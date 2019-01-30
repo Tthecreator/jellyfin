@@ -3,15 +3,19 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Cryptography;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.System;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Net;
+using MediaBrowser.Model.System;
+using MediaBrowser.Model.Text;
+using SocketHttpListener.Primitives;
+using System.Security.Authentication;
+
+using System.Threading;
 namespace SocketHttpListener.Net
 {
     sealed class HttpConnection
@@ -32,6 +36,8 @@ namespace SocketHttpListener.Net
         int _reuses;
         bool _contextBound;
         bool secure;
+        int _timeout = 90000; // 90k ms for first request, 15k ms from then on
+        private Timer _timer;
         IPEndPoint local_ep;
         HttpListener _lastListener;
         X509Certificate cert;
@@ -40,12 +46,11 @@ namespace SocketHttpListener.Net
         private readonly ILogger _logger;
         private readonly ICryptoProvider _cryptoProvider;
         private readonly IStreamHelper _streamHelper;
+        private readonly ITextEncoding _textEncoding;
         private readonly IFileSystem _fileSystem;
         private readonly IEnvironmentInfo _environment;
 
-        public HttpConnection(ILogger logger, Socket socket, HttpEndPointListener epl, bool secure,
-            X509Certificate cert, ICryptoProvider cryptoProvider, IStreamHelper streamHelper, IFileSystem fileSystem,
-            IEnvironmentInfo environment)
+        public HttpConnection(ILogger logger, Socket socket, HttpEndPointListener epl, bool secure, X509Certificate cert, ICryptoProvider cryptoProvider, IStreamHelper streamHelper, ITextEncoding textEncoding, IFileSystem fileSystem, IEnvironmentInfo environment)
         {
             _logger = logger;
             this._socket = socket;
@@ -54,6 +59,7 @@ namespace SocketHttpListener.Net
             this.cert = cert;
             _cryptoProvider = cryptoProvider;
             _streamHelper = streamHelper;
+            _textEncoding = textEncoding;
             _fileSystem = fileSystem;
             _environment = environment;
 
@@ -85,10 +91,18 @@ namespace SocketHttpListener.Net
             }
         }
 
-        public Stream Stream => _stream;
+        public Stream Stream
+        {
+            get
+            {
+                return _stream;
+            }
+        }
 
         public async Task Init()
         {
+            _timer = new Timer(OnTimeout, null, Timeout.Infinite, Timeout.Infinite);
+
             if (ssl_stream != null)
             {
                 var enableAsync = true;
@@ -116,12 +130,18 @@ namespace SocketHttpListener.Net
             _position = 0;
             _inputState = InputState.RequestLine;
             _lineState = LineState.None;
-            _context = new HttpListenerContext(this);
+            _context = new HttpListenerContext(this, _textEncoding);
         }
 
-        public bool IsClosed => (_socket == null);
+        public bool IsClosed
+        {
+            get { return (_socket == null); }
+        }
 
-        public int Reuses => _reuses;
+        public int Reuses
+        {
+            get { return _reuses; }
+        }
 
         public IPEndPoint LocalEndPoint
         {
@@ -135,14 +155,20 @@ namespace SocketHttpListener.Net
             }
         }
 
-        public IPEndPoint RemoteEndPoint => _socket.RemoteEndPoint as IPEndPoint;
+        public IPEndPoint RemoteEndPoint
+        {
+            get { return _socket.RemoteEndPoint as IPEndPoint; }
+        }
 
-        public bool IsSecure => secure;
+        public bool IsSecure
+        {
+            get { return secure; }
+        }
 
         public ListenerPrefix Prefix
         {
-            get => _prefix;
-            set => _prefix = value;
+            get { return _prefix; }
+            set { _prefix = value; }
         }
 
         private void OnTimeout(object unused)
@@ -158,10 +184,14 @@ namespace SocketHttpListener.Net
                 _buffer = new byte[BufferSize];
             try
             {
+                if (_reuses == 1)
+                    _timeout = 15000;
+                //_timer.Change(_timeout, Timeout.Infinite);
                 _stream.BeginRead(_buffer, 0, BufferSize, s_onreadCallback, this);
             }
             catch
             {
+                //_timer.Change(Timeout.Infinite, Timeout.Infinite);
                 CloseSocket();
                 Unbind();
             }
@@ -202,12 +232,13 @@ namespace SocketHttpListener.Net
 
         private static void OnRead(IAsyncResult ares)
         {
-            var cnc = (HttpConnection)ares.AsyncState;
+            HttpConnection cnc = (HttpConnection)ares.AsyncState;
             cnc.OnReadInternal(ares);
         }
 
         private void OnReadInternal(IAsyncResult ares)
         {
+            //_timer.Change(Timeout.Infinite, Timeout.Infinite);
             int nread = -1;
             try
             {
@@ -416,7 +447,7 @@ namespace SocketHttpListener.Net
                 else
                     str = string.Format("<h1>{0}</h1>", description);
 
-                byte[] error = Encoding.UTF8.GetBytes(str);
+                byte[] error = _textEncoding.GetDefaultEncoding().GetBytes(str);
                 response.Close(error, false);
             }
             catch

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Xml.Serialization;
 using MediaBrowser.Model.Extensions;
 

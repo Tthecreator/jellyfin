@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Emby.Server.Implementations.AppBase;
 using MediaBrowser.Controller;
@@ -30,84 +30,174 @@ namespace Emby.Server.Implementations
         /// Gets the path to the base root media directory
         /// </summary>
         /// <value>The root folder path.</value>
-        public string RootFolderPath => Path.Combine(ProgramDataPath, "root");
+        public string RootFolderPath
+        {
+            get
+            {
+                return Path.Combine(ProgramDataPath, "root");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the default user view directory.  Used if no specific user view is defined.
         /// </summary>
         /// <value>The default user views path.</value>
-        public string DefaultUserViewsPath => Path.Combine(RootFolderPath, "default");
+        public string DefaultUserViewsPath
+        {
+            get
+            {
+                return Path.Combine(RootFolderPath, "default");
+            }
+        }
 
         /// <summary>
         /// Gets the path to localization data.
         /// </summary>
         /// <value>The localization path.</value>
-        public string LocalizationPath => Path.Combine(ProgramDataPath, "localization");
+        public string LocalizationPath
+        {
+            get
+            {
+                return Path.Combine(ProgramDataPath, "localization");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the People directory
         /// </summary>
         /// <value>The people path.</value>
-        public string PeoplePath => Path.Combine(InternalMetadataPath, "People");
+        public string PeoplePath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "People");
+            }
+        }
 
-        public string ArtistsPath => Path.Combine(InternalMetadataPath, "artists");
+        public string ArtistsPath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "artists");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the Genre directory
         /// </summary>
         /// <value>The genre path.</value>
-        public string GenrePath => Path.Combine(InternalMetadataPath, "Genre");
+        public string GenrePath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "Genre");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the Genre directory
         /// </summary>
         /// <value>The genre path.</value>
-        public string MusicGenrePath => Path.Combine(InternalMetadataPath, "MusicGenre");
+        public string MusicGenrePath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "MusicGenre");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the Studio directory
         /// </summary>
         /// <value>The studio path.</value>
-        public string StudioPath => Path.Combine(InternalMetadataPath, "Studio");
+        public string StudioPath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "Studio");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the Year directory
         /// </summary>
         /// <value>The year path.</value>
-        public string YearPath => Path.Combine(InternalMetadataPath, "Year");
+        public string YearPath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "Year");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the General IBN directory
         /// </summary>
         /// <value>The general path.</value>
-        public string GeneralPath => Path.Combine(InternalMetadataPath, "general");
+        public string GeneralPath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "general");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the Ratings IBN directory
         /// </summary>
         /// <value>The ratings path.</value>
-        public string RatingsPath => Path.Combine(InternalMetadataPath, "ratings");
+        public string RatingsPath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "ratings");
+            }
+        }
 
         /// <summary>
         /// Gets the media info images path.
         /// </summary>
         /// <value>The media info images path.</value>
-        public string MediaInfoImagesPath => Path.Combine(InternalMetadataPath, "mediainfo");
+        public string MediaInfoImagesPath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "mediainfo");
+            }
+        }
 
         /// <summary>
         /// Gets the path to the user configuration directory
         /// </summary>
         /// <value>The user configuration directory path.</value>
-        public string UserConfigurationDirectoryPath => Path.Combine(ConfigurationDirectoryPath, "users");
+        public string UserConfigurationDirectoryPath
+        {
+            get
+            {
+                return Path.Combine(ConfigurationDirectoryPath, "users");
+            }
+        }
 
         private string _defaultTranscodingTempPath;
-        public string DefaultTranscodingTempPath => _defaultTranscodingTempPath ?? (_defaultTranscodingTempPath = Path.Combine(ProgramDataPath, "transcoding-temp"));
+        public string DefaultTranscodingTempPath
+        {
+            get
+            {
+                return _defaultTranscodingTempPath ?? (_defaultTranscodingTempPath = Path.Combine(ProgramDataPath, "transcoding-temp"));
+            }
+        }
 
         private string _transcodingTempPath;
         public string TranscodingTempPath
         {
-            get => _transcodingTempPath ?? (_transcodingTempPath = DefaultTranscodingTempPath);
-            set => _transcodingTempPath = value;
+            get
+            {
+                return _transcodingTempPath ?? (_transcodingTempPath = DefaultTranscodingTempPath);
+            }
+            set
+            {
+                _transcodingTempPath = value;
+            }
         }
 
         public string GetTranscodingTempPath()
@@ -140,16 +230,35 @@ namespace Emby.Server.Implementations
         /// Gets the game genre path.
         /// </summary>
         /// <value>The game genre path.</value>
-        public string GameGenrePath => Path.Combine(InternalMetadataPath, "GameGenre");
+        public string GameGenrePath
+        {
+            get
+            {
+                return Path.Combine(InternalMetadataPath, "GameGenre");
+            }
+        }
 
         private string _internalMetadataPath;
         public string InternalMetadataPath
         {
-            get => _internalMetadataPath ?? (_internalMetadataPath = Path.Combine(DataPath, "metadata"));
-            set => _internalMetadataPath = value;
+            get
+            {
+                return _internalMetadataPath ?? (_internalMetadataPath = Path.Combine(DataPath, "metadata"));
+            }
+            set
+            {
+                _internalMetadataPath = value;
+            }
         }
 
         private const string _virtualInternalMetadataPath = "%MetadataPath%";
-        public string VirtualInternalMetadataPath => _virtualInternalMetadataPath;
+        public string VirtualInternalMetadataPath
+        {
+            get
+            {
+                return _virtualInternalMetadataPath;
+            }
+        }
+
     }
 }

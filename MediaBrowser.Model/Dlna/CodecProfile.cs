@@ -1,5 +1,7 @@
+﻿using MediaBrowser.Model.Extensions;
+using System.Collections.Generic;
 using System.Xml.Serialization;
-using MediaBrowser.Model.Extensions;
+using MediaBrowser.Model.Dlna;
 
 namespace MediaBrowser.Model.Dlna
 {
@@ -7,7 +9,7 @@ namespace MediaBrowser.Model.Dlna
     {
         [XmlAttribute("type")]
         public CodecType Type { get; set; }
-
+       
         public ProfileCondition[] Conditions { get; set; }
 
         public ProfileCondition[] ApplyConditions { get; set; }
@@ -20,7 +22,7 @@ namespace MediaBrowser.Model.Dlna
 
         public CodecProfile()
         {
-            Conditions = new ProfileCondition[] { };
+            Conditions = new ProfileCondition[] {};
             ApplyConditions = new ProfileCondition[] { };
         }
 

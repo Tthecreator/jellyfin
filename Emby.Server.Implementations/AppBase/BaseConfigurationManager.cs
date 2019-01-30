@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -9,8 +9,8 @@ using MediaBrowser.Common.Events;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 
 namespace Emby.Server.Implementations.AppBase
 {
@@ -99,7 +99,6 @@ namespace Emby.Server.Implementations.AppBase
         /// <param name="applicationPaths">The application paths.</param>
         /// <param name="loggerFactory">The logger factory.</param>
         /// <param name="xmlSerializer">The XML serializer.</param>
-        /// <param name="fileSystem">The file system</param>
         protected BaseConfigurationManager(IApplicationPaths applicationPaths, ILoggerFactory loggerFactory, IXmlSerializer xmlSerializer, IFileSystem fileSystem)
         {
             CommonApplicationPaths = applicationPaths;
@@ -127,7 +126,7 @@ namespace Emby.Server.Implementations.AppBase
             Logger.LogInformation("Saving system configuration");
             var path = CommonApplicationPaths.SystemConfigurationFilePath;
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(path));
 
             lock (_configurationSyncLock)
             {
@@ -151,12 +150,12 @@ namespace Emby.Server.Implementations.AppBase
         /// Replaces the configuration.
         /// </summary>
         /// <param name="newConfiguration">The new configuration.</param>
-        /// <exception cref="ArgumentNullException">newConfiguration</exception>
+        /// <exception cref="System.ArgumentNullException">newConfiguration</exception>
         public virtual void ReplaceConfiguration(BaseApplicationConfiguration newConfiguration)
         {
             if (newConfiguration == null)
             {
-                throw new ArgumentNullException(nameof(newConfiguration));
+                throw new ArgumentNullException("newConfiguration");
             }
 
             ValidateCachePath(newConfiguration);
@@ -188,7 +187,7 @@ namespace Emby.Server.Implementations.AppBase
         /// Replaces the cache path.
         /// </summary>
         /// <param name="newConfig">The new configuration.</param>
-        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         private void ValidateCachePath(BaseApplicationConfiguration newConfig)
         {
             var newPath = newConfig.CachePath;
@@ -197,7 +196,7 @@ namespace Emby.Server.Implementations.AppBase
                 && !string.Equals(CommonConfiguration.CachePath ?? string.Empty, newPath))
             {
                 // Validate
-                if (!Directory.Exists(newPath))
+                if (!FileSystem.DirectoryExists(newPath))
                 {
                     throw new FileNotFoundException(string.Format("{0} does not exist.", newPath));
                 }
@@ -209,7 +208,8 @@ namespace Emby.Server.Implementations.AppBase
         protected void EnsureWriteAccess(string path)
         {
             var file = Path.Combine(path, Guid.NewGuid().ToString());
-            File.WriteAllText(file, string.Empty);
+
+            FileSystem.WriteAllText(file, string.Empty);
             FileSystem.DeleteFile(file);
         }
 
@@ -245,14 +245,13 @@ namespace Emby.Server.Implementations.AppBase
 
         private object LoadConfiguration(string path, Type configurationType)
         {
-            if (!File.Exists(path))
-            {
-                return Activator.CreateInstance(configurationType);
-            }
-
             try
             {
                 return XmlSerializer.DeserializeFromFile(configurationType, path);
+            }
+            catch (FileNotFoundException)
+            {
+                return Activator.CreateInstance(configurationType);
             }
             catch (IOException)
             {
@@ -284,7 +283,7 @@ namespace Emby.Server.Implementations.AppBase
                 validatingStore.Validate(currentConfiguration, configuration);
             }
 
-            NamedConfigurationUpdating?.Invoke(this, new ConfigurationUpdateEventArgs
+            NamedConfigurationUpdating?.Invoke( this, new ConfigurationUpdateEventArgs
             {
                 Key = key,
                 NewConfiguration = configuration
@@ -293,7 +292,7 @@ namespace Emby.Server.Implementations.AppBase
             _configurations.AddOrUpdate(key, configuration, (k, v) => configuration);
 
             var path = GetConfigurationFile(key);
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(path));
 
             lock (_configurationSyncLock)
             {

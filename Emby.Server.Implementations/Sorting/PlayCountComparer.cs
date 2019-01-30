@@ -1,4 +1,4 @@
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
@@ -43,14 +43,17 @@ namespace Emby.Server.Implementations.Sorting
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name => ItemSortBy.PlayCount;
+        public string Name
+        {
+            get { return ItemSortBy.PlayCount; }
+        }
 
         /// <summary>
         /// Gets or sets the user data repository.
         /// </summary>
         /// <value>The user data repository.</value>
         public IUserDataManager UserDataRepository { get; set; }
-
+        
         /// <summary>
         /// Gets or sets the user manager.
         /// </summary>

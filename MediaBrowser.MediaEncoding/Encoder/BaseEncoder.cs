@@ -1,20 +1,23 @@
-using System;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Session;
 using MediaBrowser.Model.Configuration;
-using MediaBrowser.Model.Diagnostics;
+using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.MediaInfo;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Diagnostics;
+using MediaBrowser.Model.Dlna;
 
 namespace MediaBrowser.MediaEncoding.Encoder
 {
@@ -67,7 +70,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
                 .CreateJob(options, EncodingHelper, IsVideoEncoder, progress, cancellationToken).ConfigureAwait(false);
 
             encodingJob.OutputFilePath = GetOutputFilePath(encodingJob);
-            Directory.CreateDirectory(Path.GetDirectoryName(encodingJob.OutputFilePath));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(encodingJob.OutputFilePath));
 
             encodingJob.ReadInputAtNativeFramerate = options.ReadInputAtNativeFramerate;
 
@@ -105,7 +108,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
             Logger.LogInformation(commandLineLogMessage);
 
             var logFilePath = Path.Combine(ConfigurationManager.CommonApplicationPaths.LogDirectoryPath, "transcode-" + Guid.NewGuid() + ".txt");
-            Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(logFilePath));
 
             // FFMpeg writes debug/error info to stderr. This is useful when debugging so let's put it in the log directory.
             encodingJob.LogFileStream = FileSystem.GetFileStream(logFilePath, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read, true);
@@ -137,7 +140,7 @@ namespace MediaBrowser.MediaEncoding.Encoder
             new JobLogger(Logger).StartStreamingLog(encodingJob, process.StandardError.BaseStream, encodingJob.LogFileStream);
 
             // Wait for the file to exist before proceeeding
-            while (!File.Exists(encodingJob.OutputFilePath) && !encodingJob.HasExited)
+            while (!FileSystem.FileExists(encodingJob.OutputFilePath) && !encodingJob.HasExited)
             {
                 await Task.Delay(100, cancellationToken).ConfigureAwait(false);
             }

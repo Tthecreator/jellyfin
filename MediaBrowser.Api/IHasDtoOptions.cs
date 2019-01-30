@@ -1,3 +1,4 @@
+﻿
 namespace MediaBrowser.Api
 {
     public interface IHasDtoOptions : IHasItemFields

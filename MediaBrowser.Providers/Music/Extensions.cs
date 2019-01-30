@@ -1,6 +1,6 @@
-using System.Linq;
-using MediaBrowser.Controller.Providers;
+﻿using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using System.Linq;
 
 namespace MediaBrowser.Providers.Music
 {
@@ -47,13 +47,14 @@ namespace MediaBrowser.Providers.Music
 
         public static string GetMusicBrainzArtistId(this AlbumInfo info)
         {
-            info.ProviderIds.TryGetValue(MetadataProviders.MusicBrainzAlbumArtist.ToString(), out string id);
+            string id;
+            info.ProviderIds.TryGetValue(MetadataProviders.MusicBrainzAlbumArtist.ToString(), out id);
 
             if (string.IsNullOrEmpty(id))
             {
                 info.ArtistProviderIds.TryGetValue(MetadataProviders.MusicBrainzArtist.ToString(), out id);
             }
-
+            
             if (string.IsNullOrEmpty(id))
             {
                 return info.SongInfos.Select(i => i.GetProviderId(MetadataProviders.MusicBrainzAlbumArtist))
@@ -65,7 +66,8 @@ namespace MediaBrowser.Providers.Music
 
         public static string GetMusicBrainzArtistId(this ArtistInfo info)
         {
-            info.ProviderIds.TryGetValue(MetadataProviders.MusicBrainzArtist.ToString(), out var id);
+            string id;
+            info.ProviderIds.TryGetValue(MetadataProviders.MusicBrainzArtist.ToString(), out id);
 
             if (string.IsNullOrEmpty(id))
             {

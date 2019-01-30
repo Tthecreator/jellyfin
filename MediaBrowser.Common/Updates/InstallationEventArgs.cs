@@ -1,4 +1,4 @@
-using MediaBrowser.Model.Updates;
+﻿using MediaBrowser.Model.Updates;
 
 namespace MediaBrowser.Common.Updates
 {

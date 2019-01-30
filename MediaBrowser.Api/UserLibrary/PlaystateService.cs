@@ -1,13 +1,13 @@
-using System;
-using System.Globalization;
-using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Session;
 using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Services;
 using MediaBrowser.Model.Session;
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Services;
 using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Api.UserLibrary
@@ -267,13 +267,13 @@ namespace MediaBrowser.Api.UserLibrary
 
             var session = GetSession(_sessionContext);
 
-            var dto = UpdatePlayedStatus(user, request.Id, true, datePlayed);
+            var dto = await UpdatePlayedStatus(user, request.Id, true, datePlayed).ConfigureAwait(false);
 
             foreach (var additionalUserInfo in session.AdditionalUsers)
             {
                 var additionalUser = _userManager.GetUserById(additionalUserInfo.UserId);
 
-                UpdatePlayedStatus(additionalUser, request.Id, true, datePlayed);
+                await UpdatePlayedStatus(additionalUser, request.Id, true, datePlayed).ConfigureAwait(false);
             }
 
             return dto;
@@ -412,13 +412,13 @@ namespace MediaBrowser.Api.UserLibrary
 
             var session = GetSession(_sessionContext);
 
-            var dto = UpdatePlayedStatus(user, request.Id, false, null);
+            var dto = await UpdatePlayedStatus(user, request.Id, false, null).ConfigureAwait(false);
 
             foreach (var additionalUserInfo in session.AdditionalUsers)
             {
                 var additionalUser = _userManager.GetUserById(additionalUserInfo.UserId);
 
-                UpdatePlayedStatus(additionalUser, request.Id, false, null);
+                await UpdatePlayedStatus(additionalUser, request.Id, false, null).ConfigureAwait(false);
             }
 
             return dto;
@@ -432,7 +432,7 @@ namespace MediaBrowser.Api.UserLibrary
         /// <param name="wasPlayed">if set to <c>true</c> [was played].</param>
         /// <param name="datePlayed">The date played.</param>
         /// <returns>Task.</returns>
-        private UserItemDataDto UpdatePlayedStatus(User user, string itemId, bool wasPlayed, DateTime? datePlayed)
+        private async Task<UserItemDataDto> UpdatePlayedStatus(User user, string itemId, bool wasPlayed, DateTime? datePlayed)
         {
             var item = _libraryManager.GetItemById(itemId);
 

@@ -1,7 +1,7 @@
-using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Controller.Providers
 {
@@ -37,7 +37,7 @@ namespace MediaBrowser.Controller.Providers
         /// <param name="imageIndex">Index of the image.</param>
         /// <param name="originalImageSize">Size of the original image.</param>
         /// <returns>ImageSize.</returns>
-        ImageDimensions GetEnhancedImageSize(BaseItem item, ImageType imageType, int imageIndex, ImageDimensions originalImageSize);
+        ImageSize GetEnhancedImageSize(BaseItem item, ImageType imageType, int imageIndex, ImageSize originalImageSize);
 
         EnhancedImageInfo GetEnhancedImageInfo(BaseItem item, string inputFile, ImageType imageType, int imageIndex);
 

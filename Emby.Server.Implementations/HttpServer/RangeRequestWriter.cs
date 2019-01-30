@@ -1,3 +1,4 @@
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,7 +7,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Services;
-using Microsoft.Extensions.Logging;
 
 namespace Emby.Server.Implementations.HttpServer
 {
@@ -40,11 +40,16 @@ namespace Emby.Server.Implementations.HttpServer
         /// </summary>
         private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
 
+        public List<Cookie> Cookies { get; private set; }
+
         /// <summary>
         /// Additional HTTP Headers
         /// </summary>
         /// <value>The headers.</value>
-        public IDictionary<string, string> Headers => _options;
+        public IDictionary<string, string> Headers
+        {
+            get { return _options; }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StreamWriter" /> class.
@@ -57,7 +62,7 @@ namespace Emby.Server.Implementations.HttpServer
         {
             if (string.IsNullOrEmpty(contentType))
             {
-                throw new ArgumentNullException(nameof(contentType));
+                throw new ArgumentNullException("contentType");
             }
 
             RangeHeader = rangeHeader;
@@ -70,6 +75,7 @@ namespace Emby.Server.Implementations.HttpServer
             Headers["Accept-Ranges"] = "bytes";
             StatusCode = HttpStatusCode.PartialContent;
 
+            Cookies = new List<Cookie>();
             SetRangeValues(contentLength);
         }
 
@@ -180,7 +186,7 @@ namespace Emby.Server.Implementations.HttpServer
             }
         }
 
-        private static async Task CopyToInternalAsync(Stream source, Stream destination, long copyLength)
+        private async Task CopyToInternalAsync(Stream source, Stream destination, long copyLength)
         {
             var array = new byte[BufferSize];
             int bytesRead;
@@ -214,8 +220,10 @@ namespace Emby.Server.Implementations.HttpServer
 
         public HttpStatusCode StatusCode
         {
-            get => (HttpStatusCode)Status;
-            set => Status = (int)value;
+            get { return (HttpStatusCode)Status; }
+            set { Status = (int)value; }
         }
+
+        public string StatusDescription { get; set; }
     }
 }

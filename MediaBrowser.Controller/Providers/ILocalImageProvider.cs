@@ -1,4 +1,4 @@
-namespace MediaBrowser.Controller.Providers
+﻿namespace MediaBrowser.Controller.Providers
 {
     /// <summary>
     /// This is just a marker interface

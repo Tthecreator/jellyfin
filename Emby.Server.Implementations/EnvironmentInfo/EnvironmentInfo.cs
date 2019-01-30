@@ -1,9 +1,11 @@
-using System;
-using System.Runtime.InteropServices;
+﻿using System;
+using System.IO;
 using MediaBrowser.Model.System;
+using System.Runtime.InteropServices;
 
 namespace Emby.Server.Implementations.EnvironmentInfo
 {
+    // TODO: Rework @bond
     public class EnvironmentInfo : IEnvironmentInfo
     {
         public EnvironmentInfo(MediaBrowser.Model.System.OperatingSystem operatingSystem)
@@ -29,8 +31,37 @@ namespace Emby.Server.Implementations.EnvironmentInfo
             }
         }
 
-        public string OperatingSystemVersion => Environment.OSVersion.Version.ToString() + " " + Environment.OSVersion.ServicePack.ToString();
+        public string OperatingSystemVersion
+        {
+            get
+            {
+                return Environment.OSVersion.Version.ToString() + " " + Environment.OSVersion.ServicePack.ToString();
+            }
+        }
 
-        public Architecture SystemArchitecture => RuntimeInformation.OSArchitecture;
+        public char PathSeparator
+        {
+            get
+            {
+                return Path.PathSeparator;
+            }
+        }
+
+        public Architecture SystemArchitecture { get { return RuntimeInformation.OSArchitecture; } }
+
+        public string GetEnvironmentVariable(string name)
+        {
+            return Environment.GetEnvironmentVariable(name);
+        }
+
+        public string StackTrace
+        {
+            get { return Environment.StackTrace; }
+        }
+
+        public void SetProcessEnvironmentVariable(string name, string value)
+        {
+            Environment.SetEnvironmentVariable(name, value);
+        }
     }
 }

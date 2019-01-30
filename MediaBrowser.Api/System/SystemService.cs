@@ -1,17 +1,18 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Common.Security;
+using MediaBrowser.Controller;
+using MediaBrowser.Controller.Net;
+using MediaBrowser.Model.System;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Services;
-using MediaBrowser.Model.System;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace MediaBrowser.Api.System
@@ -99,6 +100,8 @@ namespace MediaBrowser.Api.System
 
         private readonly INetworkManager _network;
 
+        private readonly ISecurityManager _security;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SystemService" /> class.
         /// </summary>
@@ -106,12 +109,13 @@ namespace MediaBrowser.Api.System
         /// <param name="appPaths">The application paths.</param>
         /// <param name="fileSystem">The file system.</param>
         /// <exception cref="ArgumentNullException">jsonSerializer</exception>
-        public SystemService(IServerApplicationHost appHost, IApplicationPaths appPaths, IFileSystem fileSystem, INetworkManager network)
+        public SystemService(IServerApplicationHost appHost, IApplicationPaths appPaths, IFileSystem fileSystem, INetworkManager network, ISecurityManager security)
         {
             _appHost = appHost;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
             _network = network;
+            _security = security;
         }
 
         public object Post(PingSystem request)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Xml.Linq;
 using Emby.Dlna.Ssdp;
 
@@ -10,7 +10,7 @@ namespace Emby.Dlna.PlayTo
         {
             if (container == null)
             {
-                throw new ArgumentNullException(nameof(container));
+                throw new ArgumentNullException("container");
             }
 
             return new uBaseObject

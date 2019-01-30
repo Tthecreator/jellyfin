@@ -1,14 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Cryptography;
 using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.System;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Text;
+using SocketHttpListener.Primitives;
 
 namespace SocketHttpListener.Net
 {
@@ -17,6 +20,7 @@ namespace SocketHttpListener.Net
         internal ICryptoProvider CryptoProvider { get; private set; }
         internal ISocketFactory SocketFactory { get; private set; }
         internal IFileSystem FileSystem { get; private set; }
+        internal ITextEncoding TextEncoding { get; private set; }
         internal IStreamHelper StreamHelper { get; private set; }
         internal INetworkManager NetworkManager { get; private set; }
         internal IEnvironmentInfo EnvironmentInfo { get; private set; }
@@ -31,21 +35,20 @@ namespace SocketHttpListener.Net
         bool listening;
         bool disposed;
 
-        Dictionary<HttpListenerContext, HttpListenerContext> registry;   // Dictionary<HttpListenerContext,HttpListenerContext>
+        Dictionary<HttpListenerContext, HttpListenerContext> registry;   // Dictionary<HttpListenerContext,HttpListenerContext> 
         Dictionary<HttpConnection, HttpConnection> connections;
         private ILogger _logger;
         private X509Certificate _certificate;
 
         public Action<HttpListenerContext> OnContext { get; set; }
 
-        public HttpListener(ILogger logger, ICryptoProvider cryptoProvider, ISocketFactory socketFactory,
-            INetworkManager networkManager, IStreamHelper streamHelper, IFileSystem fileSystem,
-            IEnvironmentInfo environmentInfo)
+        public HttpListener(ILogger logger, ICryptoProvider cryptoProvider, ISocketFactory socketFactory, INetworkManager networkManager, ITextEncoding textEncoding, IStreamHelper streamHelper, IFileSystem fileSystem, IEnvironmentInfo environmentInfo)
         {
             _logger = logger;
             CryptoProvider = cryptoProvider;
             SocketFactory = socketFactory;
             NetworkManager = networkManager;
+            TextEncoding = textEncoding;
             StreamHelper = streamHelper;
             FileSystem = fileSystem;
             EnvironmentInfo = environmentInfo;
@@ -55,10 +58,8 @@ namespace SocketHttpListener.Net
             auth_schemes = AuthenticationSchemes.Anonymous;
         }
 
-        public HttpListener(ILogger logger, X509Certificate certificate, ICryptoProvider cryptoProvider,
-            ISocketFactory socketFactory, INetworkManager networkManager, IStreamHelper streamHelper,
-            IFileSystem fileSystem, IEnvironmentInfo environmentInfo)
-            : this(logger, cryptoProvider, socketFactory, networkManager, streamHelper, fileSystem, environmentInfo)
+        public HttpListener(ILogger logger, X509Certificate certificate, ICryptoProvider cryptoProvider, ISocketFactory socketFactory, INetworkManager networkManager, ITextEncoding textEncoding, IStreamHelper streamHelper, IFileSystem fileSystem, IEnvironmentInfo environmentInfo)
+            : this(logger, cryptoProvider, socketFactory, networkManager, textEncoding, streamHelper, fileSystem, environmentInfo)
         {
             _certificate = certificate;
         }
@@ -71,7 +72,7 @@ namespace SocketHttpListener.Net
         // TODO: Digest, NTLM and Negotiate require ControlPrincipal
         public AuthenticationSchemes AuthenticationSchemes
         {
-            get => auth_schemes;
+            get { return auth_schemes; }
             set
             {
                 CheckDisposed();
@@ -81,7 +82,7 @@ namespace SocketHttpListener.Net
 
         public AuthenticationSchemeSelector AuthenticationSchemeSelectorDelegate
         {
-            get => auth_selector;
+            get { return auth_selector; }
             set
             {
                 CheckDisposed();
@@ -89,9 +90,15 @@ namespace SocketHttpListener.Net
             }
         }
 
-        public bool IsListening => listening;
+        public bool IsListening
+        {
+            get { return listening; }
+        }
 
-        public static bool IsSupported => true;
+        public static bool IsSupported
+        {
+            get { return true; }
+        }
 
         public HttpListenerPrefixCollection Prefixes
         {
@@ -105,7 +112,7 @@ namespace SocketHttpListener.Net
         // TODO: use this
         public string Realm
         {
-            get => realm;
+            get { return realm; }
             set
             {
                 CheckDisposed();
@@ -115,7 +122,7 @@ namespace SocketHttpListener.Net
 
         public bool UnsafeConnectionNtlmAuthentication
         {
-            get => unsafe_ntlm_auth;
+            get { return unsafe_ntlm_auth; }
             set
             {
                 CheckDisposed();
@@ -137,7 +144,10 @@ namespace SocketHttpListener.Net
         //    }
         //}
 
-        internal X509Certificate Certificate => _certificate;
+        internal X509Certificate Certificate
+        {
+            get { return _certificate; }
+        }
 
         public void Abort()
         {
@@ -238,7 +248,7 @@ namespace SocketHttpListener.Net
         internal void CheckDisposed()
         {
             if (disposed)
-                throw new ObjectDisposedException(GetType().Name);
+                throw new ObjectDisposedException(GetType().ToString());
         }
 
         internal void RegisterContext(HttpListenerContext context)

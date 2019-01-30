@@ -1,13 +1,15 @@
-using System.Linq;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller;
+﻿using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Connect;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Net;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Services;
+using MediaBrowser.Common.Net;
+using System.Threading;
 
 namespace MediaBrowser.Api
 {
@@ -102,8 +104,7 @@ namespace MediaBrowser.Api
             return new StartupUser
             {
                 Name = user.Name,
-                ConnectUserName = user.ConnectUserName,
-                Password = user.Password
+                ConnectUserName = user.ConnectUserName
             };
         }
 
@@ -112,12 +113,7 @@ namespace MediaBrowser.Api
             var user = _userManager.Users.First();
 
             user.Name = request.Name;
-
             _userManager.UpdateUser(user);
-
-            if (!string.IsNullOrEmpty(request.Password)) {
-                await _userManager.ChangePassword(user, request.Password).ConfigureAwait(false);
-            }
 
             var result = new UpdateStartupUserResult();
 
@@ -136,7 +132,6 @@ namespace MediaBrowser.Api
     {
         public string Name { get; set; }
         public string ConnectUserName { get; set; }
-        public string Password { get; set; }
     }
 
     public class UpdateStartupUserResult

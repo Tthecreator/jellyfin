@@ -1,18 +1,22 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller.Drawing;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Playlists;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Playlists;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
+
 using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.IO;
+using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Net;
 
 namespace Emby.Server.Implementations.Images
@@ -99,7 +103,7 @@ namespace Emby.Server.Implementations.Images
             CancellationToken cancellationToken)
         {
             var outputPathWithoutExtension = Path.Combine(ApplicationPaths.TempDirectory, Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPathWithoutExtension));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(outputPathWithoutExtension));
             string outputPath = CreateImage(item, itemsWithImages, outputPathWithoutExtension, imageType, 0);
 
             if (string.IsNullOrEmpty(outputPath))
@@ -165,7 +169,7 @@ namespace Emby.Server.Implementations.Images
 
         private string CreateCollage(BaseItem primaryItem, List<BaseItem> items, string outputPath, int width, int height)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+            FileSystem.CreateDirectory(FileSystem.GetDirectoryName(outputPath));
 
             var options = new ImageCollageOptions
             {
@@ -189,7 +193,10 @@ namespace Emby.Server.Implementations.Images
             return outputPath;
         }
 
-        public string Name => "Dynamic Image Provider";
+        public string Name
+        {
+            get { return "Dynamic Image Provider"; }
+        }
 
         protected virtual string CreateImage(BaseItem item,
             List<BaseItem> itemsWithImages,
@@ -225,7 +232,10 @@ namespace Emby.Server.Implementations.Images
             throw new ArgumentException("Unexpected image type");
         }
 
-        protected virtual int MaxImageAgeDays => 7;
+        protected virtual int MaxImageAgeDays
+        {
+            get { return 7; }
+        }
 
         public bool HasChanged(BaseItem item, IDirectoryService directoryServicee)
         {
@@ -283,7 +293,14 @@ namespace Emby.Server.Implementations.Images
             return true;
         }
 
-        public int Order => 0;
+        public int Order
+        {
+            get
+            {
+                // Run before the default image provider which will download placeholders
+                return 0;
+            }
+        }
 
         protected string CreateSingleImage(List<BaseItem> itemsWithImages, string outputPathWithoutExtension, ImageType imageType)
         {
@@ -300,7 +317,7 @@ namespace Emby.Server.Implementations.Images
             var ext = Path.GetExtension(image);
 
             var outputPath = Path.ChangeExtension(outputPathWithoutExtension, ext);
-            File.Copy(image, outputPath, true);
+            FileSystem.CopyFile(image, outputPath, true);
 
             return outputPath;
         }

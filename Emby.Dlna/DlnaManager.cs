@@ -1,22 +1,24 @@
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller;
+using MediaBrowser.Controller.Dlna;
+using MediaBrowser.Controller.Drawing;
+using MediaBrowser.Controller.Plugins;
+using Emby.Dlna.Profiles;
+using Emby.Dlna.Server;
+using MediaBrowser.Model.Dlna;
+using MediaBrowser.Model.Drawing;
+using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Emby.Dlna.Profiles;
-using Emby.Dlna.Server;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Dlna;
-using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Model.Dlna;
-using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Reflection;
-using MediaBrowser.Model.Serialization;
-using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Extensions;
 
 namespace Emby.Dlna
 {
@@ -32,17 +34,16 @@ namespace Emby.Dlna
 
         private readonly Dictionary<string, Tuple<InternalProfileInfo, DeviceProfile>> _profiles = new Dictionary<string, Tuple<InternalProfileInfo, DeviceProfile>>(StringComparer.Ordinal);
 
-        public DlnaManager(
-            IXmlSerializer xmlSerializer,
+        public DlnaManager(IXmlSerializer xmlSerializer,
             IFileSystem fileSystem,
             IApplicationPaths appPaths,
-            ILoggerFactory loggerFactory,
+            ILogger logger,
             IJsonSerializer jsonSerializer, IServerApplicationHost appHost, IAssemblyInfo assemblyInfo)
         {
             _xmlSerializer = xmlSerializer;
             _fileSystem = fileSystem;
             _appPaths = appPaths;
-            _logger = loggerFactory.CreateLogger("Dlna");
+            _logger = logger;
             _jsonSerializer = jsonSerializer;
             _appHost = appHost;
             _assemblyInfo = assemblyInfo;
@@ -94,7 +95,7 @@ namespace Emby.Dlna
         {
             if (deviceInfo == null)
             {
-                throw new ArgumentNullException(nameof(deviceInfo));
+                throw new ArgumentNullException("deviceInfo");
             }
 
             var profile = GetProfiles()
@@ -206,7 +207,7 @@ namespace Emby.Dlna
         {
             if (headers == null)
             {
-                throw new ArgumentNullException(nameof(headers));
+                throw new ArgumentNullException("headers");
             }
 
             // Convert to case insensitive
@@ -240,7 +241,9 @@ namespace Emby.Dlna
                 return false;
             }
 
-            if (headers.TryGetValue(header.Name, out string value))
+            string value;
+
+            if (headers.TryGetValue(header.Name, out value))
             {
                 switch (header.Match)
                 {
@@ -260,9 +263,21 @@ namespace Emby.Dlna
             return false;
         }
 
-        private string UserProfilesPath => Path.Combine(_appPaths.ConfigurationDirectoryPath, "dlna", "user");
+        private string UserProfilesPath
+        {
+            get
+            {
+                return Path.Combine(_appPaths.ConfigurationDirectoryPath, "dlna", "user");
+            }
+        }
 
-        private string SystemProfilesPath => Path.Combine(_appPaths.ConfigurationDirectoryPath, "dlna", "system");
+        private string SystemProfilesPath
+        {
+            get
+            {
+                return Path.Combine(_appPaths.ConfigurationDirectoryPath, "dlna", "system");
+            }
+        }
 
         private IEnumerable<DeviceProfile> GetProfiles(string path, DeviceProfileType type)
         {
@@ -287,7 +302,8 @@ namespace Emby.Dlna
         {
             lock (_profiles)
             {
-                if (_profiles.TryGetValue(path, out Tuple<InternalProfileInfo, DeviceProfile> profileTuple))
+                Tuple<InternalProfileInfo, DeviceProfile> profileTuple;
+                if (_profiles.TryGetValue(path, out profileTuple))
                 {
                     return profileTuple.Item2;
                 }
@@ -319,7 +335,7 @@ namespace Emby.Dlna
         {
             if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException("id");
             }
 
             var info = GetProfileInfosInternal().First(i => string.Equals(i.Info.Id, id, StringComparison.OrdinalIgnoreCase));
@@ -379,7 +395,7 @@ namespace Emby.Dlna
 
                     if (!fileInfo.Exists || fileInfo.Length != stream.Length)
                     {
-                        Directory.CreateDirectory(systemProfilesPath);
+                        _fileSystem.CreateDirectory(systemProfilesPath);
 
                         using (var fileStream = _fileSystem.GetFileStream(path, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read))
                         {
@@ -390,7 +406,7 @@ namespace Emby.Dlna
             }
 
             // Not necessary, but just to make it easy to find
-            Directory.CreateDirectory(UserProfilesPath);
+            _fileSystem.CreateDirectory(UserProfilesPath);
         }
 
         public void DeleteProfile(string id)

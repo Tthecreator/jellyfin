@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -6,8 +6,8 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
-using MediaBrowser.Model.Xml;
 using Microsoft.Extensions.Logging;
+using MediaBrowser.Model.Xml;
 
 namespace MediaBrowser.LocalMetadata.Parsers
 {
@@ -63,7 +63,9 @@ namespace MediaBrowser.LocalMetadata.Parsers
                         var val = reader.ReadElementContentAsString();
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            if (int.TryParse(val, NumberStyles.Integer, _usCulture, out var num))
+                            int num;
+
+                            if (int.TryParse(val, NumberStyles.Integer, _usCulture, out num))
                             {
                                 item.PlayersSupported = num;
                             }

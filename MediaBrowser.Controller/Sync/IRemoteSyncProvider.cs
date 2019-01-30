@@ -1,3 +1,4 @@
+﻿
 namespace MediaBrowser.Controller.Sync
 {
     /// <summary>
